@@ -3,7 +3,7 @@
  * Allows swapping API implementations (fetch, axios, mock)
  */
 
-import { PasteMeta } from '../../core/models/paste.js';
+import { PasteMetadata } from '../../core/models/paste.js';
 
 /**
  * Proof-of-work solution
@@ -59,7 +59,7 @@ export interface PasteRetrieveResponse {
   /** Base64url-encoded IV */
   iv: string;
   /** Metadata */
-  meta: PasteMeta;
+  meta: PasteMetadata;
   /** Views remaining */
   viewsLeft?: number;
 }
