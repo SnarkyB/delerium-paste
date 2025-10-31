@@ -71,10 +71,18 @@ describe('validateContentSize', () => {
   });
 
   it('should calculate byte size correctly for unicode', () => {
-    // Each emoji is ~4 bytes, so 250k emojis exceeds 1MB
-    const largeUnicode = '??'.repeat(250000);
+    // Unicode characters like emojis are 4 bytes each in UTF-8
+    // To exceed 1MB (1,048,576 bytes), we need: ceil(1,048,577 / 4) = 262,145 emojis
+    // Note: 250k emojis = 1,000,000 bytes = 976 KB (NOT enough to exceed 1MB)
+    const emoji = '??';
+    const bytesPerEmoji = new TextEncoder().encode(emoji).length;
+    const numEmojis = Math.ceil((MAX_CONTENT_SIZE + 1) / bytesPerEmoji);
+    const largeUnicode = emoji.repeat(numEmojis);
+    
     const result = validateContentSize(largeUnicode);
+    
     expect(result.isValid).toBe(false);
+    expect(result.errors.length).toBeGreaterThan(0);
     expect(result.errors[0]).toContain('Content too large');
   });
 });
