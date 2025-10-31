@@ -23,8 +23,10 @@ module.exports = {
     // Exclude UI-heavy files from global coverage (require manual/E2E testing)
     '!src/app.ts',
     '!src/delete.ts',
-    // Exclude new modular architecture files until tests added (PR #1.1)
-    '!src/core/**',
+    // Include core modules (validators and models) now that we have tests
+    // Exclude crypto module (covered in PR #1, has separate tests)
+    '!src/core/crypto/**',
+    '!src/core/models/**', // Type-only module, no runtime code to test
     '!src/infrastructure/**',
     '!src/application/**',
     '!src/presentation/**',
@@ -40,6 +42,13 @@ module.exports = {
     },
     // Critical security files require high coverage
     './src/security.ts': {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80
+    },
+    // Core modules require high coverage (PR #2)
+    './src/core/validators/index.ts': {
       branches: 80,
       functions: 80,
       lines: 80,
