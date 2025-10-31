@@ -1,0 +1,77 @@
+# Security-hardened docker-compose override
+services:
+  server:
+    # Security: Run as non-root user
+    user: "1000:1000"
+    # Security: Read-only root filesystem
+    read_only: true
+    # Security: No new privileges
+    security_opt:
+      - no-new-privileges:true
+    # Security: Drop capabilities
+    cap_drop:
+      - ALL
+    # Security: Limited resources
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    # Security: Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Security: Environment
+    environment:
+      - DELETION_TOKEN_PEPPER=${DELETION_TOKEN_PEPPER}
+      - LOG_LEVEL=INFO
+      - SECURE_MODE=true
+
+  web:
+    # Security: Read-only root filesystem
+    read_only: true
+    # Security: No new privileges
+    security_opt:
+      - no-new-privileges:true
+    # Security: Drop capabilities
+    cap_drop:
+      - ALL
+    # Security: Limited resources
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    # Security: Health check
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Security: Additional volumes for security config
+    volumes:
+      - ./reverse-proxy/secure/security.conf:/etc/nginx/conf.d/security.conf:ro
+      - ./logs/nginx:/var/log/nginx
+    # Security: Environment
+    environment:
+      - NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/conf.d
+
+# Security: Network isolation
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "false"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
