@@ -105,7 +105,7 @@ sudo cp "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ssl/
 sudo cp "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ssl/
 
 # Fix permissions
-sudo chown $USER:$USER ssl/*.pem
+sudo chown $(id -un):$(id -gn) ssl/*.pem
 chmod 644 ssl/fullchain.pem
 chmod 600 ssl/privkey.pem
 
