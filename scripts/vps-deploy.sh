@@ -152,7 +152,7 @@ echo_info "Copying SSL certificates to project..."
 mkdir -p ssl
 sudo cp "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ssl/
 sudo cp "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ssl/
-sudo chown $USER:$USER ssl/*.pem
+sudo chown $(id -un):$(id -gn) ssl/*.pem
 chmod 644 ssl/fullchain.pem
 chmod 600 ssl/privkey.pem
 
@@ -189,7 +189,7 @@ fi
 
 # Step 17: Set up certificate auto-renewal
 echo_info "Setting up automatic SSL certificate renewal..."
-CRON_JOB="0 3 * * * certbot renew --quiet --post-hook 'cp /etc/letsencrypt/live/$DOMAIN/*.pem $INSTALL_DIR/ssl/ && chown $USER:$USER $INSTALL_DIR/ssl/*.pem && cd $INSTALL_DIR && docker compose -f docker-compose.prod.yml restart web' >> /var/log/certbot-renew.log 2>&1"
+CRON_JOB="0 3 * * * certbot renew --quiet --post-hook 'cp /etc/letsencrypt/live/$DOMAIN/*.pem $INSTALL_DIR/ssl/ && chown \$(id -un):\$(id -gn) $INSTALL_DIR/ssl/*.pem && cd $INSTALL_DIR && docker compose -f docker-compose.prod.yml restart web' >> /var/log/certbot-renew.log 2>&1"
 
 # Remove old cron job if exists
 (crontab -l 2>/dev/null | grep -v "certbot renew") | crontab - 2>/dev/null || true
