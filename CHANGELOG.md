@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4-alpha] - 2025-10-31
+
+### Fixed
+- **Critical**: Fixed invalid group error in SSL certificate setup scripts
+  - Replaced `$USER:$USER` with `$(id -un):$(id -gn)` in chown commands
+  - Ensures proper file permissions across all Unix-like systems
+  - Affects `scripts/vps-deploy.sh` and `scripts/setup-ssl.sh`
+
+### Changed
+- Improved SSL certificate permission handling for cross-platform compatibility
+- Enhanced cron job configuration for certificate auto-renewal
+
+### Notes
+This is a patch release that fixes a critical deployment issue where SSL certificate setup would fail with "invalid group" errors on systems where the user's group name doesn't match their username.
+
 ## [0.1.3-alpha] - 2025-10-31
 
 ### Added
@@ -126,8 +141,9 @@ The v0.1.0-alpha release had a critical bug where TypeScript's module compilatio
 ### Notes
 This is an alpha release intended for testing and feedback. Not recommended for production use with sensitive data.
 
-[Unreleased]: https://github.com/your-username/delerium-paste/compare/v0.1.3-alpha...HEAD
-[0.1.3-alpha]: https://github.com/your-username/delerium-paste/compare/v0.1.2-alpha...v0.1.3-alpha
-[0.1.2-alpha]: https://github.com/your-username/delerium-paste/compare/v0.1.1-alpha...v0.1.2-alpha
-[0.1.1-alpha]: https://github.com/your-username/delerium-paste/compare/v0.1.0-alpha...v0.1.1-alpha
-[0.1.0-alpha]: https://github.com/your-username/delerium-paste/releases/tag/v0.1.0-alpha
+[Unreleased]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.4-alpha...HEAD
+[0.1.4-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.3-alpha...v0.1.4-alpha
+[0.1.3-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.2-alpha...v0.1.3-alpha
+[0.1.2-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.1-alpha...v0.1.2-alpha
+[0.1.1-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.0-alpha...v0.1.1-alpha
+[0.1.0-alpha]: https://github.com/SnarkyB/delerium-paste/releases/tag/v0.1.0-alpha
