@@ -80,7 +80,7 @@ deploy_to_vps() {
     echo ""
     
     # SSH into VPS and run deployment
-    ssh $VPS_USER@$VPS_HOST << ENDSSH
+    ssh $VPS_USER@$VPS_HOST -o PubkeyAuthentication=no << ENDSSH
 set -e
 
 echo "?? Pulling latest code..."
@@ -130,7 +130,7 @@ ENDSSH
     else
         echo ""
         echo -e "${RED}? Deployment failed${NC}"
-        echo "Check logs with: ssh $VPS_USER@$VPS_HOST 'cd ~/delerium-paste && docker compose -f docker-compose.prod.yml logs'"
+        echo "Check logs with: ssh $VPS_USER@$VPS_HOST  'cd ~/delerium-paste && docker compose -f docker-compose.prod.yml logs'"
         exit 1
     fi
 }
@@ -138,13 +138,13 @@ ENDSSH
 # Function to view logs
 view_logs() {
     echo -e "${BLUE}?? Viewing logs...${NC}"
-    ssh $VPS_USER@$VPS_HOST "cd ~/delerium-paste && docker compose -f docker-compose.prod.yml logs -f"
+    ssh $VPS_USER@$VPS_HOST -o PubkeyAuthentication=no "cd ~/delerium-paste && docker compose -f docker-compose.prod.yml logs -f"
 }
 
 # Function to check status
 check_status() {
     echo -e "${BLUE}?? Checking status...${NC}"
-    ssh $VPS_USER@$VPS_HOST "cd ~/delerium-paste && docker compose -f docker-compose.prod.yml ps"
+    ssh $VPS_USER@$VPS_HOST -o PubkeyAuthentication=no "cd ~/delerium-paste && docker compose -f docker-compose.prod.yml ps"
 }
 
 # Main menu
@@ -187,7 +187,7 @@ case $choice in
         ;;
     5)
         echo -e "${BLUE}?? Quick redeploying...${NC}"
-        ssh $VPS_USER@$VPS_HOST "cd ~/delerium-paste && docker compose -f docker-compose.prod.yml restart"
+        ssh $VPS_USER@$VPS_HOST -o PubkeyAuthentication=no "cd ~/delerium-paste && docker compose -f docker-compose.prod.yml restart"
         echo -e "${GREEN}? Services restarted${NC}"
         check_status
         ;;
@@ -199,8 +199,8 @@ esac
 
 echo ""
 echo -e "${BOLD}Useful commands:${NC}"
-echo "  View logs:    ssh $VPS_USER@$VPS_HOST 'cd ~/delerium-paste && docker compose -f docker-compose.prod.yml logs -f'"
-echo "  Check status: ssh $VPS_USER@$VPS_HOST 'cd ~/delerium-paste && docker compose -f docker-compose.prod.yml ps'"
-echo "  Stop:         ssh $VPS_USER@$VPS_HOST 'cd ~/delerium-paste && docker compose -f docker-compose.prod.yml down'"
+echo "  View logs:    ssh $VPS_USER@$VPS_HOST -o PubkeyAuthentication=no 'cd ~/delerium-paste && docker compose -f docker-compose.prod.yml logs -f'"
+echo "  Check status: ssh $VPS_USER@$VPS_HOST -o PubkeyAuthentication=no 'cd ~/delerium-paste && docker compose -f docker-compose.prod.yml ps'"
+echo "  Stop:         ssh $VPS_USER@$VPS_HOST -o PubkeyAuthentication=no 'cd ~/delerium-paste && docker compose -f docker-compose.prod.yml down'"
 echo ""
 echo -e "${GREEN}Done! ??${NC}"
