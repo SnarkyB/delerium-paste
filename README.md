@@ -209,18 +209,40 @@ zkpaste-full-docker/
 - Node.js 18+ (for local development and testing)
 - Java 21+ (for local server development)
 
-### One-Command Setup (Recommended)
+### Interactive Setup (Recommended for First-Time Users)
 
-For first-time users, use the quick-start script:
+**New!** Easy setup wizard that guides you through configuring secrets:
 
 ```bash
 git clone <repository-url>
-cd delirium
+cd delirium-paste
+./scripts/setup.sh
+```
+
+The wizard will:
+- 🔐 **Guide you through secrets configuration** - Auto-generate secure tokens or enter your own
+- 📝 **Create your .env file** - With clear explanations of each setting
+- ✅ **Check prerequisites** - Verify Docker, Docker Compose, etc.
+- 🚀 **Start services** - Option to launch everything immediately
+- 🌐 **Open in browser** - Automatically open http://localhost:8080
+
+Perfect for users who want to understand where secrets go and what they're for!
+
+📖 **See [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed instructions and examples.**
+
+### One-Command Setup (Quick)
+
+For experienced users who want fast setup:
+
+```bash
+git clone <repository-url>
+cd delirium-paste
 make quick-start
 ```
 
 This will:
 - Check all prerequisites
+- Auto-generate secure secrets
 - Install dependencies
 - Build the client
 - Start all services
