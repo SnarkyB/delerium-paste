@@ -1,6 +1,7 @@
 # Testing Rules (Delirium)
 
 ## File Patterns
+
 - Unit/Integration: `**/*.test.ts`
 - E2E: `**/*.spec.ts`
 
@@ -416,12 +417,14 @@ export function mockFetchError(status: number, message: string): void {
 
 ## Coverage Requirements
 
+
 - **Minimum**: 85% overall
 - **Critical functions**: 100% (encryption, authentication, validation)
 - **Error paths**: Must be tested
 - **Edge cases**: Document and test
 
 ## Remember
+
 
 - **One assertion per test** (when possible)
 - **Test behavior, not implementation**
