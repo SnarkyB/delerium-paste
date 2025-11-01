@@ -13,7 +13,10 @@ import {
   validateExpiration,
   validateViewCount,
   validatePassword,
-  isValidUTF8,
+  isValidUTF8
+} from '../src/core/validators/index.js';
+
+import {
   secureClear,
   secureClearBuffer,
   getSafeErrorMessage,

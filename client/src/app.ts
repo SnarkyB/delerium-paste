@@ -25,13 +25,25 @@ import {
   validateExpiration, 
   validateViewCount,
   validatePassword,
-  isValidUTF8,
+  isValidUTF8
+} from './core/validators/index.js';
+
+import {
   secureClear,
   safeDisplayContent,
   getSafeErrorMessage,
   encryptWithPassword,
   decryptWithPassword
 } from './security.js';
+
+import {
+  EncryptedData,
+  PowChallenge,
+  PowSolution,
+  PasteMetadata,
+  CreatePasteResponse,
+  GetPasteResponse
+} from './core/models/paste.js';
 
 // ============================================================================
 // ENCODING UTILITIES
@@ -90,15 +102,6 @@ export function genIV(): Uint8Array {
 }
 
 /**
- * Result of encrypting data
- */
-interface EncryptedData {
-  keyB64: string;   // Base64url-encoded encryption key
-  ivB64: string;    // Base64url-encoded IV
-  ctB64: string;    // Base64url-encoded ciphertext
-}
-
-/**
  * Encrypt a plaintext string using AES-GCM
  * 
  * Generates a new random key and IV for each encryption.
@@ -138,13 +141,7 @@ export async function decryptParts(keyB64: string, ivB64: string, ctB64: string)
 // PROOF-OF-WORK FUNCTIONS
 // ============================================================================
 
-/**
- * Proof-of-work challenge from server
- */
-interface PowChallenge {
-  challenge: string;   // Random challenge string
-  difficulty: number;  // Number of leading zero bits required
-}
+// PowChallenge is now imported from core/models/paste.js
 
 /**
  * Fetch a proof-of-work challenge from the server
@@ -304,7 +301,7 @@ if (typeof document !== 'undefined') {
       ctB64 = encrypted.ctB64;
     }
 
-  let pow: { challenge: string; nonce: number } | null = null;
+  let pow: PowSolution | null = null;
   try {
     const ch = await fetchPow();
     if (ch) {
@@ -319,12 +316,12 @@ if (typeof document !== 'undefined') {
       body: JSON.stringify({
         ct: ctB64,
         iv: ivB64,
-        meta: { 
-          expireTs, 
-          singleView, 
-          viewsAllowed: singleView ? 1 : views, 
-          mime: "text/plain" 
-        },
+        meta: {
+          expireTs,
+          singleView,
+          viewsAllowed: singleView ? 1 : views,
+          mime: "text/plain"
+        } as PasteMetadata,
         pow
       })
     });
@@ -334,7 +331,7 @@ if (typeof document !== 'undefined') {
       throw new Error(err.error || res.statusText);
     }
     
-    const data = await res.json(); // { id, deleteToken }
+    const data = await res.json() as CreatePasteResponse;
     const url = `${location.origin}/view.html?p=${encodeURIComponent(data.id)}#${keyB64}:${ivB64}`;
     const deleteUrl = `${location.origin}/delete.html?p=${encodeURIComponent(data.id)}&token=${encodeURIComponent(data.deleteToken)}`;
     
@@ -396,7 +393,7 @@ if (typeof document !== 'undefined' && typeof location !== 'undefined') {
         if (r.status === 410) throw new Error("Content has expired.");
         throw new Error("Failed to retrieve content.");
       }
-      const { ct, iv } = await r.json();
+      const { ct, iv } = await r.json() as GetPasteResponse;
       
       // Check if this is password-protected (by checking if we can decrypt with regular method)
       let text: string;
