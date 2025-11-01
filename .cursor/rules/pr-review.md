@@ -26,3 +26,9 @@ When reviewing a Pull Request, check:
 
 #
 - lways ask before you push to the origin
+
+## Git Workflow
+- **NEVER push directly to main** - Always create a feature branch and PR
+- All changes must go through pull requests, even small fixes
+- Ask before bypassing branch protection rules
+- Use descriptive branch names: `feature/`, `fix/`, `docs/`, `refactor/`
