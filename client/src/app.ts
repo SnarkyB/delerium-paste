@@ -39,10 +39,7 @@ import {
 import {
   EncryptedData,
   PowChallenge,
-  PowSolution,
-  PasteMetadata,
-  CreatePasteResponse,
-  GetPasteResponse
+  PowSolution
 } from './core/models/paste.js';
 
 import { HttpApiClient } from './infrastructure/api/http-client.js';

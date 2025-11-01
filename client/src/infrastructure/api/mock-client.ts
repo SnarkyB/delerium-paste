@@ -10,13 +10,14 @@ import {
   PasteRetrieveResponse,
   PowChallenge
 } from './interfaces.js';
+import type { PasteMetadata } from '../../core/models/paste.js';
 
 /**
  * Mock API client for testing
  * Stores pastes in memory and simulates server behavior
  */
 export class MockApiClient implements IApiClient {
-  private pastes = new Map<string, { ct: string; iv: string; meta: any; deleteToken: string }>();
+  private pastes = new Map<string, { ct: string; iv: string; meta: PasteMetadata; deleteToken: string }>();
   private powEnabled = false;
   private nextId = 1;
 
