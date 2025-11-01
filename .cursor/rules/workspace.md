@@ -6,12 +6,14 @@ You are working on **Delirium**, a zero-knowledge paste system where security an
 ## Core Principles
 
 ### 1. Zero-Knowledge Architecture
+
 - ALL encryption happens client-side before data leaves the browser
 - Encryption keys are NEVER transmitted to the server
 - Keys exist only in URL fragments (after `#`) which browsers don't send
 - Server stores only encrypted blobs (ciphertext + IV)
 
 ### 2. Security First
+
 - Never log sensitive data (keys, plaintext, tokens)
 - Never expose internal error details to clients
 - Always validate inputs on both client and server
@@ -19,6 +21,7 @@ You are working on **Delirium**, a zero-knowledge paste system where security an
 - Use AES-256-GCM for authenticated encryption
 
 ### 3. Type Safety
+
 - Use TypeScript strict mode everywhere
 - Prefer explicit types over inference
 - Export main functions for testing
@@ -66,6 +69,7 @@ class Paste {
 ## Testing Requirements
 
 ### Coverage
+
 - Minimum 85% code coverage for CI to pass
 - Critical functions (encryption, auth) require 100%
 - Test error paths and edge cases
@@ -143,6 +147,7 @@ scripts/                  ? Deployment/utility scripts
 ```
 
 ### What to Ignore
+
 - `node_modules/` - Dependencies (use package.json)
 - `build/`, `dist/` - Generated files
 - `*.log` - Log files
@@ -262,6 +267,7 @@ make start          # Local Docker
 ## Git Workflow
 
 ### Branches
+
 - `main` - Production ready
 - `draft/*` - Feature branches for PR
 - Use descriptive names: `draft/security-ux-bundle`
@@ -277,32 +283,44 @@ Match commit messages to branch context:
 
 ```
 Branch: feature/cursor-rules-migration
+
+
 ? Good commits:
+
 - "feat: add AI collaboration workflow rules"
 - "docs: update cursor migration guide"
 - "refactor: reorganize workspace rules structure"
 
 ? Bad commits (off-context):
+
 - "fix: rate limiting bug" (unrelated to cursor rules)
 - "feat: add new API endpoint" (wrong feature)
 
 Branch: draft/security-ux-bundle
+
+
 ? Good commits:
+
 - "feat: add rate limiting middleware"
 - "feat: improve error message clarity"
 - "test: add security validation tests"
 
 ? Bad commits (off-context):
+
 - "docs: update deployment guide" (not security/UX)
 - "refactor: rename utility functions" (unrelated)
 
 Branch: fix/encryption-padding-bug
+
+
 ? Good commits:
+
 - "fix: correct AES-GCM padding calculation"
 - "test: add padding edge case coverage"
 - "docs: document encryption padding behavior"
 
 ? Bad commits (off-context):
+
 - "feat: add new encryption algorithm" (scope creep)
 - "refactor: rewrite entire crypto module" (too broad)
 ```
@@ -317,6 +335,8 @@ Branch: fix/encryption-padding-bug
 ```
 
 **Types:**
+
+
 - `feat:` - New feature (aligns with feature/* or draft/* branches)
 - `fix:` - Bug fix (aligns with fix/* branches)
 - `docs:` - Documentation only
@@ -327,6 +347,8 @@ Branch: fix/encryption-padding-bug
 - `style:` - Code style/formatting (no logic change)
 
 **Context Validation:**
+
+
 Before committing, ask:
 1. Does this commit belong on this branch?
 2. Does the commit type match the branch purpose?
@@ -335,6 +357,8 @@ Before committing, ask:
 
 ### Quality Gates
 All CI checks must pass:
+
+
 - ? Linting (ESLint)
 - ? Type checking (tsc)
 - ? Tests (Jest, Playwright)
@@ -365,6 +389,8 @@ All CI checks must pass:
 
 #### 2. When You Can Change APIs
 Only change API contracts when:
+
+
 - **New feature**: Adding NEW functionality (additive changes)
 - **Deprecation cycle**: Old API + new API coexist with warnings
 - **Breaking change**: Documented, versioned, with migration guide
@@ -372,6 +398,8 @@ Only change API contracts when:
 
 #### 3. Investigation Checklist
 Before changing any public API:
+
+
 - [ ] Search codebase for all usages: `grep -r "functionName"` 
 - [ ] Check how it's actually called in production code
 - [ ] Verify the return type/parameters in real usage
@@ -425,6 +453,8 @@ All public APIs must have:
 
 #### 6. Breaking Changes Process
 If you MUST break an API:
+
+
 1. Create issue documenting the breaking change
 2. Add deprecation warning to old API
 3. Implement new API alongside old one
@@ -462,6 +492,8 @@ When working with AI assistants (like Cursor AI):
 - **Clear scope**: Easy to review, test, and understand
 
 ### Commit & Push Control
+
+
 - **NEVER auto-commit**: AI should NOT automatically commit changes
 - **NEVER auto-push**: AI should NOT automatically push to remote
 - **Manual review required**: Developer reviews all changes before commit
@@ -518,6 +550,8 @@ Example breakdown:
 Large task: "Improve security and UX"
 
 Split into:
+
+
 - PR 1: Add rate limiting (security)
 - PR 2: Add input validation (security)
 - PR 3: Improve error messages (UX)
@@ -527,6 +561,8 @@ Split into:
 ## Security Checklist
 
 Before committing:
+
+
 - [ ] No hardcoded secrets or keys
 - [ ] No sensitive data in logs
 - [ ] Client-side encryption verified
@@ -549,6 +585,8 @@ Before committing:
 
 ## Remember
 
+
+
 1. **Zero-Knowledge**: If you're sending a key to the server, you're doing it wrong
 2. **Test Everything**: No code without tests
 3. **Type Safety**: Explicit types prevent bugs
@@ -558,6 +596,8 @@ Before committing:
 ---
 
 When suggesting code changes:
+
+
 - Maintain zero-knowledge principle
 - Follow existing patterns
 - Add tests for new functionality
@@ -792,6 +832,8 @@ Comment: "Will add tests later"  ❌❌❌
 #### Why This Matters
 
 **Without this rule:**
+
+
 - Coverage slowly decays
 - Bugs slip through
 - Code becomes "too scary to change"
@@ -799,6 +841,8 @@ Comment: "Will add tests later"  ❌❌❌
 - Future developers suffer
 
 **With this rule:**
+
+
 - Coverage stays high
 - Bugs caught early
 - Code stays maintainable
@@ -846,11 +890,15 @@ npm run test:coverage
 Commit: "feat: improve password and single-view UX"
 
 Added code:
+
+
 - Password retry logic (5 attempts)
 - Single-view UI toggle
 - Memory management for retries
 
 Added tests:
+
+
 - it('should allow 5 password attempts before failing')
 - it('should preserve view count during retries')
 - it('should disable views input when single-view checked')

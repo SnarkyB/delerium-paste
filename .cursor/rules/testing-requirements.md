@@ -7,6 +7,7 @@
 ## Mandatory Rule
 
 All new implementations MUST have tests before merge UNLESS:
+
 - Function is trivial (< 5 lines, no logic)
 - Simple getter/setter
 - Pure interface/type definition
@@ -14,11 +15,13 @@ All new implementations MUST have tests before merge UNLESS:
 ## Test Behavior, Not Results
 
 ✅ Good - Testing Behavior:
+
 - "decrypt recovers original plaintext"
 - "wrong password fails to decrypt"
 - "same input produces different ciphertext" (randomness)
 
 ❌ Bad - Testing Results:
+
 - "returns base64 string"
 - "algorithm property is AES-GCM"
 - "calls crypto.subtle.encrypt"

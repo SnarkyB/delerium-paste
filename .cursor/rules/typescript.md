@@ -400,6 +400,7 @@ async function fetchPaste(id: string): Promise<any> {
 
 ## Remember
 
+
 - **Explicit over implicit**: Always specify types for public APIs
 - **Await your promises**: Don't forget async/await
 - **Handle nulls**: Use optional chaining and nullish coalescing
