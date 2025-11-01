@@ -88,12 +88,16 @@ jobs:
         run: |
           # Adjust the threshold as needed
           THRESHOLD=85
-          COVERAGE=$(grep -oP 'All files[^|]*\|\s*\K[0-9\.]+(?=%)' coverage/lcov-report/index.html | head -1)
+          # Extract coverage percentage using awk (more reliable than grep -oP)
+          COVERAGE=$(grep -i "All files" coverage/lcov-report/index.html | awk -F'|' '{print $NF}' | grep -oE '[0-9]+\.?[0-9]*' | head -1)
           echo "Detected coverage: $COVERAGE%"
-          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+          # Use awk for floating point comparison (bc might not be installed)
+          COMPARE=$(echo "$COVERAGE $THRESHOLD" | awk '{if ($1 < $2) print 1; else print 0}')
+          if [ "$COMPARE" = "1" ]; then
             echo "Coverage ($COVERAGE%) is below threshold ($THRESHOLD%)"
             exit 1
           fi
+          echo "Coverage check passed: $COVERAGE% >= $THRESHOLD%"
 
       - name: Security Audit (frontend)
         working-directory: ./client
@@ -157,8 +161,8 @@ jobs:
             exit 1
           fi
 
-          # Test nginx is responding
-          curl -f http://localhost:8080 || {
+          # Test nginx is responding (with timeout to prevent hanging)
+          timeout 10 curl -f http://localhost:8080 || {
             echo "Nginx health check failed"
             docker compose -f docker-compose.yml logs
             exit 1
