@@ -85,6 +85,8 @@ export interface GetPasteResponse {
   iv: string;
   /** Paste metadata */
   meta: PasteMetadata;
+  /** Number of views remaining (null if unlimited) */
+  viewsLeft?: number | null;
 }
 
 /**

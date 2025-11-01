@@ -1,39 +1,800 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
-    <title>Create secure paste</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'">
+    <title>Delirium Paste - Secure Zero-Knowledge Paste</title>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 2rem; }
-      textarea { width: 100%; box-sizing: border-box; }
-      .row { margin: .75rem 0; }
-      button { padding: .6rem 1rem; border-radius: .5rem; border: 1px solid #ddd; cursor: pointer; }
-      pre { background: #f7f7f7; padding: 1rem; border-radius: .5rem; overflow: auto; }
+      /* CSS Reset & Base */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --primary-light: #818cf8;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --bg: #f8fafc;
+        --bg-card: #ffffff;
+        --text: #1e293b;
+        --text-light: #64748b;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --radius: 0.75rem;
+        --radius-sm: 0.5rem;
+      }
+
+      /* Dark Mode */
+      [data-theme="dark"] {
+        --bg: #0f172a;
+        --bg-card: #1e293b;
+        --text: #f1f5f9;
+        --text-light: #94a3b8;
+        --border: #334155;
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+      }
+
+      [data-theme="dark"] body {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      }
+
+      [data-theme="dark"] textarea,
+      [data-theme="dark"] input[type="number"],
+      [data-theme="dark"] input[type="password"] {
+        background: #0f172a;
+        color: var(--text);
+      }
+
+      [data-theme="dark"] .preset-btn {
+        background: #0f172a;
+        color: var(--text);
+      }
+
+      [data-theme="dark"] .preset-btn:hover {
+        background: var(--primary-light);
+        color: white;
+      }
+
+      [data-theme="dark"] .checkbox-group {
+        background: #0f172a;
+      }
+
+      [data-theme="dark"] .checkbox-group:hover {
+        background: #1e293b;
+      }
+
+      [data-theme="dark"] .output {
+        background: #0f172a;
+      }
+
+      [data-theme="dark"] .output.error {
+        background: #1e1b1b;
+      }
+
+      [data-theme="dark"] .output-url input {
+        background: #0f172a;
+        color: var(--text);
+        border-color: var(--border);
+      }
+
+      [data-theme="dark"] .char-counter {
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-light);
+      }
+
+      [data-theme="dark"] .theme-toggle {
+        background: rgba(30, 41, 59, 0.8);
+        border-color: rgba(148, 163, 184, 0.3);
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 1rem;
+        color: var(--text);
+        line-height: 1.6;
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      * {
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      /* Dark Mode Toggle */
+      .theme-toggle {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        width: 3rem;
+        height: 3rem;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.5rem;
+        z-index: 100;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .theme-toggle:hover {
+        transform: scale(1.1) rotate(20deg);
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .theme-toggle:active {
+        transform: scale(0.95) rotate(20deg);
+      }
+
+      /* Header */
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+        animation: fadeInDown 0.6s ease-out;
+      }
+
+      .logo {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+
+      .tagline {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      .security-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        color: white;
+        font-size: 0.9rem;
+        margin-top: 1rem;
+      }
+
+      /* Main Card */
+      .card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        padding: 2rem;
+        animation: fadeInUp 0.6s ease-out;
+      }
+
+      /* Form Sections */
+      .section {
+        margin-bottom: 2rem;
+      }
+
+      .section-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+      }
+
+      /* Textarea */
+      .textarea-wrapper {
+        position: relative;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 300px;
+        padding: 1rem;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+        font-size: 0.95rem;
+        resize: vertical;
+        background: var(--bg);
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+
+      .char-counter {
+        position: absolute;
+        bottom: 0.75rem;
+        right: 0.75rem;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        color: var(--text-light);
+        font-weight: 500;
+        pointer-events: none;
+      }
+
+      .char-counter.warning {
+        color: var(--warning);
+      }
+
+      .char-counter.danger {
+        color: var(--danger);
+      }
+
+      /* Options Grid */
+      .options-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+
+      .option-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text);
+      }
+
+      input[type="number"],
+      input[type="password"] {
+        padding: 0.75rem;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 0.95rem;
+        background: var(--bg);
+      }
+
+      input[type="number"]:focus,
+      input[type="password"]:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+
+      /* Quick Presets */
+      .presets {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+      }
+
+      .preset-btn {
+        padding: 0.4rem 0.75rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        color: var(--text);
+      }
+
+      .preset-btn:hover {
+        background: var(--primary-light);
+        color: white;
+        border-color: var(--primary-light);
+      }
+
+      /* Checkboxes */
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: var(--bg);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+      }
+
+      .checkbox-group:hover {
+        background: #f1f5f9;
+      }
+
+      input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        cursor: pointer;
+        accent-color: var(--primary);
+      }
+
+      .checkbox-label {
+        font-size: 0.95rem;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      /* Password Group */
+      #passwordGroup {
+        margin-top: 1rem;
+        animation: slideDown 0.3s ease-out;
+      }
+
+      /* Button */
+      .btn-primary {
+        width: 100%;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .btn-primary:active {
+        transform: translateY(0);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-primary .btn-text {
+        position: relative;
+        z-index: 1;
+      }
+
+      .btn-primary .btn-icon {
+        margin-right: 0.5rem;
+      }
+
+      /* Output */
+      .output {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: var(--bg);
+        border-radius: var(--radius-sm);
+        border-left: 4px solid var(--success);
+        display: none;
+        animation: slideDown 0.3s ease-out;
+      }
+
+      .output.show {
+        display: block;
+      }
+
+      .output.error {
+        border-left-color: var(--danger);
+        background: #fef2f2;
+      }
+
+      .output-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--success);
+      }
+
+      .output.error .output-title {
+        color: var(--danger);
+      }
+
+      .output-url {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        margin-top: 0.75rem;
+      }
+
+      .output-url input {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-family: monospace;
+        font-size: 0.9rem;
+        background: white;
+      }
+
+      .btn-copy {
+        padding: 0.75rem 1.25rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      .btn-copy:hover {
+        background: var(--primary-dark);
+      }
+
+      .btn-copy.copied {
+        background: var(--success);
+      }
+
+      /* Footer */
+      .footer {
+        margin-top: 2rem;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+      }
+
+      .footer a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        display: inline-block;
+        margin: 0 0.25rem;
+      }
+
+      .footer a:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Loading Spinner */
+      .spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      /* Animations */
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          max-height: 0;
+        }
+        to {
+          opacity: 1;
+          max-height: 500px;
+        }
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* Responsive */
+      @media (max-width: 640px) {
+        body {
+          padding: 1rem 0.5rem;
+        }
+
+        .card {
+          padding: 1.5rem;
+        }
+
+        .logo {
+          font-size: 2rem;
+        }
+
+        .options-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .output-url {
+          flex-direction: column;
+        }
+
+        .btn-copy {
+          width: 100%;
+        }
+
+        .theme-toggle {
+          top: 1rem;
+          right: 1rem;
+        }
+      }
+
+      /* Tooltips */
+      .tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+        color: var(--text-light);
+        margin-left: 0.25rem;
+      }
+
+      .tooltip:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 0.5rem 0.75rem;
+        background: var(--text);
+        color: white;
+        border-radius: 0.375rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        z-index: 10;
+        margin-bottom: 0.5rem;
+      }
     </style>
   </head>
   <body>
-    <h1>New Paste (Zero‑Knowledge)</h1>
-    <div class="row">
-      <textarea id="paste" rows="16" placeholder="Type or paste text here…"></textarea>
+    <!-- Dark Mode Toggle -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+      <span id="themeIcon">?</span>
+    </button>
+
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo">?? Delirium Paste</div>
+        <div class="tagline">Secure, Zero-Knowledge Paste Sharing</div>
+        <div class="security-badge">
+          <span>???</span>
+          <span>End-to-End Encrypted</span>
+        </div>
+      </div>
+
+      <!-- Main Card -->
+      <div class="card">
+        <!-- Paste Content -->
+        <div class="section">
+          <div class="section-title">Your Content</div>
+          <div class="textarea-wrapper">
+            <textarea 
+              id="paste" 
+              placeholder="Type or paste your text here... It will be encrypted in your browser before upload."
+              maxlength="1048576"
+            ></textarea>
+            <div class="char-counter" id="charCounter">0 / 1,048,576</div>
+          </div>
+        </div>
+
+        <!-- Expiration Options -->
+        <div class="section">
+          <div class="section-title">Expiration</div>
+          <div class="option-group">
+            <label for="mins">
+              Expire after (minutes)
+              <span class="tooltip" data-tooltip="How long before the paste is automatically deleted">??</span>
+            </label>
+            <input type="number" id="mins" value="60" min="1" max="10080">
+            <div class="presets">
+              <button class="preset-btn" onclick="document.getElementById('mins').value=60">1 hour</button>
+              <button class="preset-btn" onclick="document.getElementById('mins').value=1440">1 day</button>
+              <button class="preset-btn" onclick="document.getElementById('mins').value=10080">1 week</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- View Limits & Security -->
+        <div class="section">
+          <div class="section-title">Security Options</div>
+          <div class="options-grid">
+            <div class="option-group">
+              <label for="views">
+                Maximum views
+                <span class="tooltip" data-tooltip="Paste will be deleted after this many views">??</span>
+              </label>
+              <input type="number" id="views" value="10" min="1" max="100">
+            </div>
+
+            <div class="option-group">
+              <div class="checkbox-group">
+                <input type="checkbox" id="single">
+                <label for="single" class="checkbox-label">
+                  ?? Burn after reading
+                  <span class="tooltip" data-tooltip="Delete immediately after first view">??</span>
+                </label>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="checkbox" id="usePassword">
+                <label for="usePassword" class="checkbox-label">
+                  ?? Password protect
+                  <span class="tooltip" data-tooltip="Add an extra layer of encryption">??</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div id="passwordGroup" style="display: none;">
+            <div class="option-group">
+              <label for="password">Password (min 8 characters)</label>
+              <input type="password" id="password" placeholder="Enter a strong password">
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button id="save" class="btn-primary">
+          <span class="btn-text">
+            <span class="btn-icon">??</span>
+            <span id="btnText">Encrypt & Upload</span>
+          </span>
+        </button>
+
+        <!-- Output -->
+        <div id="output" class="output">
+          <div class="output-title" id="outputTitle">? Success! Your paste is ready</div>
+          <div id="outputMessage"></div>
+          <div class="output-url">
+            <input type="text" id="pasteUrl" readonly>
+            <button class="btn-copy" id="copyBtn">Copy Link</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>
+          <a href="chat.html">?? BB Chat</a>
+          <a href="view.html">??? View Paste</a>
+        </p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+          Your content is encrypted in your browser. We never see your data.
+        </p>
+      </div>
     </div>
-    <div class="row">
-      <label>Expire (minutes): <input type="number" id="mins" value="60" min="1"></label>
-      <label style="margin-left:1rem;">Max views: <input type="number" id="views" value="10" min="1" max="100"></label>
-    </div>
-    <div class="row">
-      <label>Single‑view <input type="checkbox" id="single"></label>
-      <label style="margin-left:1rem;">Password protect <input type="checkbox" id="usePassword"></label>
-    </div>
-    <div class="row" id="passwordGroup" style="display: none;">
-      <label>Password: <input type="password" id="password" placeholder="Enter password (min 8 chars)"></label>
-    </div>
-    <div class="row">
-      <button id="save">Encrypt & Upload</button>
-    </div>
-    <pre id="out"></pre>
-    <p>View pastes via <code>/view.html?p=&lt;id&gt;#&lt;key&gt;:&lt;iv&gt;</code></p>
+
     <script type="module" src="js/app.js"></script>
+    <script>
+      // Dark Mode Toggle
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+      const html = document.documentElement;
+
+      // Check for saved theme preference or default to DARK mode
+      const currentTheme = localStorage.getItem('theme') || 'dark';
+      html.setAttribute('data-theme', currentTheme);
+      themeIcon.textContent = currentTheme === 'dark' ? '??' : '??';
+
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        themeIcon.textContent = newTheme === 'dark' ? '??' : '??';
+      });
+
+      // Character counter
+      const textarea = document.getElementById('paste');
+      const charCounter = document.getElementById('charCounter');
+      const maxChars = 1048576;
+
+      textarea.addEventListener('input', () => {
+        const length = textarea.value.length;
+        charCounter.textContent = `${length.toLocaleString()} / ${maxChars.toLocaleString()}`;
+        
+        if (length > maxChars * 0.9) {
+          charCounter.classList.add('danger');
+          charCounter.classList.remove('warning');
+        } else if (length > maxChars * 0.7) {
+          charCounter.classList.add('warning');
+          charCounter.classList.remove('danger');
+        } else {
+          charCounter.classList.remove('warning', 'danger');
+        }
+      });
+
+      // Password toggle
+      const usePasswordCheckbox = document.getElementById('usePassword');
+      const passwordGroup = document.getElementById('passwordGroup');
+
+      usePasswordCheckbox.addEventListener('change', () => {
+        passwordGroup.style.display = usePasswordCheckbox.checked ? 'block' : 'none';
+      });
+
+      // Copy button functionality
+      document.addEventListener('click', (e) => {
+        if (e.target.id === 'copyBtn' || e.target.closest('#copyBtn')) {
+          const urlInput = document.getElementById('pasteUrl');
+          urlInput.select();
+          document.execCommand('copy');
+          
+          const btn = document.getElementById('copyBtn');
+          const originalText = btn.textContent;
+          btn.textContent = '? Copied!';
+          btn.classList.add('copied');
+          
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove('copied');
+          }, 2000);
+        }
+      });
+
+      // Show output with animation
+      window.showOutput = (success, title, message, url) => {
+        const output = document.getElementById('output');
+        const outputTitle = document.getElementById('outputTitle');
+        const outputMessage = document.getElementById('outputMessage');
+        const pasteUrl = document.getElementById('pasteUrl');
+        
+        output.classList.toggle('error', !success);
+        outputTitle.textContent = title;
+        outputMessage.textContent = message;
+        
+        if (url) {
+          pasteUrl.value = url;
+          document.querySelector('.output-url').style.display = 'flex';
+        } else {
+          document.querySelector('.output-url').style.display = 'none';
+        }
+        
+        output.classList.add('show');
+        output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      };
+
+      // Button loading state
+      window.setButtonLoading = (loading) => {
+        const btn = document.getElementById('save');
+        const btnText = document.getElementById('btnText');
+        
+        if (loading) {
+          btn.disabled = true;
+          btnText.innerHTML = '<span class="spinner"></span> Processing...';
+        } else {
+          btn.disabled = false;
+          btnText.innerHTML = '<span class="btn-icon">??</span> Encrypt & Upload';
+        }
+      };
+    </script>
   </body>
 </html>

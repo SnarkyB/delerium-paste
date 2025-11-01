@@ -1,18 +1,523 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
-    <title>View secure paste</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'">
+    <title>View Paste - Delirium</title>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 2rem; }
-      pre { white-space: pre-wrap; word-wrap: break-word; background: #f7f7f7; padding: 1rem; border-radius: .5rem; }
+      /* CSS Reset & Base */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --primary-light: #818cf8;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --bg: #f8fafc;
+        --bg-card: #ffffff;
+        --text: #1e293b;
+        --text-light: #64748b;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --radius: 0.75rem;
+        --radius-sm: 0.5rem;
+      }
+
+      /* Dark Mode */
+      [data-theme="dark"] {
+        --bg: #0f172a;
+        --bg-card: #1e293b;
+        --text: #f1f5f9;
+        --text-light: #94a3b8;
+        --border: #334155;
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+      }
+
+      [data-theme="dark"] body {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      }
+
+      [data-theme="dark"] .theme-toggle {
+        background: rgba(30, 41, 59, 0.8);
+        border-color: rgba(148, 163, 184, 0.3);
+      }
+
+      [data-theme="dark"] #content {
+        background: #0f172a;
+        color: var(--text);
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 1rem;
+        color: var(--text);
+        line-height: 1.6;
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      * {
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      /* Dark Mode Toggle */
+      .theme-toggle {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        width: 3rem;
+        height: 3rem;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.5rem;
+        z-index: 100;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .theme-toggle:hover {
+        transform: scale(1.1) rotate(20deg);
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .theme-toggle:active {
+        transform: scale(0.95) rotate(20deg);
+      }
+
+      /* Header */
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+        animation: fadeInDown 0.6s ease-out;
+      }
+
+      .logo {
+        font-size: 2rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        color: white;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+      }
+
+      .status-badge.loading {
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      /* Main Card */
+      .card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        padding: 2rem;
+        animation: fadeInUp 0.6s ease-out;
+      }
+
+      /* Content */
+      #content {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        background: var(--bg);
+        padding: 1.5rem;
+        border-radius: var(--radius-sm);
+        border: 2px solid var(--border);
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        min-height: 400px;
+        max-height: 600px;
+        overflow-y: auto;
+      }
+
+      #content.loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-light);
+        font-style: italic;
+      }
+
+      #content.error {
+        color: var(--danger);
+        border-color: var(--danger);
+        background: #fef2f2;
+      }
+
+      /* Actions */
+      .actions {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        box-shadow: var(--shadow);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .btn-secondary {
+        background: var(--bg);
+        color: var(--text);
+        border: 2px solid var(--border);
+      }
+
+      .btn-secondary:hover {
+        background: var(--bg-card);
+        border-color: var(--primary);
+      }
+
+      .btn.copied {
+        background: var(--success);
+        color: white;
+      }
+
+      /* Info Bar */
+      .info-bar {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: var(--bg);
+        border-radius: var(--radius-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: var(--text-light);
+      }
+
+      .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .info-item strong {
+        color: var(--text);
+      }
+
+      /* Footer */
+      .footer {
+        margin-top: 2rem;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+      }
+
+      .footer a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        display: inline-block;
+        margin: 0 0.25rem;
+      }
+
+      .footer a:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Loading Spinner */
+      .spinner {
+        display: inline-block;
+        width: 1.5rem;
+        height: 1.5rem;
+        border: 3px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      /* Animations */
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+
+      /* Responsive */
+      @media (max-width: 640px) {
+        body {
+          padding: 1rem 0.5rem;
+        }
+
+        .card {
+          padding: 1.5rem;
+        }
+
+        .logo {
+          font-size: 1.5rem;
+        }
+
+        .actions {
+          flex-direction: column;
+        }
+
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .info-bar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .theme-toggle {
+          top: 1rem;
+          right: 1rem;
+        }
+      }
     </style>
   </head>
   <body>
-    <h1>Secure Paste</h1>
-    <pre id="content">Decrypting…</pre>
+    <!-- Dark Mode Toggle -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+      <span id="themeIcon">?</span>
+    </button>
+
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo">?? Secure Paste</div>
+        <div class="status-badge loading" id="statusBadge">
+          <span class="spinner"></span>
+          <span id="statusText">Decrypting...</span>
+        </div>
+      </div>
+
+      <!-- Main Card -->
+      <div class="card">
+        <pre id="content" class="loading">?? Decrypting your secure paste...</pre>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="copyBtn">
+            <span>??</span>
+            <span id="copyText">Copy to Clipboard</span>
+          </button>
+          <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+            <span>?</span>
+            <span>Create New Paste</span>
+          </button>
+        </div>
+
+        <div class="info-bar" id="infoBar" style="display: none;">
+          <div class="info-item">
+            <span>??</span>
+            <span><strong>Views:</strong> <span id="viewsInfo">-</span></span>
+          </div>
+          <div class="info-item">
+            <span>?</span>
+            <span><strong>Expires:</strong> <span id="expiresInfo">-</span></span>
+          </div>
+          <div class="info-item">
+            <span>??</span>
+            <span><strong>Encrypted:</strong> AES-256-GCM</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>
+          <a href="index.html">? New Paste</a>
+          <a href="chat.html">?? BB Chat</a>
+        </p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+          This paste was encrypted in the sender's browser. Zero-knowledge security.
+        </p>
+      </div>
+    </div>
+
     <script type="module" src="js/app.js"></script>
+    <script>
+      // Dark Mode Toggle
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+      const html = document.documentElement;
+
+      // Check for saved theme preference or default to DARK mode
+      const currentTheme = localStorage.getItem('theme') || 'dark';
+      html.setAttribute('data-theme', currentTheme);
+      themeIcon.textContent = currentTheme === 'dark' ? '??' : '??';
+
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        themeIcon.textContent = newTheme === 'dark' ? '??' : '??';
+      });
+
+      // Copy button functionality
+      const copyBtn = document.getElementById('copyBtn');
+      const copyText = document.getElementById('copyText');
+      const content = document.getElementById('content');
+
+      copyBtn.addEventListener('click', () => {
+        const text = content.textContent;
+        
+        // Try modern clipboard API first
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            copyText.textContent = '? Copied!';
+            copyBtn.classList.add('copied');
+            
+            setTimeout(() => {
+              copyText.textContent = 'Copy to Clipboard';
+              copyBtn.classList.remove('copied');
+            }, 2000);
+          });
+        } else {
+          // Fallback for older browsers
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          
+          copyText.textContent = '? Copied!';
+          copyBtn.classList.add('copied');
+          
+          setTimeout(() => {
+            copyText.textContent = 'Copy to Clipboard';
+            copyBtn.classList.remove('copied');
+          }, 2000);
+        }
+      });
+
+      // Update status badge
+      window.updateStatus = (success, message) => {
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
+        
+        statusBadge.classList.remove('loading');
+        statusText.textContent = message;
+        
+        if (success) {
+          statusBadge.innerHTML = '<span>?</span><span>' + message + '</span>';
+        } else {
+          statusBadge.innerHTML = '<span>?</span><span>' + message + '</span>';
+        }
+      };
+
+      // Show info bar
+      window.showInfo = (views, expires) => {
+        const infoBar = document.getElementById('infoBar');
+        const viewsInfo = document.getElementById('viewsInfo');
+        const expiresInfo = document.getElementById('expiresInfo');
+        
+        if (views !== null) {
+          viewsInfo.textContent = views + ' remaining';
+        }
+        
+        if (expires) {
+          const date = new Date(expires * 1000);
+          const now = new Date();
+          const diff = date - now;
+          
+          if (diff > 0) {
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            if (hours > 24) {
+              const days = Math.floor(hours / 24);
+              expiresInfo.textContent = days + ' day' + (days > 1 ? 's' : '');
+            } else if (hours > 0) {
+              expiresInfo.textContent = hours + ' hour' + (hours > 1 ? 's' : '');
+            } else {
+              expiresInfo.textContent = minutes + ' minute' + (minutes > 1 ? 's' : '');
+            }
+          } else {
+            expiresInfo.textContent = 'Expired';
+          }
+        }
+        
+        infoBar.style.display = 'flex';
+      };
+    </script>
   </body>
 </html>
