@@ -43,7 +43,6 @@ import {
 
 import { HttpApiClient } from './infrastructure/api/http-client.js';
 import { InlinePowSolver } from './infrastructure/pow/inline-solver.js';
-import type { PasteRetrieveResponse } from './infrastructure/api/interfaces.js';
 
 // ============================================================================
 // INITIALIZE DEPENDENCIES
@@ -345,13 +344,6 @@ if (typeof document !== 'undefined' && typeof location !== 'undefined') {
     }
     const [keyB64, ivB64] = frag.split(":");
     try {
-      const r = await fetch(`/api/pastes/${encodeURIComponent(id)}`);
-      if (!r.ok) {
-        if (r.status === 404) throw new Error("Content not found or has expired.");
-        if (r.status === 410) throw new Error("Content has expired.");
-        throw new Error("Failed to retrieve content.");
-      }
-      const { ct, iv } = await r.json() as PasteRetrieveResponse;
       const { ct, iv } = await apiClient.retrievePaste(id);
 
       // Check if this is password-protected (by checking if we can decrypt with regular method)
