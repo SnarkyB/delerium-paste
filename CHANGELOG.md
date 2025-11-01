@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Critical**: Fixed PR workflows hanging indefinitely
+  - Coverage check now uses `awk` instead of `bc` (which may not be installed)
+  - Fixed coverage extraction regex to use standard grep instead of Perl regex
+  - Added timeout to curl health check to prevent hanging
+  - Workflows now complete successfully instead of hanging
+- **Deployment**: Fixed `push-to-vps.sh` not using `deploy.sh` script
+  - Now properly calls `scripts/deploy.sh production` instead of duplicating docker compose commands
+  - Added `.env` file validation before deployment
+  - Leverages centralized deployment script with proper error handling and health checks
+
+### Added
+- Full pipeline run configuration (`make deploy-full`)
+  - VS Code tasks configuration for clean, build, test, and deploy workflow
+  - Makefile target for command-line execution
+  - Complete pipeline: clean ? build ? test ? deploy
+
 ## [0.1.4-alpha] - 2025-10-31
 
 ### Fixed
