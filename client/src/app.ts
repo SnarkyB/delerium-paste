@@ -338,13 +338,24 @@ if (typeof document !== 'undefined' && typeof location !== 'undefined') {
     const id = q.get("p");
     const frag = location.hash.startsWith("#") ? location.hash.slice(1) : "";
     const content = document.getElementById("content");
+    
+    // Update status if new UI is available
+    const updateStatus = (window as any).updateStatus;
+    const showInfo = (window as any).showInfo;
+    
     if (!id || !frag) { 
-      if (content) content.textContent = "Missing paste ID or key."; 
+      if (content) {
+        content.textContent = "Missing paste ID or key.";
+        content.classList.remove('loading');
+        content.classList.add('error');
+      }
+      if (updateStatus) updateStatus(false, 'Missing information');
       return; 
     }
     const [keyB64, ivB64] = frag.split(":");
     try {
-      const { ct, iv } = await apiClient.retrievePaste(id);
+      const response = await apiClient.retrievePaste(id);
+      const { ct, iv, meta, viewsLeft } = response;
 
       // Check if this is password-protected (by checking if we can decrypt with regular method)
       let text: string;
@@ -395,8 +406,14 @@ if (typeof document !== 'undefined' && typeof location !== 'undefined') {
       
       // Safely display content without XSS risk
       if (content) {
+        content.classList.remove('loading');
+        content.classList.remove('error');
         safeDisplayContent(content, text);
       }
+      
+      // Update status and info
+      if (updateStatus) updateStatus(true, 'Decrypted successfully');
+      if (showInfo && meta) showInfo(viewsLeft, meta.expireTs);
       
       // Securely clear decryption data from memory
       secureClear(keyB64);
@@ -406,7 +423,12 @@ if (typeof document !== 'undefined' && typeof location !== 'undefined') {
     } catch (e) {
       if (content) {
         const errorMessage = getSafeErrorMessage(e, 'paste viewing');
+        content.classList.remove('loading');
+        content.classList.add('error');
         safeDisplayContent(content, errorMessage);
+      }
+      if (updateStatus) {
+        updateStatus(false, 'Decryption failed');
       }
     }
   })();
@@ -420,23 +442,35 @@ if (typeof document !== 'undefined' && typeof location !== 'undefined') {
  * Show loading state
  */
 function showLoading(show: boolean): void {
-  const loading = document.getElementById('loading');
-  const form = document.getElementById('pasteForm') as HTMLFormElement;
-  const saveBtn = document.getElementById('save') as HTMLButtonElement;
-  
-  if (loading) loading.style.display = show ? 'block' : 'none';
-  if (form) form.style.display = show ? 'none' : 'block';
-  if (saveBtn) saveBtn.disabled = show;
+  // Use new UI function if available
+  if (typeof (window as any).setButtonLoading === 'function') {
+    (window as any).setButtonLoading(show);
+  } else {
+    // Fallback for old UI
+    const loading = document.getElementById('loading');
+    const form = document.getElementById('pasteForm') as HTMLFormElement;
+    const saveBtn = document.getElementById('save') as HTMLButtonElement;
+    
+    if (loading) loading.style.display = show ? 'block' : 'none';
+    if (form) form.style.display = show ? 'none' : 'block';
+    if (saveBtn) saveBtn.disabled = show;
+  }
 }
 
 /**
  * Show error message
  */
 function showError(message: string): void {
-  const out = document.getElementById('out');
-  if (out) {
-    out.textContent = `? Error: ${message}`;
-    out.style.color = 'red';
+  // Use new UI function if available
+  if (typeof (window as any).showOutput === 'function') {
+    (window as any).showOutput(false, '? Error', message, null);
+  } else {
+    // Fallback for old UI
+    const out = document.getElementById('out');
+    if (out) {
+      out.textContent = `? Error: ${message}`;
+      out.style.color = 'red';
+    }
   }
 }
 
@@ -444,10 +478,18 @@ function showError(message: string): void {
  * Show success result
  */
 function showSuccess(shareUrl: string, deleteUrl: string, isPasswordProtected: boolean = false): void {
-  const out = document.getElementById('out');
-  if (out) {
-    const title = isPasswordProtected ? '? Your password-protected paste is ready!' : '? Your secure paste is ready!';
-    out.textContent = `${title}\n\nShare URL:\n${shareUrl}\n\nDelete URL:\n${deleteUrl}`;
-    out.style.color = '';
+  // Use new UI function if available
+  if (typeof (window as any).showOutput === 'function') {
+    const title = isPasswordProtected ? '? Password-protected paste ready!' : '? Success! Your paste is ready';
+    const message = `Share this link with anyone you want to give access to:\n\nDelete URL: ${deleteUrl}`;
+    (window as any).showOutput(true, title, message, shareUrl);
+  } else {
+    // Fallback for old UI
+    const out = document.getElementById('out');
+    if (out) {
+      const title = isPasswordProtected ? '?? Your password-protected paste is ready!' : '? Your secure paste is ready!';
+      out.textContent = `${title}\n\nShare URL:\n${shareUrl}\n\nDelete URL:\n${deleteUrl}`;
+      out.style.color = '';
+    }
   }
 }
