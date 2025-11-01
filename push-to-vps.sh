@@ -97,24 +97,24 @@ git checkout $CURRENT_BRANCH
 git pull origin $CURRENT_BRANCH
 
 echo ""
-echo "?? Building client..."
-cd client
-npm ci --quiet
-npm run build
-cd ..
+echo "?? Ensuring .env file exists..."
+if [ ! -f .env ]; then
+    echo "??  .env file not found, creating from .env.example..."
+    if [ -f .env.example ]; then
+        cp .env.example .env
+        echo "??  Please update .env file with your configuration!"
+        echo "??  Minimum required: DELETION_TOKEN_PEPPER"
+    else
+        echo "? .env.example not found! Cannot create .env file."
+        exit 1
+    fi
+fi
 
 echo ""
-echo "?? Deploying with Docker..."
-docker compose -f docker-compose.prod.yml down
-docker compose -f docker-compose.prod.yml build --parallel
-docker compose -f docker-compose.prod.yml up -d
+echo "?? Running deployment script..."
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh production
 
-echo ""
-echo "? Waiting for services to start..."
-sleep 5
-
-echo ""
-echo "? Deployment complete!"
 echo ""
 echo "?? Service status:"
 docker compose -f docker-compose.prod.yml ps
