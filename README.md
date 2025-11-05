@@ -228,7 +228,7 @@ The wizard will:
 
 Perfect for users who want to understand where secrets go and what they're for!
 
-📖 **See [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed instructions and examples.**
+📖 **See [docs/getting-started/SETUP.md](docs/getting-started/SETUP.md) for detailed instructions and examples.**
 
 ### One-Command Setup (Quick)
 
