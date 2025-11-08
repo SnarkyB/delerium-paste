@@ -1,7 +1,7 @@
 # Delirium - Zero-Knowledge Paste System
 # Makefile for local development and deployment
 
-.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full
+.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan
 
 # Default target
 help:
@@ -23,6 +23,7 @@ help:
 	@echo "  make security-setup - Enhance security for headless environments"
 	@echo "  make start-secure  - Start with security enhancements"
 	@echo "  make security-check - Run security verification"
+	@echo "  make security-scan - Run automated vulnerability scanning"
 	@echo "  make monitor       - Start service monitoring"
 	@echo "  make backup        - Create data backup"
 	@echo "  make deploy-full   - Full pipeline: clean, build, test, and deploy"
@@ -117,6 +118,12 @@ security-check:
 	@echo "🔍 Running security check..."
 	@chmod +x scripts/security-check.sh
 	./scripts/security-check.sh
+
+# Security scan
+security-scan:
+	@echo "🔒 Running automated security scan..."
+	@chmod +x scripts/security-scan.sh
+	./scripts/security-scan.sh
 
 # Monitor services
 monitor:
