@@ -2,10 +2,10 @@
 
 ## Priority: High (Must Have)
 
-- [x] Re-enable Proof-of-Work with reasonable difficulty ✅ (PRs #75-78: difficulty=10, enabled, documented)
+- [x] Re-enable Proof-of-Work with reasonable difficulty ✅ (PRs #75-79: difficulty=10, enabled, documented)
   - See: `docs/PROOF_OF_WORK.md` for details
   - See: `docs/POW_VERIFICATION_GUIDE.md` for testing/monitoring
-- [ ] Add security headers back to nginx (CSP, etc.)
+- [x] Add security headers back to nginx (CSP, etc.) ✅ (PR #72: security headers tightened)
 - [ ] Test delete page functionality thoroughly
 - [ ] Add error handling for edge cases (expired pastes, invalid IDs)
 - [ ] Test single-view paste functionality
@@ -17,7 +17,7 @@
 
 - [ ] Add "Copy to Clipboard" buttons for URLs
 - [ ] Improve mobile responsiveness
-- [ ] Add loading states/spinners during operations
+- [x] Add loading states/spinners during operations ✅ (PR #71: comprehensive loading states)
 - [ ] Better error messages for users
 - [ ] Add favicon
 - [ ] Improve styling/branding
@@ -62,6 +62,6 @@
 - [ ] Test with large pastes (near 1MB limit)
 - [ ] Test concurrent paste creation
 - [ ] Test rate limiting behavior
-- [ ] Test PoW under load
+- [x] Test PoW under load ✅ (covered by unit tests + verification guide in PR #78)
 - [ ] Security penetration testing
 - [ ] Browser compatibility testing
