@@ -7,13 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Removed
-- **Documentation Cleanup**: Removed outdated historical documentation files
-  - Removed root-level historical summaries: `DEPLOYMENT_SUMMARY.md`, `SETUP_WIZARD_SUMMARY.md`, `DEPLOY_TO_VPS.md`, `START_HERE.md`, `UPSTREAM_CHANGES_SUMMARY.md`
-  - Removed PR-specific historical docs: `docs/development/prs/PR-001-*.md`, `START-HERE-PR1.md`, `READY-TO-PUSH.md`, `FINAL-SUMMARY.md`
-  - Removed historical tracking docs: `docs/CONSOLIDATION_SUMMARY.md`, `docs/BRANCH_PROTECTION_FIX.md`, `docs/development/MIGRATION_COMPLETE.md`
-  - Removed redundant script: `QUICK_DEPLOY.sh` (replaced by `scripts/setup-vps-from-local.sh`)
-  - Updated all references to point to consolidated documentation in `docs/getting-started/SETUP.md` and `docs/deployment/DEPLOYMENT.md`
+## [0.1.5-alpha] - 2025-11-08
+
+### Added
+- **Comprehensive E2E tests** for delete page functionality (#81)
+  - Full test coverage for delete page workflows
+  - Error handling and edge case testing
+- **Proof-of-Work re-enablement** with production-ready configuration (#75-79)
+  - PoW enabled with difficulty=10 for spam protection
+  - Comprehensive PoW documentation (`docs/PROOF_OF_WORK.md`)
+  - PoW verification guide for testing and monitoring (`docs/POW_VERIFICATION_GUIDE.md`)
+- Full pipeline run configuration (`make deploy-full`)
+  - VS Code tasks configuration for clean, build, test, and deploy workflow
+  - Makefile target for command-line execution
+  - Complete pipeline: clean → build → test → deploy
 
 ### Fixed
 - **Critical**: Fixed PR workflows hanging indefinitely
@@ -25,12 +32,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Now properly calls `scripts/deploy.sh production` instead of duplicating docker compose commands
   - Added `.env` file validation before deployment
   - Leverages centralized deployment script with proper error handling and health checks
+- **Security**: Updated dependencies and tightened security headers (#72)
+  - Enhanced CORS configuration
+  - Improved security headers in nginx configuration
 
-### Added
-- Full pipeline run configuration (`make deploy-full`)
-  - VS Code tasks configuration for clean, build, test, and deploy workflow
-  - Makefile target for command-line execution
-  - Complete pipeline: clean ? build ? test ? deploy
+### Removed
+- **Documentation Cleanup**: Removed outdated historical documentation files
+  - Removed root-level historical summaries: `DEPLOYMENT_SUMMARY.md`, `SETUP_WIZARD_SUMMARY.md`, `DEPLOY_TO_VPS.md`, `START_HERE.md`, `UPSTREAM_CHANGES_SUMMARY.md`
+  - Removed PR-specific historical docs: `docs/development/prs/PR-001-*.md`, `START-HERE-PR1.md`, `READY-TO-PUSH.md`, `FINAL-SUMMARY.md`
+  - Removed historical tracking docs: `docs/CONSOLIDATION_SUMMARY.md`, `docs/BRANCH_PROTECTION_FIX.md`, `docs/development/MIGRATION_COMPLETE.md`
+  - Removed redundant script: `QUICK_DEPLOY.sh` (replaced by `scripts/setup-vps-from-local.sh`)
+  - Updated all references to point to consolidated documentation in `docs/getting-started/SETUP.md` and `docs/deployment/DEPLOYMENT.md`
+
+### Notes
+This release focuses on stability improvements, comprehensive testing, and production-ready Proof-of-Work implementation. The codebase has been cleaned up with improved documentation and better CI/CD workflows.
 
 ## [0.1.4-alpha] - 2025-10-31
 
@@ -166,7 +181,8 @@ The v0.1.0-alpha release had a critical bug where TypeScript's module compilatio
 ### Notes
 This is an alpha release intended for testing and feedback. Not recommended for production use with sensitive data.
 
-[Unreleased]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.4-alpha...HEAD
+[Unreleased]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.5-alpha...HEAD
+[0.1.5-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.4-alpha...v0.1.5-alpha
 [0.1.4-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.3-alpha...v0.1.4-alpha
 [0.1.3-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.2-alpha...v0.1.3-alpha
 [0.1.2-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.1-alpha...v0.1.2-alpha
