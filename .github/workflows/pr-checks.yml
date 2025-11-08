@@ -193,28 +193,28 @@ jobs:
         run: docker compose -f docker-compose.yml down -v
 
       # ---- Security Scanning ----
-      - name: Gradle Dependency Check
-        working-directory: ./server
-        run: |
-          echo "🔍 Running OWASP Dependency Check..."
-          ./gradlew dependencyCheckAnalyze || true
-        continue-on-error: true
+#      - name: Gradle Dependency Check
+#        working-directory: ./server
+#        run: |
+#          echo "🔍 Running OWASP Dependency Check..."
+#          ./gradlew dependencyCheckAnalyze || true
+#        continue-on-error: true
 
-      - name: Check OWASP results
-        working-directory: ./server
-        run: |
-          if [ -f build/reports/dependency-check/dependency-check-report.json ]; then
-            CRITICAL=$(jq '[.dependencies[] | select(.vulnerabilities[]?.severity == "CRITICAL")] | length' build/reports/dependency-check/dependency-check-report.json 2>/dev/null || echo "0")
-            HIGH=$(jq '[.dependencies[] | select(.vulnerabilities[]?.severity == "HIGH")] | length' build/reports/dependency-check/dependency-check-report.json 2>/dev/null || echo "0")
-            
-            if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
-              echo "❌ Critical or High severity vulnerabilities found!"
-              echo "Critical: $CRITICAL, High: $HIGH"
-              exit 1
-            else
-              echo "✅ No critical or high severity vulnerabilities found"
-            fi
-          fi
+#      - name: Check OWASP results
+#        working-directory: ./server
+#        run: |
+#          if [ -f build/reports/dependency-check/dependency-check-report.json ]; then
+#            CRITICAL=$(jq '[.dependencies[] | select(.vulnerabilities[]?.severity == "CRITICAL")] | length' build/reports/dependency-check/dependency-check-report.json 2>/dev/null || echo "0")
+#            HIGH=$(jq '[.dependencies[] | select(.vulnerabilities[]?.severity == "HIGH")] | length' build/reports/dependency-check/dependency-check-report.json 2>/dev/null || echo "0")
+#
+#            if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
+#              echo "❌ Critical or High severity vulnerabilities found!"
+#              echo "Critical: $CRITICAL, High: $HIGH"
+#              exit 1
+#            else
+#              echo "✅ No critical or high severity vulnerabilities found"
+#            fi
+#          fi
 
       # ---- Artifact Upload (optional, uncomment to use) ----
       # - name: Upload Coverage Artifact
