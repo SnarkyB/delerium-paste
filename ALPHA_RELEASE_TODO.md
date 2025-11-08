@@ -2,7 +2,9 @@
 
 ## Priority: High (Must Have)
 
-- [ ] Re-enable Proof-of-Work with reasonable difficulty (currently disabled)
+- [x] Re-enable Proof-of-Work with reasonable difficulty ✅ (PRs #75-78: difficulty=10, enabled, documented)
+  - See: `docs/PROOF_OF_WORK.md` for details
+  - See: `docs/POW_VERIFICATION_GUIDE.md` for testing/monitoring
 - [ ] Add security headers back to nginx (CSP, etc.)
 - [ ] Test delete page functionality thoroughly
 - [ ] Add error handling for edge cases (expired pastes, invalid IDs)
@@ -34,6 +36,7 @@
 
 ## Documentation
 
+- [x] Document PoW system comprehensively ✅ (PRs #77-78)
 - [ ] Update README with production deployment guide
 - [ ] Add CHANGELOG
 - [ ] Add CONTRIBUTING guidelines
