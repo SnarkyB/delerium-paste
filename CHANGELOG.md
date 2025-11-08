@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- **Documentation Cleanup**: Removed outdated historical documentation files
+  - Removed root-level historical summaries: `DEPLOYMENT_SUMMARY.md`, `SETUP_WIZARD_SUMMARY.md`, `DEPLOY_TO_VPS.md`, `START_HERE.md`, `UPSTREAM_CHANGES_SUMMARY.md`
+  - Removed PR-specific historical docs: `docs/development/prs/PR-001-*.md`, `START-HERE-PR1.md`, `READY-TO-PUSH.md`, `FINAL-SUMMARY.md`
+  - Removed historical tracking docs: `docs/CONSOLIDATION_SUMMARY.md`, `docs/BRANCH_PROTECTION_FIX.md`, `docs/development/MIGRATION_COMPLETE.md`
+  - Removed redundant script: `QUICK_DEPLOY.sh` (replaced by `scripts/setup-vps-from-local.sh`)
+  - Updated all references to point to consolidated documentation in `docs/getting-started/SETUP.md` and `docs/deployment/DEPLOYMENT.md`
+
 ### Fixed
 - **Critical**: Fixed PR workflows hanging indefinitely
   - Coverage check now uses `awk` instead of `bc` (which may not be installed)

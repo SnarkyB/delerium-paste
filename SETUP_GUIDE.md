@@ -249,7 +249,7 @@ A: Yes! It uses `openssl rand` for cryptographic randomness and never logs secre
 
 - ?? Read the [README.md](README.md) for general documentation
 - ?? Check [SECURITY_CHECKLIST.md](SECURITY_CHECKLIST.md) for security guidelines
-- ?? See [DEPLOY_TO_VPS.md](DEPLOY_TO_VPS.md) for production deployment
+- ?? See [docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md) for production deployment
 - ?? Open an issue on GitHub for bugs or questions
 
 ---
