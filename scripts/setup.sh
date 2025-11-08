@@ -302,7 +302,7 @@ echo ""
 echo -e "${BOLD}?? Next steps:${NC}"
 echo "   ? Read the README.md for detailed documentation"
 echo "   ? Check SECURITY_CHECKLIST.md for security best practices"
-echo "   ? For production deployment, see DEPLOY_TO_VPS.md"
+echo "   ? For production deployment, see docs/deployment/DEPLOYMENT.md"
 echo ""
 
 # Open browser if in graphical environment

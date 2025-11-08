@@ -22,7 +22,6 @@ class CustomCrypto implements ICryptoProvider { /* your impl */ }
 ```
 
 ## Review
-?? [`START-HERE-PR1.md`](START-HERE-PR1.md) - 5 min overview  
 ?? [`docs/prs/QUICK-START.md`](docs/prs/QUICK-START.md) - 15 min review
 
 **Stats**: 74 files, +5,336/-47 lines, 15-30 min review, 0 breaking changes

@@ -379,6 +379,5 @@ Legend:
 **Visual Summary Complete!** ??
 
 See other documentation:
-- `PR-001-SUMMARY.md` - What we accomplished
 - `docs/prs/PR-001-CRYPTO-MODULE.md` - Detailed PR docs
 - `docs/prs/QUICK-START.md` - Review guide
