@@ -27,7 +27,9 @@ dependencies {
 }
 application { mainClass.set("io.ktor.server.netty.EngineMain") }
 kotlin { jvmToolchain(21) }
-eck {
+
+// OWASP Dependency Check configuration
+dependencyCheck {
     format = "ALL"
     outputDirectory = "build/reports/dependency-check"
     suppressionFile = "dependency-check-suppressions.xml"
