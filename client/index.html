@@ -389,6 +389,13 @@
         font-family: monospace;
         font-size: 0.9rem;
         background: white;
+        cursor: pointer;
+      }
+
+      .output-url input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
       }
 
       .btn-copy {
@@ -660,7 +667,7 @@
         </div>
 
         <!-- Submit Button -->
-        <button id="save" class="btn-primary">
+        <button id="save" class="btn-primary" type="button">
           <span class="btn-text">
             <span class="btn-icon">??</span>
             <span id="btnText">Encrypt & Upload</span>
@@ -723,22 +730,32 @@
         passwordGroup.style.display = usePasswordCheckbox.checked ? 'block' : 'none';
       });
 
-      // Copy button functionality
+      // Copy button functionality and URL input click
       document.addEventListener('click', (e) => {
         if (e.target.id === 'copyBtn' || e.target.closest('#copyBtn')) {
           const urlInput = document.getElementById('pasteUrl');
+          if (urlInput && urlInput.value) {
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999); // For mobile devices
+            document.execCommand('copy');
+            
+            const btn = document.getElementById('copyBtn');
+            const originalText = btn.textContent;
+            btn.textContent = '? Copied!';
+            btn.classList.add('copied');
+            
+            setTimeout(() => {
+              btn.textContent = originalText;
+              btn.classList.remove('copied');
+            }, 2000);
+          }
+        }
+        
+        // Make URL input clickable - select all text when clicked
+        if (e.target.id === 'pasteUrl') {
+          const urlInput = e.target;
           urlInput.select();
-          document.execCommand('copy');
-          
-          const btn = document.getElementById('copyBtn');
-          const originalText = btn.textContent;
-          btn.textContent = '? Copied!';
-          btn.classList.add('copied');
-          
-          setTimeout(() => {
-            btn.textContent = originalText;
-            btn.classList.remove('copied');
-          }, 2000);
+          urlInput.setSelectionRange(0, 99999);
         }
       });
 
@@ -765,13 +782,16 @@
       };
 
       // Button loading state
-      window.setButtonLoading = (loading) => {
+      window.setButtonLoading = (loading, message) => {
         const btn = document.getElementById('save');
         const btnText = document.getElementById('btnText');
         
+        if (!btn || !btnText) return;
+        
         if (loading) {
           btn.disabled = true;
-          btnText.innerHTML = '<span class="spinner"></span> Processing...';
+          const loadingMessage = message || 'Processing...';
+          btnText.innerHTML = '<span class="spinner"></span> ' + loadingMessage;
         } else {
           btn.disabled = false;
           btnText.innerHTML = '<span class="btn-icon">??</span> Encrypt & Upload';

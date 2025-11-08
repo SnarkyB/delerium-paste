@@ -21,8 +21,13 @@ if (!id || !token) {
   }
 } else {
   const btn = document.getElementById("confirmDelete");
-  if (btn) {
+  if (btn && btn instanceof HTMLButtonElement) {
     btn.addEventListener("click", async () => {
+      // Show loading state
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Deleting...';
+      
       try {
         const res = await fetch(`/api/pastes/${encodeURIComponent(id)}?token=${encodeURIComponent(token)}`, {
           method: "DELETE"
@@ -47,6 +52,9 @@ if (!id || !token) {
               </div>
             `;
           }
+          // Restore button on error
+          btn.disabled = false;
+          btn.textContent = originalText;
         }
       } catch (e) {
         if (content) {
@@ -57,6 +65,9 @@ if (!id || !token) {
             </div>
           `;
         }
+        // Restore button on error
+        btn.disabled = false;
+        btn.textContent = originalText;
       }
     });
   }
