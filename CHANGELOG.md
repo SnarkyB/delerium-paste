@@ -10,42 +10,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.5-alpha] - 2025-11-08
 
 ### Added
-- **Comprehensive E2E tests** for delete page functionality (#81)
-  - Full test coverage for delete page workflows
-  - Error handling and edge case testing
-- **Proof-of-Work re-enablement** with production-ready configuration (#75-79)
-  - PoW enabled with difficulty=10 for spam protection
-  - Comprehensive PoW documentation (`docs/PROOF_OF_WORK.md`)
-  - PoW verification guide for testing and monitoring (`docs/POW_VERIFICATION_GUIDE.md`)
-- Full pipeline run configuration (`make deploy-full`)
-  - VS Code tasks configuration for clean, build, test, and deploy workflow
-  - Makefile target for command-line execution
-  - Complete pipeline: clean → build → test → deploy
+- **Complete automated security scanning infrastructure**
+  - OWASP Dependency Check plugin integrated into Gradle build
+  - `make security-scan` command for local vulnerability scanning
+  - Enhanced PR checks workflow with comprehensive security scanning
+  - Dedicated security-scan.yml workflow (runs on PRs, daily, and releases)
+  - Local security scanning script (`scripts/security-scan.sh`)
+  - Complete security scanning documentation (`docs/SECURITY_SCANNING.md`)
+- **Security scanning features**
+  - npm audit with JSON reporting and result checking
+  - OWASP Dependency Check with CVSS >= 7.0 threshold
+  - Blocks PRs on Critical/High severity vulnerabilities
+  - Automated daily scans at 2 AM UTC
+  - Manual trigger support via GitHub Actions UI
 
 ### Fixed
-- **Critical**: Fixed PR workflows hanging indefinitely
-  - Coverage check now uses `awk` instead of `bc` (which may not be installed)
-  - Fixed coverage extraction regex to use standard grep instead of Perl regex
-  - Added timeout to curl health check to prevent hanging
-  - Workflows now complete successfully instead of hanging
-- **Deployment**: Fixed `push-to-vps.sh` not using `deploy.sh` script
-  - Now properly calls `scripts/deploy.sh production` instead of duplicating docker compose commands
-  - Added `.env` file validation before deployment
-  - Leverages centralized deployment script with proper error handling and health checks
-- **Security**: Updated dependencies and tightened security headers (#72)
-  - Enhanced CORS configuration
-  - Improved security headers in nginx configuration
+- Fixed dependencyCheck typo in build.gradle.kts (was 'eck')
+- Completed security scanning setup from PR #82
 
-### Removed
-- **Documentation Cleanup**: Removed outdated historical documentation files
-  - Removed root-level historical summaries: `DEPLOYMENT_SUMMARY.md`, `SETUP_WIZARD_SUMMARY.md`, `DEPLOY_TO_VPS.md`, `START_HERE.md`, `UPSTREAM_CHANGES_SUMMARY.md`
-  - Removed PR-specific historical docs: `docs/development/prs/PR-001-*.md`, `START-HERE-PR1.md`, `READY-TO-PUSH.md`, `FINAL-SUMMARY.md`
-  - Removed historical tracking docs: `docs/CONSOLIDATION_SUMMARY.md`, `docs/BRANCH_PROTECTION_FIX.md`, `docs/development/MIGRATION_COMPLETE.md`
-  - Removed redundant script: `QUICK_DEPLOY.sh` (replaced by `scripts/setup-vps-from-local.sh`)
-  - Updated all references to point to consolidated documentation in `docs/getting-started/SETUP.md` and `docs/deployment/DEPLOYMENT.md`
+### Changed
+- Enhanced PR checks workflow with improved security scanning
+- Updated .gitignore to exclude generated security scan reports
 
 ### Notes
-This release focuses on stability improvements, comprehensive testing, and production-ready Proof-of-Work implementation. The codebase has been cleaned up with improved documentation and better CI/CD workflows.
+This release completes the automated security scanning infrastructure. Security scans now run automatically on every PR, daily, and on new releases. The setup includes both frontend (npm audit) and backend (OWASP Dependency Check) vulnerability scanning.
 
 ## [0.1.4-alpha] - 2025-10-31
 
