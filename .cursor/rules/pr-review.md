@@ -25,7 +25,7 @@ When reviewing a Pull Request, check:
 ## Use: @pr-review.md @Codebase review this PR
 
 #
-- lways ask before you push to the origin
+- Always ask before you push to the origin
 
 ## Git Workflow
 - **NEVER push directly to main** - Always create a feature branch and PR
