@@ -1,0 +1,201 @@
+name: Security Scan
+
+on:
+  # Run on push to main branch
+  push:
+    branches:
+      - main
+    paths:
+      - 'client/package*.json'
+      - 'server/build.gradle.kts'
+      - 'server/build.gradle'
+      - '.github/workflows/security-scan.yml'
+  
+  # Run on pull requests
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'client/package*.json'
+      - 'server/build.gradle.kts'
+      - 'server/build.gradle'
+  
+  # Run on new tags/releases
+  tags:
+    - 'v*.*.*-alpha'
+    - 'v*.*.*-beta'
+    - 'v*.*.*'
+  
+  # Scheduled scans: daily at 2 AM UTC
+  schedule:
+    - cron: '0 2 * * *'
+  
+  # Manual trigger
+  workflow_dispatch:
+
+jobs:
+  frontend-security:
+    name: Frontend Security Scan
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './client/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./client
+        run: npm ci
+
+      - name: Run npm audit (moderate and above)
+        working-directory: ./client
+        run: |
+          echo "🔍 Running npm audit..."
+          npm audit --audit-level=moderate --json > npm-audit-report.json || true
+          npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Check for vulnerabilities
+        working-directory: ./client
+        run: |
+          if [ -f npm-audit-report.json ]; then
+            VULNS=$(jq -r '.metadata.vulnerabilities.total' npm-audit-report.json 2>/dev/null || echo "0")
+            CRITICAL=$(jq -r '.metadata.vulnerabilities.critical' npm-audit-report.json 2>/dev/null || echo "0")
+            HIGH=$(jq -r '.metadata.vulnerabilities.high' npm-audit-report.json 2>/dev/null || echo "0")
+            MODERATE=$(jq -r '.metadata.vulnerabilities.moderate' npm-audit-report.json 2>/dev/null || echo "0")
+            
+            echo "## Frontend Security Scan Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| Moderate | $MODERATE |" >> $GITHUB_STEP_SUMMARY
+            echo "| Total | $VULNS |" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
+              echo "❌ Critical or High severity vulnerabilities found!"
+              exit 1
+            elif [ "$MODERATE" -gt 0 ]; then
+              echo "⚠️ Moderate severity vulnerabilities found. Review recommended."
+            else
+              echo "✅ No moderate or higher severity vulnerabilities found!"
+            fi
+          fi
+
+      - name: Upload npm audit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-audit-report
+          path: client/npm-audit-report.json
+          retention-days: 30
+
+      - name: Check for outdated packages
+        working-directory: ./client
+        run: |
+          echo "📦 Checking for outdated packages..."
+          npm outdated --json > npm-outdated.json || true
+          OUTDATED_COUNT=$(jq 'length' npm-outdated.json 2>/dev/null || echo "0")
+          if [ "$OUTDATED_COUNT" -gt 0 ]; then
+            echo "⚠️ Found $OUTDATED_COUNT outdated packages"
+            npm outdated
+          else
+            echo "✅ All packages are up to date"
+          fi
+
+  backend-security:
+    name: Backend Security Scan
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            server/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Run OWASP Dependency Check
+        working-directory: ./server
+        run: |
+          echo "🔍 Running OWASP Dependency Check..."
+          ./gradlew dependencyCheckAnalyze --info || true
+        continue-on-error: true
+
+      - name: Check OWASP results
+        working-directory: ./server
+        run: |
+          if [ -f build/reports/dependency-check/dependency-check-report.html ]; then
+            echo "✅ OWASP Dependency Check completed"
+            echo "📄 Report available at: build/reports/dependency-check/dependency-check-report.html"
+            
+            # Check for high/critical vulnerabilities
+            if [ -f build/reports/dependency-check/dependency-check-report.json ]; then
+              CRITICAL=$(jq '[.dependencies[] | select(.vulnerabilities[]?.severity == "CRITICAL")] | length' build/reports/dependency-check/dependency-check-report.json 2>/dev/null || echo "0")
+              HIGH=$(jq '[.dependencies[] | select(.vulnerabilities[]?.severity == "HIGH")] | length' build/reports/dependency-check/dependency-check-report.json 2>/dev/null || echo "0")
+              
+              echo "## Backend Security Scan Results" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+              echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+              echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+              
+              if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
+                echo "❌ Critical or High severity vulnerabilities found!"
+                exit 1
+              else
+                echo "✅ No critical or high severity vulnerabilities found!"
+              fi
+            fi
+          else
+            echo "⚠️ OWASP Dependency Check report not found"
+          fi
+
+      - name: Upload OWASP report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: owasp-dependency-check-report
+          path: server/build/reports/dependency-check/**
+          retention-days: 30
+
+  security-summary:
+    name: Security Scan Summary
+    runs-on: ubuntu-24.04
+    needs: [frontend-security, backend-security]
+    if: always()
+    steps:
+      - name: Security scan summary
+        run: |
+          echo "## 🔒 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Frontend security scan: ${{ needs.frontend-security.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Backend security scan: ${{ needs.backend-security.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.frontend-security.result }}" != "success" ] || [ "${{ needs.backend-security.result }}" != "success" ]; then
+            echo "⚠️ Some security scans failed. Please review the reports." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "✅ All security scans passed!" >> $GITHUB_STEP_SUMMARY
+          fi
