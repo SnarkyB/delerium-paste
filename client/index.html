@@ -554,11 +554,25 @@
         font-weight: 500;
         z-index: 99;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s ease;
+      }
+
+      .version-display:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       }
 
       [data-theme="dark"] .version-display {
         background: rgba(30, 41, 59, 0.8);
         border: 1px solid rgba(148, 163, 184, 0.3);
+      }
+
+      [data-theme="dark"] .version-display:hover {
+        background: rgba(30, 41, 59, 0.95);
+        border-color: rgba(148, 163, 184, 0.5);
       }
     </style>
   </head>
@@ -677,13 +691,10 @@
     </div>
 
     <!-- Version Display -->
-    <div class="version-display">v0.1.4-alpha</div>
+    <a href="https://github.com/SnarkyB/delerium-paste" target="_blank" rel="noopener noreferrer" class="version-display">v0.1.4-alpha</a>
 
     <script type="module" src="js/app.js"></script>
     <script>
-      // Set theme to always be dark
-      document.documentElement.setAttribute('data-theme', 'dark');
-
       // Character counter
       const textarea = document.getElementById('paste');
       const charCounter = document.getElementById('charCounter');
