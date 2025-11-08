@@ -398,9 +398,10 @@ make clean
 
 ### Proof of Work
 - **Spam Protection**: Computational challenges prevent abuse
-- **Difficulty Scaling**: Adjustable based on system load
+- **Difficulty Scaling**: Adjustable based on system load (default: 10 bits)
 - **Client-Side**: PoW computation happens in browser
 - **Server Validation**: Server verifies PoW solutions
+- **Documentation**: See [docs/PROOF_OF_WORK.md](docs/PROOF_OF_WORK.md) for details
 
 ## 📊 API Documentation
 
