@@ -440,10 +440,9 @@
       // Update status badge
       window.updateStatus = (success, message) => {
         const statusBadge = document.getElementById('statusBadge');
-        const statusText = document.getElementById('statusText');
+        if (!statusBadge) return;
         
         statusBadge.classList.remove('loading');
-        statusText.textContent = message;
         
         if (success) {
           statusBadge.innerHTML = '<span>?</span><span>' + message + '</span>';
