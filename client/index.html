@@ -417,6 +417,22 @@
         background: var(--success);
       }
 
+      .btn-view {
+        padding: 0.75rem 1.25rem;
+        background: var(--success);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-weight: 500;
+        white-space: nowrap;
+        margin-left: 0.5rem;
+      }
+
+      .btn-view:hover {
+        background: #059669;
+      }
+
       /* Footer */
       .footer {
         margin-top: 2rem;
@@ -512,6 +528,12 @@
 
         .btn-copy {
           width: 100%;
+        }
+
+        .btn-view {
+          width: 100%;
+          margin-left: 0;
+          margin-top: 0.5rem;
         }
 
         .version-display {
@@ -681,16 +703,13 @@
           <div class="output-url">
             <input type="text" id="pasteUrl" readonly>
             <button class="btn-copy" id="copyBtn">Copy Link</button>
+            <button class="btn-view" id="viewBtn" style="display: none;">View Paste</button>
           </div>
         </div>
       </div>
 
       <!-- Footer -->
       <div class="footer">
-        <p>
-          <a href="chat.html">💬 BB Chat</a>
-          <a href="view.html">👁️ View Paste</a>
-        </p>
         <p style="margin-top: 0.5rem; font-size: 0.85rem;">
           Your content is encrypted in your browser. We never see your data.
         </p>
@@ -765,6 +784,7 @@
         const outputTitle = document.getElementById('outputTitle');
         const outputMessage = document.getElementById('outputMessage');
         const pasteUrl = document.getElementById('pasteUrl');
+        const viewBtn = document.getElementById('viewBtn');
         
         output.classList.toggle('error', !success);
         outputTitle.textContent = title;
@@ -773,8 +793,25 @@
         if (url) {
           pasteUrl.value = url;
           document.querySelector('.output-url').style.display = 'flex';
+          
+          // Show and configure view button
+          if (viewBtn) {
+            viewBtn.style.display = 'inline-block';
+            // Remove any existing click handlers
+            const newViewBtn = viewBtn.cloneNode(true);
+            viewBtn.parentNode?.replaceChild(newViewBtn, viewBtn);
+            const btn = document.getElementById('viewBtn');
+            if (btn) {
+              btn.addEventListener('click', () => {
+                window.open(url, '_blank', 'noopener,noreferrer');
+              });
+            }
+          }
         } else {
           document.querySelector('.output-url').style.display = 'none';
+          if (viewBtn) {
+            viewBtn.style.display = 'none';
+          }
         }
         
         output.classList.add('show');
