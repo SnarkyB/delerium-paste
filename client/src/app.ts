@@ -301,6 +301,9 @@ if (typeof document !== 'undefined') {
         const url = `${location.origin}/view.html?p=${encodeURIComponent(data.id)}#${keyB64}:${ivB64}`;
         const deleteUrl = `${location.origin}/delete.html?p=${encodeURIComponent(data.id)}&token=${encodeURIComponent(data.deleteToken)}`;
         
+        // Store delete token for later use on view page
+        localStorage.setItem(`deleteToken_${data.id}`, data.deleteToken);
+        
         // Show success result
         showSuccess(url, deleteUrl, usePassword);
         
@@ -428,6 +431,12 @@ if (typeof document !== 'undefined' && typeof location !== 'undefined') {
       if (updateStatus) updateStatus(true, 'Decrypted successfully');
       if (showInfo && meta) showInfo(viewsLeft, meta.expireTs);
       
+      // Check if delete token exists for this paste
+      const deleteToken = localStorage.getItem(`deleteToken_${id}`);
+      if (deleteToken && typeof (window as any).showDestroyButton === 'function') {
+        (window as any).showDestroyButton(id, deleteToken);
+      }
+      
       // Securely clear decryption data from memory
       secureClear(keyB64);
       secureClear(ivB64 || iv);
@@ -477,12 +486,12 @@ function showLoading(show: boolean, message?: string): void {
 function showError(message: string): void {
   // Use new UI function if available
   if (typeof (window as any).showOutput === 'function') {
-    (window as any).showOutput(false, '? Error', message, null);
+    (window as any).showOutput(false, 'Error', message, null);
   } else {
     // Fallback for old UI
     const out = document.getElementById('out');
     if (out) {
-      out.textContent = `? Error: ${message}`;
+      out.textContent = `Error: ${message}`;
       out.style.color = 'red';
     }
   }
@@ -494,15 +503,15 @@ function showError(message: string): void {
 function showSuccess(shareUrl: string, deleteUrl: string, isPasswordProtected: boolean = false): void {
   // Use new UI function if available
   if (typeof (window as any).showOutput === 'function') {
-    const title = isPasswordProtected ? '? Password-protected paste ready!' : '? Success! Your paste is ready';
-    const message = `Share this link with anyone you want to give access to:\n\nDelete URL: ${deleteUrl}`;
+    const title = isPasswordProtected ? 'Password-protected paste ready!' : 'Success! Your paste is ready';
+    const message = `Share this link with anyone you want to give access to:`;
     (window as any).showOutput(true, title, message, shareUrl);
   } else {
     // Fallback for old UI
     const out = document.getElementById('out');
     if (out) {
-      const title = isPasswordProtected ? '?? Your password-protected paste is ready!' : '? Your secure paste is ready!';
-      out.textContent = `${title}\n\nShare URL:\n${shareUrl}\n\nDelete URL:\n${deleteUrl}`;
+      const title = isPasswordProtected ? 'Your password-protected paste is ready!' : 'Your secure paste is ready!';
+      out.textContent = `${title}\n\nShare URL:\n${shareUrl}`;
       out.style.color = '';
     }
   }

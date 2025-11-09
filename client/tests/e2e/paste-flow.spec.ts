@@ -69,12 +69,11 @@ test.describe('Paste Creation and Viewing Flow', () => {
     // Wait for the output to appear
     await page.waitForSelector('#out');
 
-    // Verify the output contains share URL and delete link
+    // Verify the output contains share URL (delete link removed from success message)
     const output = await page.textContent('#out');
     expect(output).toContain('Share this URL');
     expect(output).toContain('test-paste-id-456');
-    expect(output).toContain('Delete link');
-    expect(output).toContain('test-delete-token-789');
+    // Delete link is no longer shown in success message - it's available on view page instead
   });
 
   test('should show error for empty paste content', async ({ page }) => {

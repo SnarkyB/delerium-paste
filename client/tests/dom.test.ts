@@ -196,12 +196,12 @@ describe('DOM Interaction Functions', () => {
 
     it('should display success messages', () => {
       const outElement = document.getElementById('out') as HTMLPreElement;
-      const successMessage = 'Share this URL (includes the decryption key in fragment):\nhttp://localhost/view.html?p=test-id#test-key:test-iv\n\nDelete link (keep private):\nhttp://localhost/api/pastes/test-id?token=test-token (HTTP DELETE)';
+      const successMessage = 'Share this URL (includes the decryption key in fragment):\nhttp://localhost/view.html?p=test-id#test-key:test-iv';
 
       outElement.textContent = successMessage;
 
       expect(outElement.textContent).toContain('Share this URL');
-      expect(outElement.textContent).toContain('Delete link');
+      // Delete link is no longer shown in success message - it's available on view page instead
     });
   });
 

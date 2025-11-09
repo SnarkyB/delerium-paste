@@ -185,6 +185,22 @@
         border-color: var(--primary);
       }
 
+      .btn-danger {
+        background: var(--danger);
+        color: white;
+        border: 2px solid var(--danger);
+      }
+
+      .btn-danger:hover {
+        background: #dc2626;
+        border-color: #dc2626;
+      }
+
+      .btn-danger:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
       .btn.copied {
         background: var(--success);
         color: white;
@@ -342,7 +358,7 @@
     <div class="container">
       <!-- Header -->
       <div class="header">
-        <div class="logo">?? Secure Paste</div>
+        <div class="logo">Secure Paste</div>
         <div class="status-badge loading" id="statusBadge">
           <span class="spinner"></span>
           <span id="statusText">Decrypting...</span>
@@ -351,30 +367,34 @@
 
       <!-- Main Card -->
       <div class="card">
-        <pre id="content" class="loading">?? Decrypting your secure paste...</pre>
+        <pre id="content" class="loading">Decrypting your secure paste...</pre>
 
         <div class="actions">
           <button class="btn btn-primary" id="copyBtn">
-            <span>??</span>
+            <span>📋</span>
             <span id="copyText">Copy to Clipboard</span>
           </button>
           <button class="btn btn-secondary" onclick="window.location.href='index.html'">
-            <span>?</span>
+            <span>➕</span>
             <span>Create New Paste</span>
+          </button>
+          <button class="btn btn-danger" id="destroyBtn" style="display: none;">
+            <span>🗑️</span>
+            <span>Destroy Paste</span>
           </button>
         </div>
 
         <div class="info-bar" id="infoBar" style="display: none;">
           <div class="info-item">
-            <span>??</span>
+            <span>👁️</span>
             <span><strong>Views:</strong> <span id="viewsInfo">-</span></span>
           </div>
           <div class="info-item">
-            <span>?</span>
+            <span>⏰</span>
             <span><strong>Expires:</strong> <span id="expiresInfo">-</span></span>
           </div>
           <div class="info-item">
-            <span>??</span>
+            <span>🔒</span>
             <span><strong>Encrypted:</strong> AES-256-GCM</span>
           </div>
         </div>
@@ -383,8 +403,8 @@
       <!-- Footer -->
       <div class="footer">
         <p>
-          <a href="index.html">? New Paste</a>
-          <a href="chat.html">?? BB Chat</a>
+          <a href="index.html">➕ New Paste</a>
+          <a href="chat.html">💬 BB Chat</a>
         </p>
         <p style="margin-top: 0.5rem; font-size: 0.85rem;">
           This paste was encrypted in the sender's browser. Zero-knowledge security.
@@ -408,7 +428,7 @@
         // Try modern clipboard API first
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(text).then(() => {
-            copyText.textContent = '? Copied!';
+            copyText.textContent = '✓ Copied!';
             copyBtn.classList.add('copied');
             
             setTimeout(() => {
@@ -427,7 +447,7 @@
           document.execCommand('copy');
           document.body.removeChild(textarea);
           
-          copyText.textContent = '? Copied!';
+          copyText.textContent = '✓ Copied!';
           copyBtn.classList.add('copied');
           
           setTimeout(() => {
@@ -445,9 +465,9 @@
         statusBadge.classList.remove('loading');
         
         if (success) {
-          statusBadge.innerHTML = '<span>?</span><span>' + message + '</span>';
+          statusBadge.innerHTML = '<span>✓</span><span>' + message + '</span>';
         } else {
-          statusBadge.innerHTML = '<span>?</span><span>' + message + '</span>';
+          statusBadge.innerHTML = '<span>✗</span><span>' + message + '</span>';
         }
       };
 
@@ -484,6 +504,70 @@
         }
         
         infoBar.style.display = 'flex';
+      };
+
+      // Show destroy button and handle deletion
+      window.showDestroyButton = (pasteId, deleteToken) => {
+        const destroyBtn = document.getElementById('destroyBtn');
+        if (!destroyBtn) return;
+        
+        // Remove any existing click handler to prevent duplicates
+        const newDestroyBtn = destroyBtn.cloneNode(true);
+        destroyBtn.parentNode?.replaceChild(newDestroyBtn, destroyBtn);
+        const btn = document.getElementById('destroyBtn');
+        if (!btn) return;
+        
+        btn.style.display = 'inline-flex';
+        
+        btn.addEventListener('click', async () => {
+          if (!confirm('Are you sure you want to permanently delete this paste? This action cannot be undone.')) {
+            return;
+          }
+          
+          // Show loading state
+          const originalText = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = '<span class="spinner"></span> Deleting...';
+          
+          try {
+            const res = await fetch(`/api/pastes/${encodeURIComponent(pasteId)}?token=${encodeURIComponent(deleteToken)}`, {
+              method: 'DELETE'
+            });
+            
+            if (res.ok || res.status === 204) {
+              // Remove token from localStorage
+              localStorage.removeItem(`deleteToken_${pasteId}`);
+              
+              // Update UI to show success
+              const content = document.getElementById('content');
+              if (content) {
+                content.textContent = 'Paste has been permanently deleted.';
+                content.classList.add('error');
+              }
+              
+              // Hide destroy button
+              btn.style.display = 'none';
+              
+              // Update status
+              if (typeof window.updateStatus === 'function') {
+                window.updateStatus(true, 'Paste deleted');
+              }
+            } else {
+              const err = await res.json().catch(() => ({ error: 'Unknown error' }));
+              alert('Failed to delete paste: ' + (err.error || 'Invalid token or paste not found'));
+              
+              // Restore button
+              btn.disabled = false;
+              btn.innerHTML = originalText;
+            }
+          } catch (e) {
+            alert('Failed to delete paste: ' + e.message);
+            
+            // Restore button
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+          }
+        });
       };
     </script>
   </body>
