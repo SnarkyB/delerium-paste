@@ -9,8 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.6-alpha] - 2025-11-09
 
+### Added
+- **UI/UX improvements** (#86)
+  - Moved delete link from paste creation success message to decrypted paste viewing page
+  - Added "Destroy Paste" button on view page that appears when delete token is available
+  - Added "View Paste" button in success output that opens paste in new tab
+  - Delete token now stored in localStorage for seamless deletion from view page
+  - Improved responsive styling for mobile devices
+- **Contributor documentation** (#87)
+  - Added comprehensive CONTRIBUTING.md with contributor guidelines
+  - Includes fork workflow, development setup, PR process, and code standards
+- **Commit signing guide** (#88)
+  - Added detailed guide for setting up GPG commit signing (docs/development/COMMIT_SIGNING.md)
+  - Enables verified commits on GitHub
+  - Includes step-by-step instructions and troubleshooting
+
 ### Changed
+- **Workflow performance optimizations** (#89)
+  - Split PR checks workflow into parallel jobs (frontend, backend, docker)
+  - Split client CI workflow into parallel jobs (lint, typecheck, test, coverage)
+  - Enhanced security scan workflow with improved caching
+  - Optimized local CI scripts for parallel execution
+  - Updated Makefile deploy-full to run builds/tests in parallel
+  - Added comprehensive caching for node_modules, Jest, TypeScript, ESLint, Gradle
+  - **Performance improvements**: 40-50% faster PR checks (10-15min → 5-8min), 40% faster client CI (5-8min → 3-5min)
+- **UI cleanup** (#86)
+  - Removed BB Chat links from index.html and view.html footers
+  - Removed View Paste and New Paste links from footers
+  - Cleaner, more focused UI on paste creation page
 - Version bump to v0.1.6-alpha
+
+### Fixed
+- **Test improvements** (#90)
+  - Fixed PoW load tests: made success rate expectations more lenient for load scenarios
+  - Tests now properly handle high-concurrency scenarios without false failures
 
 ## [0.1.5-alpha] - 2025-11-08
 
