@@ -115,13 +115,15 @@ jobs:
 
       - name: Check for outdated packages
         working-directory: ./client
+        continue-on-error: true
         run: |
           echo "📦 Checking for outdated packages..."
           npm outdated --json > npm-outdated.json || true
           OUTDATED_COUNT=$(jq 'length' npm-outdated.json 2>/dev/null || echo "0")
           if [ "$OUTDATED_COUNT" -gt 0 ]; then
             echo "⚠️ Found $OUTDATED_COUNT outdated packages"
-            npm outdated
+            npm outdated || true
+            echo "ℹ️ This is informational only - workflow will not fail"
           else
             echo "✅ All packages are up to date"
           fi
