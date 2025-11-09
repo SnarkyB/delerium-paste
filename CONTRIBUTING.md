@@ -2,6 +2,76 @@
 
 Thank you for your interest in contributing to Delirium Paste! This document provides guidelines and instructions for contributing to the project.
 
+## 🤝 How to Become a Contributor
+
+### Fork the Repository
+
+**All contributors should fork the repository** to contribute changes. This is the standard open-source workflow that allows you to:
+
+- Work on your own copy of the code
+- Make changes without affecting the main repository
+- Submit changes via Pull Requests for review
+
+### Step-by-Step: Fork → Contribute → Pull Request
+
+1. **Fork the repository**
+   - Click the "Fork" button at the top right of the [repository page](https://github.com/SnarkyB/delerium-paste)
+   - This creates your own copy at `https://github.com/YOUR_USERNAME/delerium-paste`
+
+2. **Clone your fork**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/delerium-paste.git
+   cd delerium-paste
+   ```
+
+3. **Add the upstream repository** (to keep your fork updated)
+   ```bash
+   git remote add upstream https://github.com/SnarkyB/delerium-paste.git
+   ```
+
+4. **Create a branch** for your changes
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+5. **Make your changes** (see [Development Workflow](#-development-workflow) below)
+
+6. **Push to your fork**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+7. **Open a Pull Request**
+   - Go to the original repository on GitHub
+   - Click "New Pull Request"
+   - Select your fork and branch
+   - Fill out the PR template (see [Pull Request Process](#-pull-request-process))
+
+### Keeping Your Fork Updated
+
+To sync your fork with the latest changes from the main repository:
+
+```bash
+# Fetch latest changes from upstream
+git fetch upstream
+
+# Switch to main branch
+git checkout main
+
+# Merge upstream changes
+git merge upstream/main
+
+# Push updates to your fork
+git push origin main
+```
+
+### Why Fork Instead of Direct Contribution?
+
+- **No write access required** - You don't need to be a repository maintainer
+- **Safe experimentation** - Your fork is your own space to experiment
+- **Review process** - All changes go through Pull Request review
+- **Standard practice** - This is how most open-source projects work
+
 ## 🎯 Getting Started
 
 ### Prerequisites
@@ -13,10 +83,14 @@ Thank you for your interest in contributing to Delirium Paste! This document pro
 
 ### Initial Setup
 
-1. **Fork and clone the repository**
+1. **Fork and clone the repository** (see [How to Become a Contributor](#-how-to-become-a-contributor) above)
    ```bash
+   # Clone YOUR fork (not the original repository)
    git clone https://github.com/YOUR_USERNAME/delerium-paste.git
    cd delerium-paste
+   
+   # Add upstream remote to keep your fork updated
+   git remote add upstream https://github.com/SnarkyB/delerium-paste.git
    ```
 
 2. **Set up the development environment**
@@ -94,8 +168,11 @@ Use descriptive branch names that indicate the type of change:
 
 5. **Push and create a Pull Request**
    ```bash
+   # Push to YOUR fork (origin), not the upstream repository
    git push origin feature/your-feature-name
    ```
+   
+   Then go to GitHub and open a Pull Request from your fork to the main repository.
 
 ## 📝 Code Style
 
