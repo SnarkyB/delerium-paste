@@ -417,6 +417,22 @@
         background: var(--success);
       }
 
+      .btn-view {
+        padding: 0.75rem 1.25rem;
+        background: var(--success);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-weight: 500;
+        white-space: nowrap;
+        margin-left: 0.5rem;
+      }
+
+      .btn-view:hover {
+        background: #059669;
+      }
+
       /* Footer */
       .footer {
         margin-top: 2rem;
@@ -514,6 +530,12 @@
           width: 100%;
         }
 
+        .btn-view {
+          width: 100%;
+          margin-left: 0;
+          margin-top: 0.5rem;
+        }
+
         .version-display {
           bottom: 0.5rem;
           right: 0.5rem;
@@ -587,10 +609,10 @@
     <div class="container">
       <!-- Header -->
       <div class="header">
-        <div class="logo">?? Delirium Paste</div>
+        <div class="logo">Delirium Paste</div>
         <div class="tagline">Secure, Zero-Knowledge Paste Sharing</div>
         <div class="security-badge">
-          <span>???</span>
+          <span>🔒</span>
           <span>End-to-End Encrypted</span>
         </div>
       </div>
@@ -616,7 +638,7 @@
           <div class="option-group">
             <label for="mins">
               Expire after (minutes)
-              <span class="tooltip" data-tooltip="How long before the paste is automatically deleted">??</span>
+              <span class="tooltip" data-tooltip="How long before the paste is automatically deleted">ℹ️</span>
             </label>
             <input type="number" id="mins" value="60" min="1" max="10080">
             <div class="presets">
@@ -643,16 +665,16 @@
               <div class="checkbox-group">
                 <input type="checkbox" id="single">
                 <label for="single" class="checkbox-label">
-                  ?? Burn after reading
-                  <span class="tooltip" data-tooltip="Delete immediately after first view">??</span>
+                  🔥 Burn after reading
+                  <span class="tooltip" data-tooltip="Delete immediately after first view">ℹ️</span>
                 </label>
               </div>
 
               <div class="checkbox-group">
                 <input type="checkbox" id="usePassword">
                 <label for="usePassword" class="checkbox-label">
-                  ?? Password protect
-                  <span class="tooltip" data-tooltip="Add an extra layer of encryption">??</span>
+                  🔐 Password protect
+                  <span class="tooltip" data-tooltip="Add an extra layer of encryption">ℹ️</span>
                 </label>
               </div>
             </div>
@@ -669,28 +691,25 @@
         <!-- Submit Button -->
         <button id="save" class="btn-primary" type="button">
           <span class="btn-text">
-            <span class="btn-icon">??</span>
+            <span class="btn-icon">🔒</span>
             <span id="btnText">Encrypt & Upload</span>
           </span>
         </button>
 
         <!-- Output -->
         <div id="output" class="output">
-          <div class="output-title" id="outputTitle">? Success! Your paste is ready</div>
+          <div class="output-title" id="outputTitle">Success! Your paste is ready</div>
           <div id="outputMessage"></div>
           <div class="output-url">
             <input type="text" id="pasteUrl" readonly>
             <button class="btn-copy" id="copyBtn">Copy Link</button>
+            <button class="btn-view" id="viewBtn" style="display: none;">View Paste</button>
           </div>
         </div>
       </div>
 
       <!-- Footer -->
       <div class="footer">
-        <p>
-          <a href="chat.html">?? BB Chat</a>
-          <a href="view.html">??? View Paste</a>
-        </p>
         <p style="margin-top: 0.5rem; font-size: 0.85rem;">
           Your content is encrypted in your browser. We never see your data.
         </p>
@@ -741,7 +760,7 @@
             
             const btn = document.getElementById('copyBtn');
             const originalText = btn.textContent;
-            btn.textContent = '? Copied!';
+            btn.textContent = '✓ Copied!';
             btn.classList.add('copied');
             
             setTimeout(() => {
@@ -765,6 +784,7 @@
         const outputTitle = document.getElementById('outputTitle');
         const outputMessage = document.getElementById('outputMessage');
         const pasteUrl = document.getElementById('pasteUrl');
+        const viewBtn = document.getElementById('viewBtn');
         
         output.classList.toggle('error', !success);
         outputTitle.textContent = title;
@@ -773,8 +793,25 @@
         if (url) {
           pasteUrl.value = url;
           document.querySelector('.output-url').style.display = 'flex';
+          
+          // Show and configure view button
+          if (viewBtn) {
+            viewBtn.style.display = 'inline-block';
+            // Remove any existing click handlers
+            const newViewBtn = viewBtn.cloneNode(true);
+            viewBtn.parentNode?.replaceChild(newViewBtn, viewBtn);
+            const btn = document.getElementById('viewBtn');
+            if (btn) {
+              btn.addEventListener('click', () => {
+                window.open(url, '_blank', 'noopener,noreferrer');
+              });
+            }
+          }
         } else {
           document.querySelector('.output-url').style.display = 'none';
+          if (viewBtn) {
+            viewBtn.style.display = 'none';
+          }
         }
         
         output.classList.add('show');
@@ -794,7 +831,7 @@
           btnText.innerHTML = '<span class="spinner"></span> ' + loadingMessage;
         } else {
           btn.disabled = false;
-          btnText.innerHTML = '<span class="btn-icon">??</span> Encrypt & Upload';
+          btnText.innerHTML = '<span class="btn-icon">🔒</span> Encrypt & Upload';
         }
       };
     </script>
