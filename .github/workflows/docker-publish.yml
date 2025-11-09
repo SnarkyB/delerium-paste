@@ -78,7 +78,8 @@ jobs:
         if: secrets.DOCKERHUB_USERNAME != ''
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./server
+          file: ./server/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-dockerhub.outputs.tags }}
           labels: ${{ steps.meta-dockerhub.outputs.labels }}
@@ -89,7 +90,8 @@ jobs:
       - name: Build and push to GHCR
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./server
+          file: ./server/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-ghcr.outputs.tags }}
           labels: ${{ steps.meta-ghcr.outputs.labels }}
