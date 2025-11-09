@@ -498,6 +498,10 @@ complete to prevent potential memory leaks.
 Fixes #123
 ```
 
+### Verified Commits
+
+We encourage contributors to sign their commits with GPG for verified commits on GitHub. See [docs/development/COMMIT_SIGNING.md](docs/development/COMMIT_SIGNING.md) for setup instructions.
+
 ## 🤝 Code of Conduct
 
 ### Our Standards
