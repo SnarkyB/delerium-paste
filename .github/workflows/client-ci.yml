@@ -53,10 +53,10 @@ jobs:
       run: npm ci
     
     - name: Run ESLint with autofix
-      run: npm run lint:fix -- --cache --cache-location .eslintcache
+      run: npx eslint src/**/*.ts --fix --cache --cache-location .eslintcache
       
     - name: Check for remaining lint errors
-      run: npm run lint -- --cache --cache-location .eslintcache
+      run: npx eslint src/**/*.ts --cache --cache-location .eslintcache
 
   typecheck:
     name: Type Check
