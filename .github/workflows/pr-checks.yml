@@ -1,4 +1,4 @@
-name: PR Serial Quality Gates
+name: PR Parallel Quality Gates
 
 on:
   pull_request:
@@ -7,33 +7,61 @@ on:
       - '**'
 
 jobs:
-  checks:
-    name: Serial PR Checks
+  frontend-checks:
+    name: Frontend Checks
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Cleanup step that runs even if job fails
-      - name: Cleanup on failure
-        if: failure()
-        run: |
-          echo "Cleaning up after failed job..."
-          rm -rf node_modules
-          rm -rf client/node_modules
-          rm -rf client/coverage
-          rm -rf server/build
-          rm -rf .gradle
-          docker-compose down -v 2>/dev/null || true
-          echo "Cleanup completed"
-
-      # ---- Frontend (TypeScript) ----
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: './client/package-lock.json'
+
+      # Cache node_modules for faster installs
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: node-modules-cache
+        with:
+          path: client/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('client/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      # Cache TypeScript build outputs
+      - name: Cache TypeScript build
+        uses: actions/cache@v4
+        id: ts-cache
+        with:
+          path: client/js
+          key: ${{ runner.os }}-ts-build-${{ hashFiles('client/src/**/*.ts', 'client/tsconfig.json') }}
+          restore-keys: |
+            ${{ runner.os }}-ts-build-
+
+      # Cache Jest test results
+      - name: Cache Jest
+        uses: actions/cache@v4
+        id: jest-cache
+        with:
+          path: |
+            client/.jest-cache
+            client/coverage
+          key: ${{ runner.os }}-jest-${{ hashFiles('client/src/**/*.ts', 'client/jest.config.js') }}
+          restore-keys: |
+            ${{ runner.os }}-jest-
+
+      # Cache ESLint cache
+      - name: Cache ESLint
+        uses: actions/cache@v4
+        id: eslint-cache
+        with:
+          path: client/.eslintcache
+          key: ${{ runner.os }}-eslint-${{ hashFiles('client/src/**/*.ts', 'client/eslint.config.mjs') }}
+          restore-keys: |
+            ${{ runner.os }}-eslint-
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -46,6 +74,7 @@ jobs:
 
       - name: Install dependencies (frontend)
         working-directory: ./client
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Install Playwright browsers
@@ -60,13 +89,16 @@ jobs:
 
       - name: Lint (frontend)
         working-directory: ./client
-        run: npx eslint src/**/*.ts
+        run: npx eslint src/**/*.ts --cache --cache-location .eslintcache
+
       - name: Type Check (frontend)
         working-directory: ./client
-        run: npx tsc --noEmit
+        run: npx tsc --noEmit --incremental
+
       - name: Unit Tests (frontend)
         working-directory: ./client
-        run: npx jest --testPathIgnorePatterns=/integration/ --testPathIgnorePatterns=/e2e/
+        run: npx jest --testPathIgnorePatterns=/integration/ --testPathIgnorePatterns=/e2e/ --cache
+
       # - name: Integration Tests (frontend)
       #   working-directory: ./client
       #   run: npx jest --config jest.integration.config.js
@@ -75,11 +107,11 @@ jobs:
       #   working-directory: ./client
       #   run: npx playwright test
       #   Note: Temporarily disabled due to webkit timing issues (see #19)
+
       - name: Coverage Report (frontend)
         working-directory: ./client
-        run: npx jest --coverage
+        run: npx jest --coverage --cache
 
-      # ---- Coverage Threshold (frontend) ----
       - name: Coverage Threshold Check
         working-directory: ./client
         run: |
@@ -121,7 +153,22 @@ jobs:
             fi
           fi
 
-      # ---- Backend (Kotlin/Ktor) ----
+      - name: Cleanup on failure
+        if: failure()
+        run: |
+          echo "Cleaning up after failed frontend job..."
+          rm -rf client/node_modules
+          rm -rf client/coverage
+          rm -rf client/.eslintcache
+          rm -rf client/.jest-cache
+
+  backend-checks:
+    name: Backend Checks
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -145,10 +192,25 @@ jobs:
         working-directory: ./server
         run: ./gradlew clean build test
 
-      # ---- Docker Build & Health Check ----
+      - name: Cleanup on failure
+        if: failure()
+        run: |
+          echo "Cleaning up after failed backend job..."
+          rm -rf server/build
+          rm -rf server/.gradle
+          rm -rf .gradle
+
+  docker-checks:
+    name: Docker Checks
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Improved Docker layer caching with buildx cache
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -192,43 +254,32 @@ jobs:
         if: always()
         run: docker compose -f docker-compose.yml down -v
 
-      # ---- Security Scanning ----
-#      - name: Gradle Dependency Check
-#        working-directory: ./server
-#        run: |
-#          echo "🔍 Running OWASP Dependency Check..."
-#          ./gradlew dependencyCheckAnalyze || true
-#        continue-on-error: true
+      - name: Cleanup on failure
+        if: failure()
+        run: |
+          echo "Cleaning up after failed docker job..."
+          docker compose -f docker-compose.yml down -v 2>/dev/null || true
 
-#      - name: Check OWASP results
-#        working-directory: ./server
-#        run: |
-#          if [ -f build/reports/dependency-check/dependency-check-report.json ]; then
-#            CRITICAL=$(jq '[.dependencies[] | select(.vulnerabilities[]?.severity == "CRITICAL")] | length' build/reports/dependency-check/dependency-check-report.json 2>/dev/null || echo "0")
-#            HIGH=$(jq '[.dependencies[] | select(.vulnerabilities[]?.severity == "HIGH")] | length' build/reports/dependency-check/dependency-check-report.json 2>/dev/null || echo "0")
-#
-#            if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
-#              echo "❌ Critical or High severity vulnerabilities found!"
-#              echo "Critical: $CRITICAL, High: $HIGH"
-#              exit 1
-#            else
-#              echo "✅ No critical or high severity vulnerabilities found"
-#            fi
-#          fi
-
-      # ---- Artifact Upload (optional, uncomment to use) ----
-      # - name: Upload Coverage Artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: coverage-report
-      #     path: ./client/coverage/
-
-      # ---- Deployment (optional, uncomment to use) ----
-      # - name: Deploy to Staging
-      #   run: |
-      #     echo "Deploying to staging environment..."
-      #     # Add your deployment script/command here
-
-      # ---- Quality Gate ----
-      - name: All checks passed
-        run: echo "All serial checks passed successfully!"
+  summary:
+    name: PR Checks Summary
+    runs-on: ubuntu-24.04
+    needs: [frontend-checks, backend-checks, docker-checks]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          echo "## PR Checks Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Checks | ${{ needs.frontend-checks.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend Checks | ${{ needs.backend-checks.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Checks | ${{ needs.docker-checks.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.frontend-checks.result }}" != "success" ] || [ "${{ needs.backend-checks.result }}" != "success" ] || [ "${{ needs.docker-checks.result }}" != "success" ]; then
+            echo "❌ Some checks failed. Please review the logs above." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "✅ All checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+          fi

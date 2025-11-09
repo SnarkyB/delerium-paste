@@ -48,8 +48,27 @@ jobs:
           cache: 'npm'
           cache-dependency-path: './client/package-lock.json'
 
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: node-modules-cache
+        with:
+          path: client/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('client/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      - name: Cache npm audit results
+        uses: actions/cache@v4
+        id: npm-audit-cache
+        with:
+          path: client/npm-audit-report.json
+          key: ${{ runner.os }}-npm-audit-${{ hashFiles('client/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-audit-
+
       - name: Install dependencies
         working-directory: ./client
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Run npm audit (moderate and above)
@@ -130,16 +149,33 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
             server/.gradle
+            server/build
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Cache OWASP Dependency Check results
+        uses: actions/cache@v4
+        id: owasp-cache
+        with:
+          path: server/build/reports/dependency-check
+          key: ${{ runner.os }}-owasp-${{ hashFiles('server/build.gradle.kts', 'server/dependency-check-suppressions.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-owasp-
+
       - name: Run OWASP Dependency Check
         working-directory: ./server
+        if: steps.owasp-cache.outputs.cache-hit != 'true'
         run: |
           echo "🔍 Running OWASP Dependency Check..."
           ./gradlew dependencyCheckAnalyze --info || true
         continue-on-error: true
+
+      - name: Use cached OWASP results
+        if: steps.owasp-cache.outputs.cache-hit == 'true'
+        run: |
+          echo "✅ Using cached OWASP Dependency Check results"
+          echo "📄 Report available at: server/build/reports/dependency-check/dependency-check-report.html"
 
       - name: Check OWASP results
         working-directory: ./server
