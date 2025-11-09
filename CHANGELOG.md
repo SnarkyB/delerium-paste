@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6-alpha] - 2025-11-09
+
+### Changed
+- Version bump to v0.1.6-alpha
+
 ## [0.1.5-alpha] - 2025-11-08
 
 ### Added
@@ -169,7 +174,8 @@ The v0.1.0-alpha release had a critical bug where TypeScript's module compilatio
 ### Notes
 This is an alpha release intended for testing and feedback. Not recommended for production use with sensitive data.
 
-[Unreleased]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.5-alpha...HEAD
+[Unreleased]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.6-alpha...HEAD
+[0.1.6-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.5-alpha...v0.1.6-alpha
 [0.1.5-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.4-alpha...v0.1.5-alpha
 [0.1.4-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.3-alpha...v0.1.4-alpha
 [0.1.3-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.2-alpha...v0.1.3-alpha
