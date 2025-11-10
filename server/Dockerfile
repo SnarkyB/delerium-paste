@@ -9,7 +9,6 @@ RUN gradle --no-daemon clean installDist
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 COPY --from=builder /build/build/install/delerium-paste-server/ /app/
-ENV DELETION_TOKEN_PEPPER=change-me
 VOLUME ["/data"]
 EXPOSE 8080
 ENTRYPOINT ["/app/bin/delerium-paste-server"]
