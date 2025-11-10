@@ -86,7 +86,7 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             try {
                 repo.create(id, body.ct, body.iv, body.meta, deleteToken)
                 call.respond(CreatePasteResponse(id, deleteToken))
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, ErrorResponse("db_error"))
             }
         }
