@@ -1,6 +1,6 @@
 # Container Image Publishing Guide
 
-This guide explains how to publish the delerium-paste server as a reusable container image to Docker Hub or GitHub Container Registry (GHCR).
+This guide explains how to publish the delerium-paste-server as a reusable container image to Docker Hub or GitHub Container Registry (GHCR).
 
 ## Quick Start
 

@@ -2,6 +2,9 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
+      <module name="delerium-paste-server" target="21" />
+      <module name="delerium-paste-server.main" target="21" />
+      <module name="delerium-paste-server.test" target="21" />
       <module name="server.cc.delerium" target="21" />
       <module name="server.cc.delerium.main" target="21" />
       <module name="server.cc.delerium.test" target="21" />

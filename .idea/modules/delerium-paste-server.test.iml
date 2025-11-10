@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.id="cc.delerium:test" external.linked.project.path="$MODULE_DIR$/../../server" external.root.project.path="$MODULE_DIR$/../../server" external.system.id="GRADLE" external.system.module.group="" external.system.module.type="sourceSet" external.system.module.version="unspecified" type="JAVA_MODULE" version="4">
+<module external.linked.project.id="delerium-paste-server:test" external.linked.project.path="$MODULE_DIR$/../../server" external.root.project.path="$MODULE_DIR$/../../server" external.system.id="GRADLE" external.system.module.group="" external.system.module.type="sourceSet" external.system.module.version="unspecified" type="JAVA_MODULE" version="4">
   <component name="FacetManager">
     <facet external-system-id="GRADLE" type="kotlin-language" name="Kotlin">
       <configuration version="5" platform="JVM 21" allPlatforms="JVM [21]" useProjectSettings="false" pureKotlinSourceFolders="$MODULE_DIR$/../../server/src/test/kotlin;/Users/marcusb/src/repos/delerium-paste/server/src/main/kotlin">
-        <additionalVisibleModuleNames>cc.delerium:main</additionalVisibleModuleNames>
+        <additionalVisibleModuleNames>delerium-paste-server:main</additionalVisibleModuleNames>
         <compilerSettings />
         <compilerArguments>
           <flagArguments>
@@ -14,7 +14,7 @@
           <stringArguments>
             <stringArg name="destination" arg="$MODULE_DIR$/../../server/build/classes/kotlin/test" />
             <stringArg name="jvmTarget" arg="21" />
-            <stringArg name="moduleName" arg="cc.delerium_test" />
+            <stringArg name="moduleName" arg="delerium-paste-server_test" />
             <stringArg name="apiVersion" arg="2.1" />
             <stringArg name="languageVersion" arg="2.1" />
           </stringArguments>
@@ -40,7 +40,7 @@
     <content url="file://$MODULE_DIR$/../../server/src/test" />
     <orderEntry type="jdk" jdkName="21" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="server.cc.delerium.main" />
+    <orderEntry type="module" module-name="delerium-paste-server.main" />
     <orderEntry type="library" name="Gradle: io.ktor:ktor-server-netty-jvm:3.3.2" level="project" />
     <orderEntry type="library" name="Gradle: io.ktor:ktor-server-content-negotiation-jvm:3.3.2" level="project" />
     <orderEntry type="library" name="Gradle: io.ktor:ktor-server-cors-jvm:3.3.2" level="project" />
@@ -97,5 +97,5 @@
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.10.2" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.fusesource.jansi:jansi:2.4.2" level="project" />
   </component>
-  <component name="TestModuleProperties" production-module="cc.delerium.main" />
+  <component name="TestModuleProperties" production-module="delerium-paste-server.main" />
 </module>
