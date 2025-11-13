@@ -275,7 +275,7 @@ if (typeof window !== 'undefined') {
         viewBtn.parentNode?.replaceChild(newBtn, viewBtn);
         newBtn.style.display = 'inline-block';
         newBtn.addEventListener('click', () => {
-          window.open(url, '_blank', 'noopener,noreferrer');
+          window.location.href = url;
         });
       }
 
@@ -656,7 +656,6 @@ if (typeof document !== 'undefined') {
 
         // Create paste using API client
         showLoading(true, 'Uploading paste...');
-        console.log('Calling apiClient.createPaste');
         const data = await apiClient.createPaste({
           ct: ctB64,
           iv: ivB64,
@@ -875,7 +874,8 @@ function showSuccess(shareUrl: string, deleteUrl: string, isPasswordProtected: b
   if (typeof (window as WindowWithUI).showOutput === 'function') {
     const title = isPasswordProtected ? 'Password-protected paste ready!' : 'Success! Your paste is ready';
     const message = `Share this link with anyone you want to give access to:`;
-    (window as WindowWithUI).showOutput?.(true, title, message, shareUrl);  } else {
+    (window as WindowWithUI).showOutput?.(true, title, message, shareUrl);
+  } else {
     // Fallback for old UI
     const out = document.getElementById('out');
     if (out) {
