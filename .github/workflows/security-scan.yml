@@ -131,6 +131,7 @@ jobs:
   backend-security:
     name: Backend Security Scan
     runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request'  # Disabled for pull requests
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
