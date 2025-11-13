@@ -14,7 +14,7 @@ import {
   validateViewCount,
   validatePassword,
   isValidUTF8
-} from '../src/core/validators/index.js';
+} from '../../../src/core/validators/index.js';
 
 import {
   secureClear,
@@ -25,7 +25,7 @@ import {
   generateSalt,
   encryptWithPassword,
   decryptWithPassword,
-} from '../src/security.js';
+} from '../../../src/security.js';
 
 // ============================================================================
 // VALIDATION TESTS

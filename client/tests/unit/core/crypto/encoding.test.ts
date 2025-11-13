@@ -1,5 +1,5 @@
-import { encodeBase64Url as b64u, decodeBase64Url as ub64u } from '../src/core/crypto/encoding';
-import { AesGcmCryptoProvider } from '../src/core/crypto/aes-gcm';
+import { encodeBase64Url as b64u, decodeBase64Url as ub64u } from '../../../../src/core/crypto/encoding';
+import { AesGcmCryptoProvider } from '../../../../src/core/crypto/aes-gcm';
 
 const cryptoProvider = new AesGcmCryptoProvider();
 const genIV = () => cryptoProvider.generateIV();

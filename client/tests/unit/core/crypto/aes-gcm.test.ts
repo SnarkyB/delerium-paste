@@ -1,4 +1,4 @@
-import { AesGcmCryptoProvider } from '../src/core/crypto/aes-gcm';
+import { AesGcmCryptoProvider } from '../../../../src/core/crypto/aes-gcm';
 
 const cryptoProvider = new AesGcmCryptoProvider();
 const genKey = () => cryptoProvider.generateKey();
