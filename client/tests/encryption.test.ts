@@ -1,4 +1,10 @@
-import { genKey, encryptString, decryptParts } from '../src/app';
+import { AesGcmCryptoProvider } from '../src/core/crypto/aes-gcm';
+
+const cryptoProvider = new AesGcmCryptoProvider();
+const genKey = () => cryptoProvider.generateKey();
+const encryptString = (text: string) => cryptoProvider.encrypt(text);
+const decryptParts = (keyB64: string, ivB64: string, ctB64: string) => 
+  cryptoProvider.decrypt({ key: keyB64, iv: ivB64, ciphertext: ctB64 });
 
 /**
  * Encryption Functions Test Suite
@@ -87,18 +93,14 @@ describe('Encryption Functions', () => {
       mockEncrypt.mockResolvedValue(mockCiphertext);
       mockExportKey.mockResolvedValue(mockRawKey);
       
-      // Mock genIV to return predictable IV
-      const genIVSpy = jest.spyOn(require('../src/app'), 'genIV');
-      genIVSpy.mockReturnValue(mockIV);
-      
       const result = await encryptString(plaintext);
       
-      expect(result).toHaveProperty('keyB64');
-      expect(result).toHaveProperty('ivB64');
-      expect(result).toHaveProperty('ctB64');
-      expect(typeof result.keyB64).toBe('string');
-      expect(typeof result.ivB64).toBe('string');
-      expect(typeof result.ctB64).toBe('string');
+      expect(result).toHaveProperty('key');
+      expect(result).toHaveProperty('iv');
+      expect(result).toHaveProperty('ciphertext');
+      expect(typeof result.key).toBe('string');
+      expect(typeof result.iv).toBe('string');
+      expect(typeof result.ciphertext).toBe('string');
       
       expect(mockEncrypt).toHaveBeenCalled();
       expect(mockExportKey).toHaveBeenCalled();
@@ -114,14 +116,11 @@ describe('Encryption Functions', () => {
       mockEncrypt.mockResolvedValue(mockCiphertext);
       mockExportKey.mockResolvedValue(mockRawKey);
       
-      const genIVSpy = jest.spyOn(require('../src/app'), 'genIV');
-      genIVSpy.mockReturnValue(mockIV);
-      
       const result = await encryptString(plaintext);
       
-      expect(result).toHaveProperty('keyB64');
-      expect(result).toHaveProperty('ivB64');
-      expect(result).toHaveProperty('ctB64');
+      expect(result).toHaveProperty('key');
+      expect(result).toHaveProperty('iv');
+      expect(result).toHaveProperty('ciphertext');
     });
 
     it('should handle encryption errors', async () => {
