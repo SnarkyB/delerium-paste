@@ -151,5 +151,4 @@ export async function viewPaste(): Promise<void> {
  */
 export function setupPasteViewing(): void {
   if (typeof document === 'undefined' || typeof location === 'undefined') return;
-  viewPaste();
-}
+  void viewPaste();}
