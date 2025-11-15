@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8-alpha] - 2025-11-15
+
+### Added
+- **Comprehensive UI snapshot testing** 
+  - Added visual regression tests using Playwright for all major UI components
+  - Tests cover dark mode, mobile/tablet viewports, password protection UI, character counter warnings
+  - Snapshot tests for button states, checkbox groups, preset buttons
+  - Success and error message display tests
+  - Ensures UI consistency across browsers (Chromium, Firefox)
+- **Enhanced E2E test coverage**
+  - View page destroy paste button tests with full flow coverage
+  - Tests for sessionStorage and localStorage delete token handling
+  - Confirmation dialog and error handling tests
+  - Loading state verification during deletion
+
+### Changed
+- Improved test infrastructure for visual regression testing
+- Enhanced E2E test suite with more comprehensive coverage
+
+### Notes
+This release focuses on improving test coverage with visual regression testing to catch UI regressions early. The snapshot tests ensure consistent UI rendering across different browsers and viewport sizes.
+
+## [0.1.7-alpha] - 2025-11-15
+
+### Changed
+- Version bump to v0.1.7-alpha
+- Internal release preparation
+
+### Notes
+This was a transitional release between v0.1.6-alpha and v0.1.8-alpha. The CHANGELOG entry is being backfilled.
+
 ## [0.1.6-alpha] - 2025-11-09
 
 ### Added
@@ -206,7 +237,9 @@ The v0.1.0-alpha release had a critical bug where TypeScript's module compilatio
 ### Notes
 This is an alpha release intended for testing and feedback. Not recommended for production use with sensitive data.
 
-[Unreleased]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.6-alpha...HEAD
+[Unreleased]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.8-alpha...HEAD
+[0.1.8-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.7-alpha...v0.1.8-alpha
+[0.1.7-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.6-alpha...v0.1.7-alpha
 [0.1.6-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.5-alpha...v0.1.6-alpha
 [0.1.5-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.4-alpha...v0.1.5-alpha
 [0.1.4-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.3-alpha...v0.1.4-alpha
