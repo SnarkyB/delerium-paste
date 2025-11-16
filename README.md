@@ -401,7 +401,7 @@ make clean
 - **Difficulty Scaling**: Adjustable based on system load (default: 10 bits)
 - **Client-Side**: PoW computation happens in browser
 - **Server Validation**: Server verifies PoW solutions
-- **Documentation**: See [docs/PROOF_OF_WORK.md](docs/PROOF_OF_WORK.md) for details
+- **Documentation**: See [docs/architecture/PROOF_OF_WORK.md](docs/architecture/PROOF_OF_WORK.md) for details
 
 ## 📊 API Documentation
 
@@ -564,7 +564,7 @@ docker-compose -f docker-compose.prod.yml up --build -d
 ```
 
 **Manual Setup:**
-See the comprehensive guide: [docs/SSL_SETUP_GUIDE.md](docs/SSL_SETUP_GUIDE.md)
+See the comprehensive guide: [docs/deployment/SSL_SETUP.md](docs/deployment/SSL_SETUP.md)
 
 ### Architecture
 The Docker setup includes:

@@ -328,6 +328,6 @@ After verification:
 
 ## References
 
-- [Main PoW Documentation](PROOF_OF_WORK.md)
+- [Main PoW Documentation](../architecture/PROOF_OF_WORK.md)
 - [Testing Guide](../TEST_COVERAGE_RULES.md)
 - [Deployment Guide](DEPLOYMENT.md)

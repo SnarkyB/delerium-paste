@@ -15,10 +15,23 @@ make setup
 ```
 
 The wizard will guide you through:
-1. **Choose Environment Type** - Local Development or Production/VPS
-2. **Configure Secrets** - Auto-generate secure secrets or enter manually
-3. **Optional Settings** - Domain name and SSL email (production only)
-4. **Start Services** - Optionally start Docker containers immediately
+
+1. **Choose Environment Type**
+   - Local Development (auto-generates development-friendly secrets)
+   - Production/VPS (prompts for production-grade configuration)
+
+2. **Configure Secrets**
+   - **Auto-generate**: Let the script create a secure random pepper (recommended)
+   - **Manual entry**: Enter your own secret if you prefer
+
+3. **Optional Settings** (Production only)
+   - Domain name (e.g., `paste.example.com`)
+   - Let's Encrypt email for SSL certificates
+
+4. **Start Services**
+   - Option to start Docker containers immediately
+   - Automatic health checks
+   - Browser opening (if not in headless mode)
 
 ### Option 2: Quick Automated Setup
 
@@ -64,9 +77,9 @@ This will:
 
 ```
 delerium-paste/
-??? .env          ? Your secrets go here (never committed to git)
-??? .env.example  ? Template (safe to commit)
-??? ...
+├─ .env          🔒 Your secrets go here (never committed to git)
+├─ .env.example  📄 Template (safe to commit)
+├─ ...
 ```
 
 ## Required Secrets
@@ -75,18 +88,18 @@ delerium-paste/
 |--------|--------------|-----------------|---------|
 | `DELETION_TOKEN_PEPPER` | Hashes deletion tokens securely | `openssl rand -hex 32` | `8d2eaa...fa8281d` |
 
-### DELETION_TOKEN_PEPPER
+### DELETION_TOKEN_PEPPER (Required)
 
 **What it is:** A secret string used to hash deletion tokens before storing them in the database.
 
 **Why it matters:** This prevents attackers from using stolen database dumps to delete pastes.
 
 **Security requirements:**
-- ? **At least 64 characters** (recommended)
-- ? **Cryptographically random** (use `openssl rand -hex 32`)
-- ? **Unique per environment** (different for dev/staging/production)
-- ? **Never committed to git** (already in `.gitignore`)
-- ? **Rotate periodically** (every 3-6 months)
+- ✅ **At least 64 characters** (recommended)
+- ✅ **Cryptographically random** (use `openssl rand -hex 32`)
+- ✅ **Unique per environment** (different for dev/staging/production)
+- ✅ **Never committed to git** (already in `.gitignore`)
+- ✅ **Rotate periodically** (every 3-6 months)
 
 **Example:**
 ```bash
@@ -99,6 +112,28 @@ DELETION_TOKEN_PEPPER=8d2eaa7238c33056796c0b6f516c3961cceea56f9d41bbc8a8bb7dfc0f
 |--------|-------------|---------|
 | `DOMAIN` | If you have a custom domain | `paste.example.com` |
 | `LETSENCRYPT_EMAIL` | For automatic SSL certs | `admin@example.com` |
+
+### DOMAIN (Optional)
+
+**What it is:** Your domain name for SSL/TLS certificates.
+
+**When to use:** Only needed for production deployments with a custom domain.
+
+**Example:**
+```bash
+DOMAIN=paste.example.com
+```
+
+### LETSENCRYPT_EMAIL (Optional)
+
+**What it is:** Email address for Let's Encrypt certificate notifications.
+
+**When to use:** Only needed if you're using automatic SSL with Let's Encrypt.
+
+**Example:**
+```bash
+LETSENCRYPT_EMAIL=admin@example.com
+```
 
 ## Environment-Specific Configuration
 
@@ -124,7 +159,7 @@ Use the full 64-character pepper and configure your domain for SSL.
 
 ## Security Best Practices
 
-### ? DO:
+### ✅ DO:
 - Use the interactive setup wizard for first-time setup
 - Generate secrets using `openssl rand -hex 32`
 - Use different secrets for each environment (dev, staging, prod)
@@ -132,12 +167,21 @@ Use the full 64-character pepper and configure your domain for SSL.
 - Rotate secrets periodically (every 3-6 months)
 - Check `.gitignore` includes `.env`
 
-### ? DON'T:
+### ❌ DON'T:
 - Never commit `.env` to version control
 - Never use weak passwords or predictable patterns
 - Never reuse secrets across environments
 - Never share secrets in plain text (Slack, email, etc.)
 - Never use the example values from `.env.example`
+
+## Common Mistakes
+
+| ❌ Don't Do This | ✅ Do This Instead |
+|-----------------|-------------------|
+| `DELETION_TOKEN_PEPPER=password123` | `DELETION_TOKEN_PEPPER=$(openssl rand -hex 32)` |
+| Commit `.env` to git | Keep `.env` in `.gitignore` |
+| Use same secret in dev and prod | Generate separate secrets per environment |
+| Share secrets in Slack/email | Use password managers or secret management tools |
 
 ## Troubleshooting
 
@@ -181,21 +225,82 @@ chmod +x scripts/setup.sh
 ./scripts/setup.sh
 ```
 
+### I lost my pepper!
+
+**Problem:** You can't find your DELETION_TOKEN_PEPPER.
+
+**Solution:**
+```bash
+# Generate a new one (note: users will need new deletion tokens)
+echo "DELETION_TOKEN_PEPPER=$(openssl rand -hex 32)" > .env
+docker-compose restart
+```
+
+## Example Setup Sessions
+
+### Example 1: Local Development (Quick)
+
+```bash
+$ ./scripts/setup.sh
+
+Choose environment: 1 (Local Development)
+Use generated pepper? yes
+Start services now? yes
+
+✅ Done! Access at http://localhost:8080
+```
+
+### Example 2: Production (Full Configuration)
+
+```bash
+$ ./scripts/setup.sh
+
+Choose environment: 2 (Production/VPS)
+Use generated pepper? yes
+Domain: paste.example.com
+Email: admin@example.com
+Start services now? yes
+
+✅ Done! Access at https://paste.example.com
+```
+
+### Example 3: Headless Server
+
+```bash
+$ HEADLESS=1 ./scripts/setup.sh
+
+# Same prompts, but skips browser opening
+# Perfect for SSH sessions and CI/CD
+```
+
+## Security Checklist
+
+Before going to production, verify:
+
+- [ ] Run `./scripts/setup.sh` or generate secrets with `openssl rand -hex 32`
+- [ ] Never use the example values from `.env.example`
+- [ ] Verify `.env` is in `.gitignore` (already done ✅)
+- [ ] Use different secrets for dev/staging/production
+- [ ] Store production secrets in a password manager
+- [ ] Rotate secrets every 3-6 months
+- [ ] Document where you stored your secrets (for your team)
+- [ ] Test locally first before deploying to production
+
 ## FAQ
 
-**Q: Can I see my pepper after it's set?**
+**Q: Can I see my pepper after it's set?**  
 A: Yes, it's in your `.env` file: `cat .env`
 
-**Q: What happens if I lose my pepper?**
+**Q: What happens if I lose my pepper?**  
 A: Users won't be able to delete their pastes with their deletion tokens. You'll need to rotate it and inform users.
 
-**Q: Can I change my pepper later?**
+**Q: Can I change my pepper later?**  
 A: Yes, but existing deletion tokens won't work. Best to rotate during maintenance windows.
 
-**Q: Do I need different peppers for dev and prod?**
+**Q: Do I need different peppers for dev and prod?**  
 A: YES! Always use different secrets per environment.
 
-**Q: How do I rotate my pepper?**
+**Q: How do I rotate my pepper?**  
 A:
 ```bash
 # 1. Generate new pepper
@@ -208,16 +313,25 @@ sed -i "s/DELETION_TOKEN_PEPPER=.*/DELETION_TOKEN_PEPPER=$NEW_PEPPER/" .env
 docker-compose restart
 ```
 
-**Q: Is the setup wizard secure?**
+**Q: Is the setup wizard secure?**  
 A: Yes! It uses `openssl rand` for cryptographic randomness and never logs secrets.
+
+## Pro Tips
+
+1. **Use the wizard!** It explains everything as you go
+2. **Store backups** of your production `.env` in a password manager
+3. **Document** where you stored your secrets (for your team)
+4. **Rotate regularly** - set a calendar reminder for every 6 months
+5. **Test locally first** before deploying to production
 
 ## Next Steps
 
-- ?? Read the [README.md](../../README.md) for general documentation
-- ?? Check [SECURITY_CHECKLIST.md](../../SECURITY_CHECKLIST.md) for security guidelines
-- ?? See [Deployment Guide](../deployment/DEPLOYMENT.md) for production deployment
-- ?? Open an issue on GitHub for bugs or questions
+- 📖 Read the [README.md](../../README.md) for general documentation
+- 🔒 Check [Security Documentation](../security/CHECKLIST.md) for security guidelines
+- 🚀 See [Deployment Guide](../deployment/DEPLOYMENT.md) for production deployment
+- 📝 Review [scripts/DEMO_SETUP.md](../../scripts/DEMO_SETUP.md) for setup examples
+- 💬 Open an issue on GitHub for bugs or questions
 
 ---
 
-**Happy pasting! ??** Remember: Your secrets are what keep your users' data safe. Treat them with care!
+**Happy pasting! 📋** Remember: Your secrets are what keep your users' data safe. Treat them with care!

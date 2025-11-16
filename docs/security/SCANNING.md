@@ -205,6 +205,7 @@ Security scans are integrated into:
 
 ## Related Documentation
 
-- [Security Checklist](SECURITY_CHECKLIST.md)
+- [Security Checklist](CHECKLIST.md)
 - [Security Check Script](scripts/security-check.sh)
-- [Vulnerability Scan Report](VULNERABILITY_SCAN_REPORT.md)
+
+**Note**: This document previously linked to a VULNERABILITY_SCAN_REPORT.md file, but vulnerability scans should be run regularly and results are time-sensitive. Use the automated scanning tools described in this guide instead.

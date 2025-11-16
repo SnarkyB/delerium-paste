@@ -3,8 +3,8 @@
 ## Priority: High (Must Have)
 
 - [x] Re-enable Proof-of-Work with reasonable difficulty ✅ (PRs #75-79: difficulty=10, enabled, documented)
-  - See: `docs/PROOF_OF_WORK.md` for details
-  - See: `docs/POW_VERIFICATION_GUIDE.md` for testing/monitoring
+  - See: `docs/architecture/PROOF_OF_WORK.md` for details
+  - See: `docs/development/POW_VERIFICATION.md` for testing/monitoring
 - [x] Add security headers back to nginx (CSP, etc.) ✅ (PR #72: security headers tightened)
 - [ ] Test delete page functionality thoroughly
 - [ ] Add error handling for edge cases (expired pastes, invalid IDs)

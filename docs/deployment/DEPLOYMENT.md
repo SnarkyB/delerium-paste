@@ -131,10 +131,10 @@ docker compose -f docker-compose.prod.yml stop web
 sudo certbot certonly --standalone -d your-domain.com
 
 # The deployment script will handle certificate setup automatically
-# Or see docs/SSL_SETUP_GUIDE.md for manual certificate configuration
+# Or see docs/deployment/SSL_SETUP.md for manual certificate configuration
 ```
 
-See [SSL Setup Guide](../SSL_SETUP_GUIDE.md) for detailed SSL configuration instructions.
+See [SSL Setup Guide](SSL_SETUP.md) for detailed SSL configuration instructions.
 
 ### Option 2: Self-Signed Certificate (Development/Testing Only)
 
@@ -372,6 +372,6 @@ services:
 ## Support
 
 - ?? See [Setup Guide](../getting-started/SETUP.md) for initial configuration
-- ?? Check [Security Checklist](../../SECURITY_CHECKLIST.md) for security best practices
+- ?? Check [Security Checklist](../security/CHECKLIST.md) for security best practices
 - ?? Open an issue on GitHub for bugs or questions
 - ?? See [SSL Setup Guide](../SSL_SETUP_GUIDE.md) for detailed SSL configuration
