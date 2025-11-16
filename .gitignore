@@ -15,6 +15,9 @@ client/node_modules/
 
 # Build artifacts
 client/js/
+client/test-results/
+client/tests/e2e/ui-snapshots.spec.js-snapshots/
+client/tests/e2e/ui-snapshots.spec.ts-snapshots/
 server/build/
 server/.gradle/
 dist/
