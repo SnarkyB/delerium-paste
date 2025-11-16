@@ -21,7 +21,7 @@ Welcome to the Delirium documentation! This index will help you find what you ne
   - Monitoring and backups
   - Troubleshooting
 
-- **[SSL Setup Guide](SSL_SETUP_GUIDE.md)** - Detailed SSL/TLS configuration
+- **[SSL Setup Guide](deployment/SSL_SETUP.md)** - Detailed SSL/TLS configuration
   - Let's Encrypt setup
   - Certificate renewal
   - Nginx SSL configuration
@@ -63,7 +63,7 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 ## ?? Quick Links
 
 - **Main README**: [../README.md](../README.md)
-- **Security Checklist**: [../SECURITY_CHECKLIST.md](../SECURITY_CHECKLIST.md)
+- **Security Checklist**: [security/CHECKLIST.md](security/CHECKLIST.md)
 - **Changelog**: [../CHANGELOG.md](../CHANGELOG.md)
 
 ## ?? Documentation by Role
@@ -73,7 +73,7 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 
 ### For DevOps/Deployers
 - [Deployment Guide](deployment/DEPLOYMENT.md) - Production deployment
-- [SSL Setup Guide](SSL_SETUP_GUIDE.md) - SSL configuration
+- [SSL Setup Guide](deployment/SSL_SETUP.md) - SSL configuration
 - [Automated Deployment](AUTO_DEPLOYMENT.md) - CI/CD setup
 
 ### For Developers
@@ -90,7 +90,7 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 ### Need to...
 - **Set up locally?** ? [Setup Guide](getting-started/SETUP.md)
 - **Deploy to production?** ? [Deployment Guide](deployment/DEPLOYMENT.md)
-- **Configure SSL?** ? [SSL Setup Guide](SSL_SETUP_GUIDE.md)
+- **Configure SSL?** ? [SSL Setup Guide](deployment/SSL_SETUP.md)
 - **Understand the architecture?** ? [C4 Diagrams](architecture/C4-DIAGRAMS.md)
 - **Contribute code?** ? [PR Guide](prs/README.md)
 - **Set up CI/CD?** ? [Automated Deployment](AUTO_DEPLOYMENT.md)

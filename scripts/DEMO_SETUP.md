@@ -136,7 +136,7 @@ delerium-paste-web-1      nginx:1.27-alpine       Up 5 seconds
 
 ?? Next steps:
    ? Read the README.md for detailed documentation
-   ? Check SECURITY_CHECKLIST.md for security best practices
+   ? Check security/CHECKLIST.md for security best practices
    ? For production deployment, see docs/deployment/DEPLOYMENT.md
 
 Open browser now? (yes/no): yes

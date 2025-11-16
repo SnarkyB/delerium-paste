@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced PR checks workflow with comprehensive security scanning
   - Dedicated security-scan.yml workflow (runs on PRs, daily, and releases)
   - Local security scanning script (`scripts/security-scan.sh`)
-  - Complete security scanning documentation (`docs/SECURITY_SCANNING.md`)
+  - Complete security scanning documentation (`docs/security/SCANNING.md`)
 - **Security scanning features**
   - npm audit with JSON reporting and result checking
   - OWASP Dependency Check with CVSS >= 7.0 threshold
@@ -127,7 +127,7 @@ This release adds optional password protection while maintaining zero-knowledge 
 ### Added
 - **Production HTTPS support** with Let's Encrypt
   - Automated SSL setup script (`scripts/setup-ssl.sh`)
-  - Comprehensive SSL deployment guide (`docs/SSL_SETUP_GUIDE.md`)
+  - Comprehensive SSL deployment guide (`docs/deployment/SSL_SETUP.md`)
   - Production-ready nginx SSL configuration (`reverse-proxy/nginx-ssl.conf`)
   - Support for Cloudflare and Webdock WAF compatibility
 - Clear textarea after successful paste creation (UX improvement)
