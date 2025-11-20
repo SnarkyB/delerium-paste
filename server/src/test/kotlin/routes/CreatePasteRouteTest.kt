@@ -298,8 +298,8 @@ class CreatePasteRouteTest {
     @Test
     fun testPostPastes_ExpiryExactly10Seconds_Returns201() = testApplication {
         val cfg = createTestAppConfig(powEnabled = false, rlEnabled = false)
-        // Use 11 seconds to account for processing time - validation requires at least 10 seconds
-        val exactly10Seconds = Instant.now().epochSecond + 11
+        // Use 25 seconds to account for processing time - validation requires at least 10 seconds
+        val exactly10Seconds = Instant.now().epochSecond + 25
         val request = createTestPasteRequest(expireTs = exactly10Seconds)
 
         application {
