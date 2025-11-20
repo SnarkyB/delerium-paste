@@ -1,0 +1,47 @@
+# Code Owners for delerium-paste-mono
+#
+# This file defines code ownership for the monorepo.
+# Code owners are automatically requested for review when someone opens a PR.
+#
+# For more information, see:
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+* @marcusb333
+
+# Server code
+/server/src/ @marcusb333
+/server/*.gradle.kts @marcusb333
+/server/settings.gradle.kts @marcusb333
+/server/Dockerfile @marcusb333
+/server/docs/ @marcusb333
+/server/*.sh @marcusb333
+
+# Client code
+/client/src/ @marcusb333
+/client/package.json @marcusb333
+/client/package-lock.json @marcusb333
+/client/tsconfig.json @marcusb333
+/client/*.config.* @marcusb333
+/client/*.html @marcusb333
+
+# Infrastructure
+/reverse-proxy/ @marcusb333
+/scripts/ @marcusb333
+/docker-compose*.yml @marcusb333
+/Makefile @marcusb333
+
+# GitHub Actions & CI/CD
+/.github/workflows/ @marcusb333
+/.github/CODEOWNERS @marcusb333
+
+# Documentation
+/docs/ @marcusb333
+/*.md @marcusb333
+/CHANGELOG.md @marcusb333
+/CONTRIBUTING.md @marcusb333
+/README.md @marcusb333
+
+# Configuration files
+/.gitignore @marcusb333
+/LICENSE @marcusb333

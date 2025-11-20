@@ -1,0 +1,353 @@
+name: Server CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - parity
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-ci.yml'
+    tags:
+      - 'v*'
+  pull_request:
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-ci.yml'
+
+env:
+  REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/delerium-paste-server
+
+jobs:
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            server/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('server/**/*.gradle*', 'server/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        working-directory: ./server
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        working-directory: ./server
+        run: ./gradlew clean build --no-daemon
+
+      - name: Run tests
+        working-directory: ./server
+        run: ./gradlew test --no-daemon
+
+      - name: Generate test report
+        if: always()
+        working-directory: ./server
+        run: ./gradlew jacocoTestReport --no-daemon
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: server/build/test-results/
+          retention-days: 30
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: server/build/reports/jacoco/
+          retention-days: 30
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Make gradlew executable
+        working-directory: ./server
+        run: chmod +x gradlew
+
+      - name: Run OWASP Dependency Check
+        working-directory: ./server
+        run: ./gradlew dependencyCheckAnalyze --no-daemon
+        continue-on-error: true
+
+      - name: Upload security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: server/build/reports/dependency-check-report.html
+          retention-days: 30
+
+  docker-test:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    needs: build-test
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: false
+          load: true
+          tags: delerium-server:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test container startup
+        run: |
+          # Start container
+          docker run -d \
+            --name test-server \
+            -p 8080:8080 \
+            -e DELETION_TOKEN_PEPPER=test-pepper-for-ci \
+            delerium-server:test
+          
+          # Wait for startup
+          echo "Waiting for server to start..."
+          sleep 15
+          
+          # Check if container is still running
+          if ! docker ps | grep -q test-server; then
+            echo "Container failed to start"
+            docker logs test-server
+            exit 1
+          fi
+
+      - name: Test health check endpoint
+        run: |
+          # Test /api/pow endpoint (used for health checks)
+          echo "Testing /api/pow endpoint..."
+          response=$(curl -s -w "%{http_code}" http://localhost:8080/api/pow)
+          http_code=$(echo "$response" | tail -n 1)
+          
+          if [ "$http_code" != "200" ] && [ "$http_code" != "204" ]; then
+            echo "Health check failed with HTTP $http_code"
+            docker logs test-server
+            exit 1
+          fi
+          
+          echo "Health check passed (HTTP $http_code)"
+
+      - name: Test paste creation endpoint
+        run: |
+          # Test creating a paste
+          echo "Testing paste creation..."
+          response=$(curl -s -X POST http://localhost:8080/api/pastes \
+            -H "Content-Type: application/json" \
+            -d '{"ct":"dGVzdA==","iv":"dGVzdGl2MTIzNDU2","meta":{"expireTs":9999999999}}')
+          
+          if echo "$response" | grep -q '"id"'; then
+            echo "Paste creation test passed"
+          else
+            echo "Paste creation test failed: $response"
+            docker logs test-server
+            exit 1
+          fi
+
+      - name: Verify non-root user
+        run: |
+          # Check that container runs as non-root user
+          echo "Verifying non-root user..."
+          user_info=$(docker exec test-server id)
+          echo "User info: $user_info"
+          
+          if echo "$user_info" | grep -q "uid=999(delirium) gid=999(delirium)"; then
+            echo "✅ Container runs as non-root user (delirium)"
+          else
+            echo "❌ Container is not running as expected non-root user"
+            exit 1
+          fi
+
+      - name: Check health status
+        run: |
+          # Verify health check is configured
+          health=$(docker inspect test-server --format='{{json .State.Health}}')
+          echo "Health status: $health"
+          
+          if [ "$health" != "null" ]; then
+            echo "✅ Health check is configured"
+          else
+            echo "⚠️ Health check is not configured (expected for older Docker)"
+          fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop test-server || true
+          docker rm test-server || true
+
+  publish:
+    name: Publish Multi-Arch Images
+    runs-on: ubuntu-latest
+    needs: [build-test, docker-test]
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    
+    strategy:
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+          - linux/arm/v7
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          platforms: ${{ matrix.platform }}
+          push: true
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ strategy.job-index }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge-manifests:
+    name: Merge Manifests
+    runs-on: ubuntu-latest
+    needs: publish
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-*
+          path: /tmp/digests
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}
+
+      - name: Generate build attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY_IMAGE }}
+          subject-digest: ${{ needs.publish.outputs.digest }}
+          push-to-registry: true

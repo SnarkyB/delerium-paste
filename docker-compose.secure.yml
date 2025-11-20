@@ -1,8 +1,9 @@
 # Security-hardened docker-compose override
 services:
   server:
-    # Security: Run as non-root user
-    user: "1000:1000"
+    # Security: Run as non-root user (delirium:delirium in Dockerfile is uid/gid 999)
+    # Note: The Dockerfile already configures non-root user, so this override is optional
+    # user: "999:999"
     # Security: Read-only root filesystem
     read_only: true
     # Security: No new privileges
@@ -22,7 +23,7 @@ services:
           cpus: '0.25'
     # Security: Health check
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/pow"]
       interval: 30s
       timeout: 10s
       retries: 3

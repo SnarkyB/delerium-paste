@@ -15,6 +15,13 @@ services:
       - ./server/src:/app/src:ro
     # Enable debug logging
     command: ["/app/bin/cc.delerium", "--log-level=debug"]
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/pow"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   web:
     # Expose additional ports for development
