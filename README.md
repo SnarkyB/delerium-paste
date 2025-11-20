@@ -572,6 +572,33 @@ The Docker setup includes:
 - **Nginx**: Reverse proxy serving static frontend and proxying API requests
 - **Persistent Storage**: SQLite database in a Docker volume
 
+### Enhanced Docker Features
+
+The server Docker image includes several production-ready enhancements:
+
+**🔒 Security**
+- **Non-root user**: Container runs as `delirium:delirium` (uid/gid 999) for enhanced security
+- **OCI compliant**: Standard container metadata labels for better tooling support
+- **Minimal attack surface**: JRE-only runtime image (no build tools)
+
+**🏥 Health Monitoring**
+- **Built-in health checks**: Automatic monitoring via `/api/pow` endpoint
+- **Orchestrator integration**: Works with Docker Compose, Kubernetes, and other orchestrators
+- **Health intervals**: 30s checks with 40s startup period
+
+**🌍 Multi-Architecture Support**
+- **amd64**: Traditional x86_64 servers
+- **arm64**: Apple Silicon (M1/M2/M3), AWS Graviton, Oracle Cloud ARM, Raspberry Pi 4+
+
+**📦 Image Details**
+- **Base**: Gradle 8.11.1 + JDK 21 (builder), Eclipse Temurin 21 JRE (runtime)
+- **Size**: Optimized multi-stage build (< 300MB)
+- **Registry**: Available on GitHub Container Registry (GHCR)
+
+For detailed API documentation and container publishing guides, see:
+- [Server API Documentation](server/docs/API.md)
+- [Container Publishing Guide](server/docs/CONTAINER_PUBLISHING.md)
+
 ### Environment Variables
 - `DELETION_TOKEN_PEPPER`: Secret pepper for hashing deletion tokens (defaults to "change-me" - change this in production!)
 

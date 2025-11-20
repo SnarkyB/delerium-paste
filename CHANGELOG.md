@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Multi-architecture Docker support** - Server images now support linux/amd64 and linux/arm64 architectures
+- **Docker health checks** - Built-in container health monitoring via `/api/pow` endpoint
+- **Comprehensive server API documentation** - Added detailed REST API documentation (`server/docs/API.md`)
+- **Container publishing guide** - Added guide for publishing Docker images to registries (`server/docs/CONTAINER_PUBLISHING.md`)
+- **Dedicated server CI/CD workflow** - New `server-ci.yml` workflow with comprehensive testing, security scanning, and multi-arch builds
+- **Docker Hub publishing workflow** - New `docker-hub-server.yml` workflow for manual/automated Docker Hub publishing
+- **CODEOWNERS file** - Added code ownership configuration for automated PR review requests
+
+### Changed
+- **Dockerfile security enhancements** - Server container now runs as non-root user `delirium:delirium` (uid/gid 999)
+- **Upgraded Gradle and JDK** - Updated builder to Gradle 8.11.1 with JDK 21 (from 8.10.2/JDK 17)
+- **Enhanced Docker image metadata** - Added OCI-compliant labels for better tooling support
+- **Improved CI/CD path filtering** - Workflows now only trigger on relevant code changes
+- **Multi-arch build support** - Updated `docker-publish.yml` to build images for multiple architectures
+
+### Security
+- **Non-root container user** - Server container runs as dedicated `delirium` user instead of root
+- **OWASP dependency scanning** - Regular security scanning in CI pipeline  
+- **Minimal runtime image** - JRE-only runtime reduces attack surface
+
 ## [0.1.6-alpha] - 2025-11-09
 
 ### Added

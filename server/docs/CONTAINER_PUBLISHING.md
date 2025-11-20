@@ -94,6 +94,7 @@ The project includes `docker-build.sh` for easy local builds:
 
 **For Docker Hub:**
 ```bash
+cd server  # Navigate to server directory in monorepo
 ./docker-build.sh 1.0.0 dockerhub your-dockerhub-username
 docker login
 docker push your-dockerhub-username/delerium-paste-server:1.0.0
@@ -102,6 +103,7 @@ docker push your-dockerhub-username/delerium-paste-server:latest
 
 **For GHCR:**
 ```bash
+cd server  # Navigate to server directory in monorepo
 ./docker-build.sh 1.0.0 ghcr your-github-username
 echo $GITHUB_TOKEN | docker login ghcr.io -u your-github-username --password-stdin
 docker push ghcr.io/your-github-username/delerium-paste-server:1.0.0
@@ -110,10 +112,27 @@ docker push ghcr.io/your-github-username/delerium-paste-server:latest
 
 **Note:** For GHCR, create a GitHub Personal Access Token with `write:packages` permission at https://github.com/settings/tokens
 
+### Multi-Architecture Builds
+
+To build for multiple architectures locally, use Docker Buildx:
+
+```bash
+# Create and use a new builder instance (first time only)
+docker buildx create --name multiarch --use
+
+# Build for multiple platforms
+docker buildx build \
+  --platform linux/amd64,linux/arm64,linux/arm/v7 \
+  -t your-username/delerium-paste-server:latest \
+  --push \
+  .
+```
+
 ### Direct Docker Build
 
 **For Docker Hub:**
 ```bash
+cd server  # Navigate to server directory in monorepo
 docker build -t your-username/delerium-paste-server:1.0.0 .
 docker tag your-username/delerium-paste-server:1.0.0 your-username/delerium-paste-server:latest
 docker login
@@ -123,6 +142,7 @@ docker push your-username/delerium-paste-server:latest
 
 **For GHCR:**
 ```bash
+cd server  # Navigate to server directory in monorepo
 docker build -t ghcr.io/your-username/delerium-paste-server:1.0.0 .
 docker tag ghcr.io/your-username/delerium-paste-server:1.0.0 ghcr.io/your-username/delerium-paste-server:latest
 echo $GITHUB_TOKEN | docker login ghcr.io -u your-username --password-stdin
@@ -132,15 +152,19 @@ docker push ghcr.io/your-username/delerium-paste-server:latest
 
 ## CI/CD Workflow Details
 
-The GitHub Actions workflow (`.github/workflows/docker-publish.yml`) automatically:
+The GitHub Actions workflow (`.github/workflows/server-ci.yml`) automatically:
 
 - **Builds images** on pushes to `main` and version tags (format: `v*`)
+- **Multi-architecture builds** for amd64, arm64, and arm/v7
 - **Creates multiple tags** for semantic versioning (e.g., `1.0.0`, `1.0`, `1`, `latest`)
 - **Uses build cache** for faster builds (GitHub Actions cache)
-- **Publishes to both registries** (if Docker Hub secrets are configured):
+- **Build attestation** for supply chain security
+- **Security scanning** with OWASP Dependency Check
+- **Publishes to registries** (if configured):
   - GHCR: Always enabled (uses `GITHUB_TOKEN`)
-  - Docker Hub: Only if `DOCKERHUB_USERNAME` secret is set
+  - Docker Hub: Only if `DOCKERHUB_TOKEN` secret is set
 - **Builds only** on pull requests (doesn't push)
+- **Path filtering** - only triggers on server code changes (`server/**`)
 
 ### Workflow Triggers
 
@@ -165,8 +189,29 @@ To modify the workflow:
 
 ### Base Images
 
-- **Builder**: `gradle:8.10.2-jdk17` (for building the application)
+- **Builder**: `gradle:8.11.1-jdk21` (latest Gradle with JDK 21 for building)
 - **Runtime**: `eclipse-temurin:21-jre-jammy` (JRE only, smaller size)
+
+### Multi-Architecture Support
+
+The Docker image supports multiple architectures:
+- `linux/amd64` (x86_64)
+- `linux/arm64` (ARM 64-bit, Apple Silicon, AWS Graviton)
+- `linux/arm/v7` (ARM 32-bit, Raspberry Pi)
+
+This allows deployment on a wide range of platforms including:
+- Traditional x86_64 servers
+- Apple Silicon Macs (M1/M2/M3)
+- ARM-based cloud instances (AWS Graviton, Oracle Cloud)
+- Raspberry Pi and other ARM devices
+
+### Security Features
+
+The Docker image includes several security enhancements:
+- **Non-root user**: Application runs as `delirium:delirium` (uid/gid 999)
+- **Health checks**: Built-in health monitoring via `/api/pow` endpoint
+- **OCI labels**: Standard container metadata for better tooling support
+- **Minimal attack surface**: JRE-only runtime image (no build tools)
 
 ### Image Size
 
@@ -177,14 +222,30 @@ The multi-stage build produces a minimal runtime image containing only:
 
 ### Security Considerations
 
-1. **Pepper management**: 
+1. **Non-root user**: 
+   - The container runs as user `delirium` (uid/gid 999) for enhanced security
+   - The `/data` directory is automatically configured with correct permissions
+   - If mounting a volume, ensure the host directory is readable/writable by uid 999
+
+2. **Pepper management**: 
    - **Auto-generation**: If `DELETION_TOKEN_PEPPER` is not set, the application automatically generates a cryptographically secure random pepper (32 bytes)
    - **Production best practice**: Set `DELETION_TOKEN_PEPPER` explicitly for consistency across restarts
      - If the pepper changes between restarts, deletion tokens created before the restart will be invalid
      - Generate a secure value: `openssl rand -hex 32`
-2. **Volume permissions**: Ensure the `/data` volume has appropriate permissions
-3. **Network security**: Consider using a reverse proxy (nginx, traefik) in front of the container
-4. **Secrets management**: Use Docker secrets or environment variable management tools in production
+
+3. **Volume permissions**: 
+   - With the non-root user, ensure host-mounted volumes are accessible
+   - Option 1: `chown -R 999:999 /path/to/data` on the host
+   - Option 2: Use Docker-managed volumes (recommended)
+
+4. **Health checks**: 
+   - Built-in health check monitors the `/api/pow` endpoint
+   - Interval: 30s, Timeout: 10s, Start period: 40s, Retries: 3
+   - Used by orchestrators (Docker Compose, Kubernetes) for automated restarts
+
+5. **Network security**: Consider using a reverse proxy (nginx, traefik) in front of the container
+
+6. **Secrets management**: Use Docker secrets or environment variable management tools in production
 
 ## Troubleshooting
 

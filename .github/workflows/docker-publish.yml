@@ -4,11 +4,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'server/**'
+      - '.github/workflows/docker-publish.yml'
     tags:
       - 'v*'
   pull_request:
-    branches:
-      - main
+    paths:
+      - 'server/**'
+      - '.github/workflows/docker-publish.yml'
 
 env:
   IMAGE_NAME: delerium-paste-server
@@ -23,6 +27,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -73,25 +80,27 @@ jobs:
             type=semver,pattern={{major}}
             type=raw,value=latest,enable={{is_default_branch}}
 
-      # Build and push to Docker Hub
+      # Build and push to Docker Hub (multi-arch)
       - name: Build and push to Docker Hub
         if: vars.DOCKERHUB_ENABLED == 'true'
         uses: docker/build-push-action@v5
         with:
           context: ./server
           file: ./server/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-dockerhub.outputs.tags }}
           labels: ${{ steps.meta-dockerhub.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Build and push to GHCR
+      # Build and push to GHCR (multi-arch)
       - name: Build and push to GHCR
         uses: docker/build-push-action@v5
         with:
           context: ./server
           file: ./server/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-ghcr.outputs.tags }}
           labels: ${{ steps.meta-ghcr.outputs.labels }}

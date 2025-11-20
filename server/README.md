@@ -27,6 +27,13 @@ docker run -d \
 
 The server will be available at `http://localhost:8080`
 
+**Docker Image Features:**
+- 🔒 **Non-root user** - Runs as `delirium:delirium` (uid 999) for enhanced security
+- 🏥 **Health checks** - Built-in monitoring via `/api/pow` endpoint
+- 🌍 **Multi-architecture** - Supports amd64, arm64, and arm/v7 (Raspberry Pi, Apple Silicon, etc.)
+- 📦 **Minimal size** - JRE-only runtime image
+- 🏷️ **OCI compliant** - Standard container metadata labels
+
 ### Option 2: Build from Source
 
 #### Prerequisites
@@ -147,6 +154,18 @@ docker run -d \
   -v $(pwd)/data:/data \
   -e DELETION_TOKEN_PEPPER=$(openssl rand -hex 32) \
   delerium-paste-server:latest
+
+# Verify health check
+docker inspect --format='{{json .State.Health}}' <container-id>
+```
+
+**Multi-Architecture Build:**
+```bash
+# Build for multiple platforms (requires Docker Buildx)
+docker buildx build \
+  --platform linux/amd64,linux/arm64,linux/arm/v7 \
+  -t delerium-paste-server:latest \
+  .
 ```
 
 #### Docker Compose
@@ -165,6 +184,12 @@ services:
       - ./data:/data
     environment:
       - DELETION_TOKEN_PEPPER=${DELETION_TOKEN_PEPPER:-change-me-in-production}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/pow"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     restart: unless-stopped
 ```
 

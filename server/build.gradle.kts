@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.2.21"
     application
+    jacoco
     id("org.owasp.dependencycheck") version "11.1.0"
 }
 
@@ -38,6 +39,23 @@ dependencies {
 }
 application { mainClass.set("io.ktor.server.netty.EngineMain") }
 kotlin { jvmToolchain(21) }
+
+// JaCoCo configuration for code coverage
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
+}
 
 // OWASP Dependency Check configuration
 dependencyCheck {
