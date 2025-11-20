@@ -225,8 +225,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write
-      attestations: write
     
     strategy:
       matrix:
@@ -301,8 +299,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write
-      attestations: write
     
     steps:
       - name: Download digests
@@ -345,9 +341,11 @@ jobs:
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}
 
-      - name: Generate build attestation
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: ${{ env.REGISTRY_IMAGE }}
-          subject-digest: ${{ needs.publish.outputs.digest }}
-          push-to-registry: true
+      # TODO: Add build attestation in future PR
+      # Requires proper digest output from publish job
+      # - name: Generate build attestation
+      #   uses: actions/attest-build-provenance@v1
+      #   with:
+      #     subject-name: ${{ env.REGISTRY_IMAGE }}
+      #     subject-digest: ${{ needs.publish.outputs.digest }}
+      #     push-to-registry: true

@@ -15,7 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dedicated server CI/CD workflow** - New `server-ci.yml` workflow with comprehensive testing, security scanning, and multi-arch builds
 - **Docker Hub publishing workflow** - New `docker-hub-server.yml` workflow for manual/automated Docker Hub publishing
 - **CODEOWNERS file** - Added code ownership configuration for automated PR review requests
-- **Build attestation** - Added supply chain security with build provenance attestation for Docker images
 
 ### Changed
 - **Dockerfile security enhancements** - Server container now runs as non-root user `delirium:delirium` (uid/gid 999)
@@ -26,8 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 - **Non-root container user** - Server container runs as dedicated `delirium` user instead of root
-- **OWASP dependency scanning** - Regular security scanning in CI pipeline
-- **Build provenance attestation** - Cryptographic proof of image build provenance for supply chain security
+- **OWASP dependency scanning** - Regular security scanning in CI pipeline  
 - **Minimal runtime image** - JRE-only runtime reduces attack surface
 
 ## [0.1.6-alpha] - 2025-11-09
