@@ -162,8 +162,8 @@ jobs:
           RETRY_COUNT=0
           
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-            response=$(curl -s -w "%{http_code}" http://localhost:8080/api/pow)
-            http_code=$(echo "$response" | tail -n 1)
+            # Use -o /dev/null to discard body, -w to write only status code
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/pow)
             
             if [ "$http_code" = "200" ] || [ "$http_code" = "204" ]; then
               echo "Health check passed (HTTP $http_code)"
