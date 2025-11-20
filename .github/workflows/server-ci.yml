@@ -156,18 +156,30 @@ jobs:
 
       - name: Test health check endpoint
         run: |
-          # Test /api/pow endpoint (used for health checks)
+          # Test /api/pow endpoint (used for health checks) with retries
           echo "Testing /api/pow endpoint..."
-          response=$(curl -s -w "%{http_code}" http://localhost:8080/api/pow)
-          http_code=$(echo "$response" | tail -n 1)
+          MAX_RETRIES=5
+          RETRY_COUNT=0
           
-          if [ "$http_code" != "200" ] && [ "$http_code" != "204" ]; then
-            echo "Health check failed with HTTP $http_code"
-            docker logs test-server
-            exit 1
-          fi
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            response=$(curl -s -w "%{http_code}" http://localhost:8080/api/pow)
+            http_code=$(echo "$response" | tail -n 1)
+            
+            if [ "$http_code" = "200" ] || [ "$http_code" = "204" ]; then
+              echo "Health check passed (HTTP $http_code)"
+              exit 0
+            fi
+            
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "Attempt $RETRY_COUNT failed (HTTP $http_code), retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
           
-          echo "Health check passed (HTTP $http_code)"
+          echo "Health check failed after $MAX_RETRIES attempts (HTTP $http_code)"
+          docker logs test-server
+          exit 1
 
       - name: Test paste creation endpoint
         run: |
