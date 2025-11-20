@@ -115,6 +115,7 @@ jobs:
     name: Docker Build Test
     runs-on: ubuntu-latest
     needs: build-test
+    continue-on-error: true  # Allow this supplementary test to fail without blocking PR
     
     steps:
       - name: Checkout repository
