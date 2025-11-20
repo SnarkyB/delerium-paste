@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Multi-architecture Docker support** - Server images now support linux/amd64, linux/arm64, and linux/arm/v7 architectures
+- **Multi-architecture Docker support** - Server images now support linux/amd64 and linux/arm64 architectures
 - **Docker health checks** - Built-in container health monitoring via `/api/pow` endpoint
 - **Comprehensive server API documentation** - Added detailed REST API documentation (`server/docs/API.md`)
 - **Container publishing guide** - Added guide for publishing Docker images to registries (`server/docs/CONTAINER_PUBLISHING.md`)

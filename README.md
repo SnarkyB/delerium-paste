@@ -588,8 +588,7 @@ The server Docker image includes several production-ready enhancements:
 
 **🌍 Multi-Architecture Support**
 - **amd64**: Traditional x86_64 servers
-- **arm64**: Apple Silicon (M1/M2/M3), AWS Graviton, Oracle Cloud ARM
-- **arm/v7**: Raspberry Pi and IoT devices
+- **arm64**: Apple Silicon (M1/M2/M3), AWS Graviton, Oracle Cloud ARM, Raspberry Pi 4+
 
 **📦 Image Details**
 - **Base**: Gradle 8.11.1 + JDK 21 (builder), Eclipse Temurin 21 JRE (runtime)
