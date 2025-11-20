@@ -1,6 +1,6 @@
 {
   "name": "zkpaste-client",
-  "version": "0.1.8-alpha",
+  "version": "1.0.2",
   "description": "Client-side TypeScript for zkpaste",
   "scripts": {
     "build": "npx tsc",
