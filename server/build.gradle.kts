@@ -5,7 +5,7 @@ plugins {
     id("org.owasp.dependencycheck") version "11.1.0"
 }
 
-version = "0.1.7-alpha"
+version = "1.0.2"
 
 repositories { mavenCentral() }
 dependencies {
