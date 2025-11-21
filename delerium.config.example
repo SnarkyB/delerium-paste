@@ -1,0 +1,93 @@
+# Delerium Configuration File (Optional)
+# Copy this file to 'delerium.config' and customize as needed
+# The CLI will work without this file using sensible defaults
+
+# Environment (development or production)
+# If not set, will be auto-detected based on running containers
+#ENVIRONMENT=production
+
+# VPS Deployment Settings
+# Used by 'delerium deploy --target vps'
+#VPS_HOST=example.com
+#VPS_USER=deploy
+#VPS_SSH_KEY=~/.ssh/id_rsa
+
+# Backup Settings
+# Number of days to retain backups (default: 7)
+#BACKUP_RETENTION_DAYS=7
+
+# Backup directory (default: ./backups)
+#BACKUP_DIR=./backups
+
+# Monitoring Settings
+# Health check interval in seconds (default: 60)
+#HEALTH_CHECK_INTERVAL=30
+
+# Auto-restart on failure (default: true)
+#AUTO_RESTART=true
+
+# Log file location (default: ./logs/monitor.log)
+#MONITOR_LOG_FILE=./logs/monitor.log
+
+# Docker Settings
+# Override docker-compose command if needed
+#DOCKER_COMPOSE_CMD="docker compose"
+
+# Compose file for development (default: docker-compose.yml)
+#DEV_COMPOSE_FILE=docker-compose.yml
+
+# Compose file for production (default: docker-compose.prod.yml)
+#PROD_COMPOSE_FILE=docker-compose.prod.yml
+
+# Browser Settings
+# Disable automatic browser opening (default: false)
+#NO_BROWSER=false
+
+# Force headless mode (default: auto-detect)
+#HEADLESS=false
+
+# Deployment Settings
+# Skip tests during deployment (default: false)
+#SKIP_TESTS=false
+
+# Skip backup before deployment (default: false)
+#SKIP_BACKUP=false
+
+# Parallel build jobs (default: auto-detect)
+#BUILD_JOBS=4
+
+# Security Settings
+# Enable security enhancements by default (default: false)
+#SECURITY_ENHANCED=false
+
+# SSL certificate directory (default: ./ssl)
+#SSL_DIR=./ssl
+
+# Let's Encrypt email for SSL certificates
+#LETSENCRYPT_EMAIL=admin@example.com
+
+# Notification Settings (Future)
+# Slack webhook for monitoring alerts
+#SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+
+# Email notifications
+#NOTIFICATION_EMAIL=admin@example.com
+
+# Discord webhook
+#DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR/WEBHOOK
+
+# Advanced Settings
+# Enable debug mode (default: false)
+#DEBUG=false
+
+# Verbose output (default: false)
+#VERBOSE=false
+
+# Color output (default: auto-detect)
+#COLOR=auto
+
+# Timeout for health checks in seconds (default: 30)
+#HEALTH_CHECK_TIMEOUT=30
+
+# Maximum retries for failed operations (default: 3)
+#MAX_RETRIES=3

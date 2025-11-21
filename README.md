@@ -39,7 +39,7 @@ curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main
 
 ## 💻 Local Development Setup
 
-Get started locally in 2 minutes:
+Get started locally in 2 minutes with the **unified Delerium CLI**:
 
 ```bash
 # Clone the repository
@@ -47,7 +47,7 @@ git clone https://github.com/marcusb333/delerium-paste-mono.git
 cd delerium-paste-mono
 
 # One-command setup and start
-make quick-start
+./delerium setup
 ```
 
 **That's it!** The application will open at `http://localhost:8080`
@@ -55,21 +55,20 @@ make quick-start
 **Requirements:**
 - Docker and Docker Compose
 - Node.js 18+ (for building the client)
-- Make (optional, can use docker compose directly)
 
-**Manual start:**
+**Alternative methods:**
 ```bash
-# Build client
+# Using Make (delegates to CLI)
+make setup
+
+# Manual start
 cd client && npm install && npm run build && cd ..
-
-# Start services
 docker compose up -d
-
-# View logs
-docker compose logs -f
 ```
 
-📖 **Development guide:** [docs/development/](docs/development/)
+📖 **CLI Documentation:** [docs/CLI.md](docs/CLI.md)  
+📖 **Development guide:** [docs/development/](docs/development/)  
+📖 **Migration guide:** [docs/MIGRATION.md](docs/MIGRATION.md)
 
 ---
 
@@ -269,91 +268,92 @@ zkpaste-full-docker/
 - **E2E Tests**: 8+ tests covering complete user journeys
 - **Total Coverage**: 100% of critical client-side functions
 
-## 🔧 Advanced Setup Options
+## 🔧 Unified CLI - All Commands in One Place
 
-### Interactive Setup Wizard
+The Delerium CLI consolidates all deployment, development, and maintenance operations into a single tool.
 
-For a guided setup experience with secret configuration:
+### Quick Command Reference
 
 ```bash
-./scripts/setup.sh
+# Setup and Installation
+./delerium setup              # Interactive first-time setup
+./delerium start              # Start services (auto-detects environment)
+./delerium stop               # Stop all services
+./delerium restart            # Restart services
+
+# Development
+./delerium dev                # Development mode with hot-reload
+./delerium test               # Run tests (--frontend, --backend, --all)
+./delerium test --coverage    # Run tests with coverage
+
+# Monitoring and Status
+./delerium status             # Check service status
+./delerium status --detailed  # Detailed status with resource usage
+./delerium logs               # View logs (--tail=N, --no-follow)
+./delerium logs server        # View server logs only
+
+# Deployment
+./delerium deploy             # Deploy to production
+./delerium backup             # Create backup
+./delerium backup --restore=<file>  # Restore from backup
+
+# Security
+./delerium security check     # Run security verification
+./delerium security setup     # Configure security enhancements
+./delerium security scan      # Vulnerability scanning
+./delerium security ssl       # SSL certificate management
+
+# Monitoring
+./delerium monitor            # Continuous health monitoring
+./delerium monitor --interval=30  # Monitor with 30s interval
+
+# Help
+./delerium help               # Show all commands and options
+./delerium version            # Show version information
 ```
 
-The wizard will:
-- 🔐 Guide you through secrets configuration
-- 📝 Create your .env file with explanations
-- ✅ Check prerequisites
-- 🚀 Optionally start services
-- 🌐 Open in browser
+### Development Workflow
 
-📖 **See [docs/getting-started/SETUP.md](docs/getting-started/SETUP.md) for detailed instructions.**
+```bash
+# Start development environment
+./delerium dev
+
+# In another terminal, check status
+./delerium status
+
+# View logs
+./delerium logs server --follow
+
+# Run tests
+./delerium test --frontend
+```
 
 ### Headless Environment Setup
 
 For servers without a display:
 
 ```bash
-make quick-start-headless
-# or
-HEADLESS=1 make quick-start
+HEADLESS=1 ./delerium setup
 ```
 
-### Development Mode with Hot-Reload
+### Make Commands (Still Work!)
 
-For active development:
+The Makefile now delegates to the unified CLI, so all existing commands still work:
 
 ```bash
-make dev
+make setup      # Calls ./delerium setup
+make start      # Calls ./delerium start
+make dev        # Calls ./delerium dev
+make logs       # Calls ./delerium logs
+make test       # Calls ./delerium test
+make deploy     # Calls ./delerium deploy
+make backup     # Calls ./delerium backup
+make security   # Calls ./delerium security check
+make clean      # Docker cleanup
 ```
 
-This starts:
-- Backend in Docker with development configuration
-- TypeScript in watch mode for instant recompilation
-- Combined logging for easy debugging
-
-### Common Development Commands
-
-```bash
-# Start everything
-make start
-
-# Development mode with hot-reload
-make dev
-
-# Stop services
-make stop
-
-# Restart services
-make restart
-
-# View logs
-make logs
-
-# Run tests
-make test
-
-# Build client only
-make build-client
-
-# Health check
-make health-check
-
-# Clean up everything
-make clean
-```
-
-### Stopping the Application
-
-```bash
-make stop
-# or manually: docker-compose down
-```
-
-To remove volumes as well:
-```bash
-make clean
-# or manually: docker-compose down -v
-```
+📖 **Full CLI Documentation:** [docs/CLI.md](docs/CLI.md)  
+📖 **Migration Guide:** [docs/MIGRATION.md](docs/MIGRATION.md)
 
 ## 🔐 Security Features
 

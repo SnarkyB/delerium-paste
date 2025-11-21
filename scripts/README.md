@@ -1,270 +1,292 @@
 # Delirium Scripts
 
-Collection of utility scripts for deploying and managing Delirium.
+## ⚠️ IMPORTANT: Migration to Unified CLI
 
-## 🚀 Production Scripts
+**The individual scripts in this directory are deprecated and will be removed in a future release.**
 
-### deploy-prod.sh
-Main production deployment script with backup and health checks.
+All functionality has been consolidated into the **unified Delerium CLI** at the root of the project:
 
 ```bash
-# Full deployment (recommended)
-./scripts/deploy-prod.sh
-
-# Quick deployment (skip build & backup)
-./scripts/deploy-prod.sh --quick
-
-# Skip client build only
-./scripts/deploy-prod.sh --skip-build
-
-# Skip backup only
-./scripts/deploy-prod.sh --no-backup
-
-# Show help
-./scripts/deploy-prod.sh --help
+./delerium <command> [options]
 ```
 
-**Features:**
-- ✅ Environment validation
-- 💾 Automatic database backup
-- 📦 Client build
-- 🐳 Docker image build
-- 🔄 Zero-downtime deployment
-- 🧪 Health checks
-- 📊 Status reporting
+**Benefits of the unified CLI:**
+- ✅ Single entry point for all operations
+- ✅ Intuitive command structure
+- ✅ Auto-detection of environment
+- ✅ Better error handling and help
+- ✅ Consistent behavior across all commands
+- ✅ Easier to maintain and extend
 
-### prod-status.sh
-Check production deployment status.
+## 🚀 Quick Migration Guide
 
+| Old Script | New CLI Command |
+|-----------|----------------|
+| `./scripts/quick-start.sh` | `./delerium setup` |
+| `./scripts/setup.sh` | `./delerium setup` |
+| `./scripts/deploy.sh` | `./delerium deploy` |
+| `./scripts/deploy-prod.sh` | `./delerium deploy` |
+| `./scripts/dev.sh` | `./delerium dev` |
+| `./scripts/prod-logs.sh` | `./delerium logs` |
+| `./scripts/prod-status.sh` | `./delerium status` |
+| `./scripts/prod-stop.sh` | `./delerium stop` |
+| `./scripts/health-check.sh` | `./delerium status` |
+| `./scripts/backup.sh` | `./delerium backup` |
+| `./scripts/monitor.sh` | `./delerium monitor` |
+| `./scripts/security-check.sh` | `./delerium security check` |
+| `./scripts/security-setup.sh` | `./delerium security setup` |
+| `./scripts/security-scan.sh` | `./delerium security scan` |
+| `./scripts/setup-ssl.sh` | `./delerium security ssl` |
+| `./scripts/ci-verify-all.sh` | `./delerium test --all` |
+| `./scripts/ci-verify-frontend.sh` | `./delerium test --frontend` |
+| `./scripts/ci-verify-backend.sh` | `./delerium test --backend` |
+| `./scripts/ci-verify-quick.sh` | `./delerium test --quick` |
+
+## 📖 Documentation
+
+**For comprehensive documentation, see:**
+- [CLI Documentation](../docs/CLI.md) - Complete CLI reference
+- [Migration Guide](../docs/MIGRATION.md) - Detailed migration instructions
+- [Main README](../README.md) - Project overview
+
+## 🎯 Quick Command Reference
+
+### Setup and Installation
 ```bash
-./scripts/prod-status.sh
+./delerium setup              # Interactive first-time setup
+./delerium start              # Start services
+./delerium stop               # Stop services
+./delerium restart            # Restart services
 ```
 
-**Shows:**
-- Container status
-- API health
-- SSL certificate info
-- Data volume size
-- Recent logs
-- Access URLs
-
-### prod-logs.sh
-View production logs.
-
+### Development
 ```bash
-# All logs (follow mode)
-./scripts/prod-logs.sh
-
-# Server logs only
-./scripts/prod-logs.sh server
-
-# Web logs only
-./scripts/prod-logs.sh web
-
-# Last 50 lines
-./scripts/prod-logs.sh --tail=50
-
-# No follow mode
-./scripts/prod-logs.sh --no-follow
+./delerium dev                # Development mode with hot-reload
+./delerium test               # Run tests
+./delerium test --frontend    # Frontend tests only
+./delerium test --backend     # Backend tests only
+./delerium test --coverage    # Run with coverage
 ```
 
-### prod-stop.sh
-Safely stop production containers.
-
+### Monitoring and Status
 ```bash
-./scripts/prod-stop.sh
+./delerium status             # Check service status
+./delerium status --detailed  # Detailed status
+./delerium logs               # View logs
+./delerium logs server        # Server logs only
+./delerium logs --tail=50     # Last 50 lines
 ```
 
-Data is preserved in Docker volumes.
-
-## 🔧 Development Scripts
-
-### dev.sh
-Start development environment with hot-reload.
-
+### Deployment
 ```bash
-./scripts/dev.sh
+./delerium deploy             # Deploy to production
+./delerium deploy --quick     # Quick deploy (skip tests)
+./delerium backup             # Create backup
+./delerium backup --restore=<file>  # Restore from backup
 ```
 
-### quick-start.sh
-First-time setup for local development.
-
+### Security
 ```bash
-./scripts/quick-start.sh
+./delerium security check     # Security verification
+./delerium security setup     # Configure security
+./delerium security scan      # Vulnerability scan
+./delerium security ssl       # SSL management
 ```
 
-## 🔒 Security Scripts
-
-### security-setup.sh
-Configure security enhancements.
-
+### Monitoring
 ```bash
-./scripts/security-setup.sh
+./delerium monitor            # Start monitoring
+./delerium monitor --interval=30  # 30s interval
 ```
 
-### security-check.sh
-Run security verification.
-
+### Help
 ```bash
-./scripts/security-check.sh
+./delerium help               # Show all commands
+./delerium version            # Show version
 ```
 
-### security-scan.sh
-Automated vulnerability scanning.
+## 🔄 Backward Compatibility
 
+**The old scripts still work!** They now act as wrappers that:
+1. Show a deprecation warning
+2. Redirect to the new CLI command
+3. Pass through all arguments
+
+**Example:**
 ```bash
-./scripts/security-scan.sh
+$ ./scripts/quick-start.sh
+⚠️  WARNING: This script is deprecated!
+
+   Old command: ./scripts/quick-start.sh
+   New command: ./delerium setup
+
+Redirecting to new CLI in 3 seconds...
 ```
 
-### setup-ssl.sh
-SSL certificate setup wizard.
+## 📁 Directory Structure
 
-```bash
-./scripts/setup-ssl.sh
+```
+scripts/
+├── README.md                    # This file
+├── legacy/                      # Original scripts (archived)
+│   ├── backup.sh
+│   ├── deploy.sh
+│   ├── dev.sh
+│   ├── health-check.sh
+│   ├── monitor.sh
+│   ├── prod-logs.sh
+│   ├── prod-status.sh
+│   ├── prod-stop.sh
+│   ├── quick-start.sh
+│   ├── security-check.sh
+│   └── setup.sh
+├── backup.sh                    # Wrapper → ./delerium backup
+├── deploy.sh                    # Wrapper → ./delerium deploy
+├── dev.sh                       # Wrapper → ./delerium dev
+├── health-check.sh              # Wrapper → ./delerium status
+├── monitor.sh                   # Wrapper → ./delerium monitor
+├── prod-logs.sh                 # Wrapper → ./delerium logs
+├── prod-status.sh               # Wrapper → ./delerium status
+├── prod-stop.sh                 # Wrapper → ./delerium stop
+├── quick-start.sh               # Wrapper → ./delerium setup
+├── security-check.sh            # Wrapper → ./delerium security check
+├── setup.sh                     # Wrapper → ./delerium setup
+└── [other scripts...]           # Specialized scripts (kept as-is)
 ```
 
-## 🧪 CI/CD Scripts
+## 🎯 Common Workflows with New CLI
 
-### ci-verify-all.sh
-Run all CI checks locally.
-
+### Initial Setup
 ```bash
-./scripts/ci-verify-all.sh
+# Clone repository
+git clone https://github.com/marcusb333/delerium-paste-mono.git
+cd delerium-paste-mono
+
+# Run setup
+./delerium setup
+
+# Services are now running!
 ```
 
-### ci-verify-frontend.sh
-Frontend checks only.
-
+### Development Workflow
 ```bash
-./scripts/ci-verify-frontend.sh
+# Start development mode
+./delerium dev
+
+# In another terminal:
+./delerium status
+./delerium logs server --follow
+./delerium test --frontend
 ```
 
-### ci-verify-backend.sh
-Backend checks only.
-
+### Production Deployment
 ```bash
-./scripts/ci-verify-backend.sh
-```
+# Initial deployment
+./delerium setup
+./delerium security setup
+./delerium deploy
 
-### ci-verify-quick.sh
-Quick checks (no E2E tests).
-
-```bash
-./scripts/ci-verify-quick.sh
-```
-
-## 📦 Deployment Scripts
-
-### vps-deploy.sh
-One-command VPS deployment.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
-```
-
-### setup-vps-from-local.sh
-Deploy from local machine to VPS.
-
-```bash
-./scripts/setup-vps-from-local.sh
-```
-
-## 🔍 Monitoring Scripts
-
-### health-check.sh
-Comprehensive health check.
-
-```bash
-./scripts/health-check.sh
-```
-
-### monitor.sh
-Start service monitoring.
-
-```bash
-./scripts/monitor.sh
-```
-
-## 💾 Backup Scripts
-
-### backup.sh
-Create manual backup.
-
-```bash
-./scripts/backup.sh
-```
-
-## 📚 Quick Reference
-
-| Task | Script |
-|------|--------|
-| Deploy production | `deploy-prod.sh` |
-| Check status | `prod-status.sh` |
-| View logs | `prod-logs.sh` |
-| Stop production | `prod-stop.sh` |
-| Development mode | `dev.sh` |
-| Security scan | `security-scan.sh` |
-| Health check | `health-check.sh` |
-| Backup | `backup.sh` |
-| CI verification | `ci-verify-all.sh` |
-
-## 🎯 Common Workflows
-
-### Initial Production Deployment
-```bash
-# 1. Setup environment
-./scripts/setup.sh
-
-# 2. Configure SSL (if needed)
-./scripts/setup-ssl.sh
-
-# 3. Deploy
-./scripts/deploy-prod.sh
-```
-
-### Update Production
-```bash
-# 1. Pull changes
+# Update deployment
 git pull
-
-# 2. Deploy with backup
-./scripts/deploy-prod.sh
-
-# 3. Verify
-./scripts/prod-status.sh
-```
-
-### Quick Config Change
-```bash
-# Edit .env or configs
-vim .env
-
-# Quick deploy (no build/backup)
-./scripts/deploy-prod.sh --quick
+./delerium deploy
 
 # Check status
-./scripts/prod-status.sh
+./delerium status --detailed
+```
+
+### Monitoring and Maintenance
+```bash
+# Check status
+./delerium status
+
+# View logs
+./delerium logs
+
+# Create backup
+./delerium backup
+
+# Run security check
+./delerium security check
+
+# Start monitoring
+./delerium monitor
 ```
 
 ### Troubleshooting
 ```bash
 # Check status
-./scripts/prod-status.sh
+./delerium status --detailed
 
 # View logs
-./scripts/prod-logs.sh
+./delerium logs server
 
-# Health check
-./scripts/health-check.sh
+# Restart services
+./delerium restart
 
-# Restart
-./scripts/prod-stop.sh
-./scripts/deploy-prod.sh --skip-build
+# Run health check
+./delerium status
 ```
 
-## 📖 Documentation
+## 🔍 Still Available: Specialized Scripts
 
-For detailed documentation, see:
-- [Production Deployment Guide](../PRODUCTION_DEPLOYMENT.md)
-- [Main README](../README.md)
-- [Deployment Docs](../docs/deployment/)
+Some specialized scripts are kept as-is because they serve specific purposes:
+
+### VPS Deployment
+```bash
+# One-command VPS deployment
+curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
+```
+
+### CI/CD Scripts
+These scripts are still available for CI/CD pipelines, but the CLI provides equivalent functionality:
+- `ci-verify-all.sh` → Use `./delerium test --all`
+- `ci-verify-frontend.sh` → Use `./delerium test --frontend`
+- `ci-verify-backend.sh` → Use `./delerium test --backend`
+- `ci-verify-quick.sh` → Use `./delerium test --quick`
+
+### Other Specialized Scripts
+- `setup-vps-from-local.sh` - Deploy from local to VPS
+- `push-to-vps.sh` - Push and deploy to existing VPS
+- `install-headless.sh` - Headless installation
+- `fix-branch-protection.sh` - Git branch protection
+- `post-merge-release.sh` - Post-merge automation
+- `pre-pr-check.sh` - Pre-PR validation
+- `review-pr.sh` - PR review automation
+- `sync-to-standalone.sh` - Sync to standalone repo
+
+## 🚀 Get Started
+
+1. **Use the new CLI:**
+   ```bash
+   ./delerium help
+   ```
+
+2. **Read the documentation:**
+   - [CLI Documentation](../docs/CLI.md)
+   - [Migration Guide](../docs/MIGRATION.md)
+
+3. **Update your workflows:**
+   - Replace script calls with CLI commands
+   - Update CI/CD pipelines
+   - Update internal documentation
+
+## 📝 Timeline
+
+- **Now - Week 4:** Both old scripts and new CLI work
+- **Week 5-8:** Deprecation warnings on old scripts
+- **Week 9+:** Old scripts may be removed (legacy folder kept for reference)
+
+## 🤝 Need Help?
+
+- Run `./delerium help` for comprehensive help
+- See [CLI Documentation](../docs/CLI.md) for detailed reference
+- See [Migration Guide](../docs/MIGRATION.md) for migration instructions
+- Report issues on GitHub
+
+---
+
+**Start using the unified CLI today for a better Delerium experience!**
+
+```bash
+./delerium help
+```

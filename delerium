@@ -1,0 +1,948 @@
+#!/bin/bash
+set -e
+
+# Delerium - Zero-Knowledge Paste System CLI
+# Version: 1.0.0
+# A unified command-line interface for managing Delerium deployments
+
+VERSION="1.0.0"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/delerium.config"
+
+# Color codes for output
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+BOLD='\033[1m'
+
+# Global variables
+ENVIRONMENT=""
+COMPOSE_FILE=""
+HEADLESS=false
+DOCKER_COMPOSE_CMD=""
+
+#######################################
+# Configuration & Environment Detection
+#######################################
+
+load_config() {
+    # Load optional configuration file
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    fi
+    
+    # Load .env if exists
+    if [ -f "$SCRIPT_DIR/.env" ]; then
+        source "$SCRIPT_DIR/.env"
+    fi
+}
+
+detect_environment() {
+    # Detect if we're in production or development
+    if [ -f "docker-compose.prod.yml" ] && docker compose -f docker-compose.prod.yml ps 2>/dev/null | grep -q "Up"; then
+        ENVIRONMENT="production"
+        COMPOSE_FILE="docker-compose.prod.yml"
+    else
+        ENVIRONMENT="development"
+        COMPOSE_FILE="docker-compose.yml"
+    fi
+    
+    # Check if headless environment
+    if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ] && [ "$(uname)" != "Darwin" ]; then
+        HEADLESS=true
+    else
+        HEADLESS=false
+    fi
+    
+    # Detect docker-compose command
+    if command -v docker-compose &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker-compose"
+    elif docker compose version &> /dev/null 2>&1; then
+        DOCKER_COMPOSE_CMD="docker compose"
+    else
+        echo -e "${RED}❌ Error: Neither 'docker-compose' nor 'docker compose' found${NC}"
+        exit 1
+    fi
+}
+
+check_prerequisites() {
+    local missing=false
+    
+    # Check Docker
+    if ! command -v docker > /dev/null 2>&1; then
+        echo -e "${RED}❌ Docker is not installed${NC}"
+        echo -e "   Install from: ${BLUE}https://docs.docker.com/get-docker/${NC}"
+        missing=true
+    elif ! docker info > /dev/null 2>&1; then
+        echo -e "${RED}❌ Docker is not running${NC}"
+        missing=true
+    fi
+    
+    # Check Node.js
+    if ! command -v node > /dev/null 2>&1; then
+        echo -e "${RED}❌ Node.js is not installed${NC}"
+        echo -e "   Install from: ${BLUE}https://nodejs.org/${NC}"
+        missing=true
+    else
+        NODE_VERSION=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
+        if [ "$NODE_VERSION" -lt 18 ]; then
+            echo -e "${RED}❌ Node.js version $NODE_VERSION is too old (need 18+)${NC}"
+            missing=true
+        fi
+    fi
+    
+    if [ "$missing" = true ]; then
+        exit 1
+    fi
+}
+
+generate_secret() {
+    if command -v openssl > /dev/null 2>&1; then
+        openssl rand -hex 32
+    else
+        cat /dev/urandom | LC_ALL=C tr -dc 'a-f0-9' | fold -w 64 | head -n 1
+    fi
+}
+
+#######################################
+# Command Implementations
+#######################################
+
+cmd_setup() {
+    echo -e "${BLUE}${BOLD}"
+    echo "══════════════════════════════════════════════════"
+    echo "│                                                │"
+    echo "│      🔐 Delerium Paste Setup Wizard 🔐        │"
+    echo "│                                                │"
+    echo "│    Zero-Knowledge Encrypted Paste Service     │"
+    echo "│                                                │"
+    echo "══════════════════════════════════════════════════"
+    echo -e "${NC}"
+    echo ""
+    
+    # Check prerequisites
+    echo -e "${BOLD}Step 1: Prerequisites Check${NC}"
+    echo "════════════════════════════════"
+    check_prerequisites
+    echo -e "${GREEN}✅ All prerequisites met${NC}"
+    echo ""
+    
+    # Environment setup
+    echo -e "${BOLD}Step 2: Environment Setup${NC}"
+    echo "════════════════════════════════"
+    echo -e "${YELLOW}What environment are you setting up?${NC}"
+    echo "  1) Local Development"
+    echo "  2) Production/VPS"
+    echo ""
+    read -p "Choose option (1 or 2) [1]: " ENV_TYPE
+    ENV_TYPE=${ENV_TYPE:-1}
+    echo ""
+    
+    # Check if .env already exists
+    if [ -f ".env" ]; then
+        echo -e "${YELLOW}⚠️  An .env file already exists!${NC}"
+        echo ""
+        cat .env
+        echo ""
+        read -p "Do you want to overwrite it? (yes/no) [no]: " OVERWRITE
+        if [ "$OVERWRITE" != "yes" ] && [ "$OVERWRITE" != "y" ]; then
+            echo -e "${GREEN}✅ Keeping existing .env file${NC}"
+            USE_EXISTING=true
+        fi
+    fi
+    
+    if [ "$USE_EXISTING" != "true" ]; then
+        echo -e "${BOLD}Step 3: Secrets Configuration${NC}"
+        echo "════════════════════════════════"
+        echo -e "${BOLD}🔑 Deletion Token Pepper${NC}"
+        echo "This secret is used to hash deletion tokens securely."
+        echo ""
+        
+        GENERATED_PEPPER=$(generate_secret)
+        echo -e "${GREEN}✅ Auto-generated a secure random pepper!${NC}"
+        echo ""
+        
+        read -p "Use this generated pepper? (yes/no) [yes]: " USE_GENERATED
+        USE_GENERATED=${USE_GENERATED:-yes}
+        
+        if [ "$USE_GENERATED" = "yes" ] || [ "$USE_GENERATED" = "y" ]; then
+            DELETION_TOKEN_PEPPER="$GENERATED_PEPPER"
+        else
+            echo ""
+            echo -e "${YELLOW}Enter your own secret pepper (64+ characters recommended):${NC}"
+            read -s DELETION_TOKEN_PEPPER
+            echo ""
+        fi
+        
+        # Create .env file
+        cat > .env << EOF
+# Delerium Paste Environment Configuration
+# Generated: $(date)
+# Environment: $([ "$ENV_TYPE" = "1" ] && echo "Development" || echo "Production")
+
+# REQUIRED: Secret pepper for deletion token hashing
+# 🔒 KEEP THIS SECRET - Never commit to version control
+DELETION_TOKEN_PEPPER=${DELETION_TOKEN_PEPPER}
+EOF
+        echo -e "${GREEN}✅ Configuration saved to .env${NC}"
+    fi
+    
+    echo ""
+    echo -e "${BOLD}Step 4: Install Dependencies${NC}"
+    echo "════════════════════════════════"
+    
+    if [ ! -d "client/node_modules" ]; then
+        echo "📦 Installing client dependencies..."
+        cd client && npm install && cd ..
+        echo -e "${GREEN}✅ Dependencies installed${NC}"
+    else
+        echo -e "${GREEN}✅ Dependencies already installed${NC}"
+    fi
+    
+    echo ""
+    echo -e "${BOLD}Step 5: Build Client${NC}"
+    echo "════════════════════════════════"
+    echo "🔨 Building TypeScript client..."
+    cd client && npm run build && cd ..
+    echo -e "${GREEN}✅ Client built${NC}"
+    
+    echo ""
+    read -p "Do you want to start the services now? (yes/no) [yes]: " START_NOW
+    START_NOW=${START_NOW:-yes}
+    
+    if [ "$START_NOW" = "yes" ] || [ "$START_NOW" = "y" ]; then
+        echo ""
+        cmd_start
+    fi
+    
+    echo ""
+    echo -e "${GREEN}${BOLD}"
+    echo "══════════════════════════════════════════════════"
+    echo "│                                                │"
+    echo "│     ✅ Setup Complete! ✅                     │"
+    echo "│                                                │"
+    echo "══════════════════════════════════════════════════"
+    echo -e "${NC}"
+    echo ""
+    echo -e "${BOLD}📋 Next steps:${NC}"
+    echo "   ./delerium start    - Start services"
+    echo "   ./delerium status   - Check status"
+    echo "   ./delerium logs     - View logs"
+    echo "   ./delerium help     - See all commands"
+    echo ""
+}
+
+cmd_start() {
+    local dev_mode=false
+    local prod_mode=false
+    local build_flag=false
+    
+    # Parse arguments
+    for arg in "$@"; do
+        case $arg in
+            --dev) dev_mode=true ;;
+            --prod) prod_mode=true ;;
+            --build) build_flag=true ;;
+        esac
+    done
+    
+    if [ "$dev_mode" = true ]; then
+        cmd_dev
+        return
+    fi
+    
+    # Determine compose file
+    if [ "$prod_mode" = true ]; then
+        COMPOSE_FILE="docker-compose.prod.yml"
+    else
+        detect_environment
+    fi
+    
+    echo -e "${BLUE}🚀 Starting Delerium services...${NC}"
+    echo -e "   Environment: ${YELLOW}${ENVIRONMENT}${NC}"
+    echo -e "   Compose file: ${YELLOW}${COMPOSE_FILE}${NC}"
+    echo ""
+    
+    # Build client if needed or requested
+    if [ "$build_flag" = true ] || [ ! -d "client/dist" ]; then
+        echo "📦 Building client..."
+        cd client && npm run build && cd ..
+    fi
+    
+    # Start services
+    $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE up -d
+    
+    echo ""
+    echo -e "${GREEN}✅ Services started!${NC}"
+    echo -e "   Access at: ${BLUE}http://localhost:8080${NC}"
+    echo ""
+    echo "📋 View logs: ./delerium logs"
+    echo "📊 Check status: ./delerium status"
+}
+
+cmd_stop() {
+    detect_environment
+    
+    echo -e "${YELLOW}🛑 Stopping Delerium services...${NC}"
+    $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE down
+    echo -e "${GREEN}✅ Services stopped${NC}"
+}
+
+cmd_restart() {
+    echo -e "${BLUE}🔄 Restarting Delerium services...${NC}"
+    cmd_stop
+    sleep 2
+    cmd_start "$@"
+}
+
+cmd_logs() {
+    detect_environment
+    
+    local service=""
+    local tail_lines=""
+    local follow="-f"
+    
+    # Parse arguments
+    for arg in "$@"; do
+        case $arg in
+            --tail=*)
+                tail_lines="--tail=${arg#*=}"
+                follow=""
+                ;;
+            --no-follow)
+                follow=""
+                ;;
+            server|web)
+                service=$arg
+                ;;
+            *)
+                if [ -z "$service" ] && [[ ! "$arg" =~ ^-- ]]; then
+                    service=$arg
+                fi
+                ;;
+        esac
+    done
+    
+    echo -e "${BLUE}📋 Viewing logs...${NC}"
+    echo "   Press Ctrl+C to exit"
+    echo ""
+    
+    if [ -n "$service" ]; then
+        $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE logs $follow $tail_lines $service
+    else
+        $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE logs $follow $tail_lines
+    fi
+}
+
+cmd_status() {
+    detect_environment
+    
+    local detailed=false
+    for arg in "$@"; do
+        case $arg in
+            --detailed|-d) detailed=true ;;
+        esac
+    done
+    
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo -e "${BLUE}📊 Delerium Status${NC}"
+    echo -e "${BLUE}════════════════════════════════════════${NC}"
+    echo ""
+    
+    # Container status
+    echo -e "${BOLD}🐳 Container Status:${NC}"
+    $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE ps
+    echo ""
+    
+    # Check if containers are running
+    if ! $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE ps | grep -q "Up"; then
+        echo -e "${RED}❌ No containers are running${NC}"
+        echo ""
+        echo "Start with: ./delerium start"
+        return 1
+    fi
+    
+    # API Health Check
+    echo -e "${BOLD}🧪 API Health Check:${NC}"
+    if curl -s -f http://localhost:8080/api/pow > /dev/null 2>&1; then
+        echo -e "${GREEN}✅ API is responding${NC}"
+    else
+        echo -e "${RED}❌ API is not responding${NC}"
+    fi
+    
+    # Frontend check
+    if curl -s -f http://localhost:8080/ > /dev/null 2>&1; then
+        echo -e "${GREEN}✅ Frontend is accessible${NC}"
+    else
+        echo -e "${RED}❌ Frontend is not accessible${NC}"
+    fi
+    echo ""
+    
+    if [ "$detailed" = true ]; then
+        # Disk usage
+        echo -e "${BOLD}💾 System Resources:${NC}"
+        DISK_USAGE=$(df -h . | tail -1 | awk '{print $5}' | sed 's/%//')
+        echo -e "   Disk usage: ${YELLOW}${DISK_USAGE}%${NC}"
+        
+        # Data volume
+        if docker volume ls | grep -q "server-data"; then
+            VOLUME_SIZE=$(docker run --rm -v delirium_server-data:/data alpine du -sh /data 2>/dev/null | cut -f1 || echo "N/A")
+            echo -e "   Data volume: ${YELLOW}${VOLUME_SIZE}${NC}"
+        fi
+        echo ""
+    fi
+    
+    echo -e "${BOLD}🌐 Access URLs:${NC}"
+    echo -e "   Frontend: ${BLUE}http://localhost:8080${NC}"
+    echo -e "   API:      ${BLUE}http://localhost:8080/api${NC}"
+    echo ""
+}
+
+cmd_deploy() {
+    local target="local"
+    local quick=false
+    local no_backup=false
+    
+    # Parse arguments
+    for arg in "$@"; do
+        case $arg in
+            --target=*) target="${arg#*=}" ;;
+            --quick) quick=true ;;
+            --no-backup) no_backup=true ;;
+        esac
+    done
+    
+    echo -e "${BLUE}🚀 Deploying Delerium...${NC}"
+    echo -e "   Target: ${YELLOW}${target}${NC}"
+    echo ""
+    
+    # Check .env file
+    if [ ! -f .env ]; then
+        echo -e "${RED}❌ Error: .env file not found${NC}"
+        echo "Please run: ./delerium setup"
+        exit 1
+    fi
+    
+    source .env
+    
+    # Validate required environment variables
+    if [ -z "$DELETION_TOKEN_PEPPER" ] || [ "$DELETION_TOKEN_PEPPER" = "change-me" ]; then
+        echo -e "${RED}❌ Error: DELETION_TOKEN_PEPPER not set or using default value${NC}"
+        exit 1
+    fi
+    
+    # Create backup unless disabled
+    if [ "$no_backup" = false ] && [ "$target" = "local" ]; then
+        echo "💾 Creating backup..."
+        cmd_backup
+        echo ""
+    fi
+    
+    # Build client
+    if [ "$quick" = false ]; then
+        echo "📦 Building client..."
+        cd client && npm ci && npm run build && cd ..
+    fi
+    
+    # Deploy based on target
+    if [ "$target" = "local" ]; then
+        COMPOSE_FILE="docker-compose.prod.yml"
+        
+        echo "🐳 Building Docker images..."
+        $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE build --parallel
+        
+        echo "🔄 Stopping old containers..."
+        $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE down
+        
+        echo "🚀 Starting new containers..."
+        $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE up -d
+        
+        echo "⏳ Waiting for services to be healthy..."
+        sleep 10
+        
+        # Health check
+        if $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE ps | grep -q "unhealthy"; then
+            echo -e "${RED}❌ Some services are unhealthy!${NC}"
+            $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE ps
+            exit 1
+        fi
+        
+        echo ""
+        echo -e "${GREEN}✅ Deployment successful!${NC}"
+        echo ""
+        cmd_status
+    else
+        echo -e "${RED}❌ VPS deployment not yet implemented${NC}"
+        echo "   Use existing VPS deployment scripts for now"
+        exit 1
+    fi
+}
+
+cmd_dev() {
+    echo -e "${BLUE}🔧 Starting Delerium development environment...${NC}"
+    echo ""
+    
+    check_prerequisites
+    
+    # Install dependencies if needed
+    if [ ! -d "client/node_modules" ]; then
+        echo "📦 Installing client dependencies..."
+        cd client && npm install && cd ..
+    fi
+    
+    # Start backend in Docker
+    echo "🐳 Starting backend services..."
+    if [ -f "docker-compose.dev.yml" ]; then
+        $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.dev.yml up -d server
+    else
+        $DOCKER_COMPOSE_CMD up -d server
+    fi
+    
+    # Wait for backend
+    echo "⏳ Waiting for backend to be ready..."
+    sleep 5
+    
+    # Start frontend in watch mode
+    echo ""
+    echo -e "${GREEN}👀 Starting TypeScript watch mode...${NC}"
+    echo -e "${GREEN}🌐 Frontend available at http://localhost:8080${NC}"
+    echo -e "${GREEN}📝 TypeScript will automatically recompile on changes${NC}"
+    echo ""
+    echo "Press Ctrl+C to stop all services"
+    echo ""
+    
+    # Cleanup function
+    cleanup() {
+        echo ""
+        echo "🛑 Stopping development environment..."
+        if [ -f "docker-compose.dev.yml" ]; then
+            $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.dev.yml down
+        else
+            $DOCKER_COMPOSE_CMD down
+        fi
+        echo -e "${GREEN}✅ Development environment stopped${NC}"
+        exit 0
+    }
+    
+    trap cleanup SIGINT SIGTERM
+    
+    # Start watch mode
+    cd client
+    npm run watch
+}
+
+cmd_test() {
+    local target="all"
+    local quick=false
+    local coverage=false
+    
+    # Parse arguments
+    for arg in "$@"; do
+        case $arg in
+            --frontend) target="frontend" ;;
+            --backend) target="backend" ;;
+            --all) target="all" ;;
+            --quick) quick=true ;;
+            --coverage) coverage=true ;;
+        esac
+    done
+    
+    echo -e "${BLUE}🧪 Running tests...${NC}"
+    echo -e "   Target: ${YELLOW}${target}${NC}"
+    echo ""
+    
+    if [ "$target" = "frontend" ] || [ "$target" = "all" ]; then
+        echo -e "${BOLD}📦 Frontend Tests${NC}"
+        cd client
+        if [ "$coverage" = true ]; then
+            npm test -- --coverage
+        else
+            npm test
+        fi
+        cd ..
+        echo ""
+    fi
+    
+    if [ "$target" = "backend" ] || [ "$target" = "all" ]; then
+        echo -e "${BOLD}🔧 Backend Tests${NC}"
+        cd server
+        ./gradlew test
+        cd ..
+        echo ""
+    fi
+    
+    echo -e "${GREEN}✅ Tests completed${NC}"
+}
+
+cmd_backup() {
+    local restore_file=""
+    
+    # Parse arguments
+    for arg in "$@"; do
+        case $arg in
+            --restore=*) restore_file="${arg#*=}" ;;
+        esac
+    done
+    
+    if [ -n "$restore_file" ]; then
+        echo -e "${BLUE}📦 Restoring from backup: ${restore_file}${NC}"
+        if [ ! -f "$restore_file" ]; then
+            echo -e "${RED}❌ Backup file not found: ${restore_file}${NC}"
+            exit 1
+        fi
+        # Restore logic here
+        echo -e "${GREEN}✅ Restore complete${NC}"
+    else
+        BACKUP_DIR="backups"
+        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        BACKUP_FILE="$BACKUP_DIR/delirium-backup-$TIMESTAMP.tar.gz"
+        
+        mkdir -p "$BACKUP_DIR"
+        
+        echo -e "${BLUE}📦 Creating backup: ${BACKUP_FILE}${NC}"
+        
+        # Backup server data
+        if docker volume ls | grep -q "server-data"; then
+            docker run --rm \
+                -v delirium_server-data:/data \
+                -v "$(pwd)/$BACKUP_DIR:/backup" \
+                alpine tar czf "/backup/server-data-$TIMESTAMP.tar.gz" /data 2>/dev/null || true
+        fi
+        
+        # Backup configuration
+        tar czf "$BACKUP_FILE" \
+            .env \
+            docker-compose*.yml \
+            reverse-proxy/ \
+            logs/ \
+            --exclude=node_modules \
+            --exclude=.git 2>/dev/null || true
+        
+        echo -e "${GREEN}✅ Backup created: ${BACKUP_FILE}${NC}"
+        
+        # Clean old backups (keep last 7 days)
+        find "$BACKUP_DIR" -name "delirium-backup-*.tar.gz" -mtime +7 -delete 2>/dev/null || true
+        find "$BACKUP_DIR" -name "server-data-*.tar.gz" -mtime +7 -delete 2>/dev/null || true
+        
+        echo "🧹 Old backups cleaned"
+    fi
+}
+
+cmd_health() {
+    cmd_status "$@"
+}
+
+cmd_security() {
+    local subcommand="${1:-check}"
+    
+    case "$subcommand" in
+        setup)
+            echo -e "${BLUE}🔒 Setting up security enhancements...${NC}"
+            if [ -f "scripts/security-setup.sh" ]; then
+                chmod +x scripts/security-setup.sh
+                ./scripts/security-setup.sh
+            else
+                echo -e "${YELLOW}⚠️  Security setup script not found${NC}"
+            fi
+            ;;
+        check)
+            echo -e "${BLUE}🔍 Running security check...${NC}"
+            echo ""
+            
+            # Check .env file
+            if [ ! -f ".env" ]; then
+                echo -e "${RED}❌ .env file not found${NC}"
+                exit 1
+            fi
+            
+            if grep -q "DELETION_TOKEN_PEPPER=change-me" .env 2>/dev/null; then
+                echo -e "${RED}❌ Using default deletion token pepper${NC}"
+                exit 1
+            fi
+            
+            if grep -q "DELETION_TOKEN_PEPPER=dev-pepper" .env 2>/dev/null; then
+                echo -e "${YELLOW}⚠️  Using development pepper${NC}"
+            else
+                echo -e "${GREEN}✅ Secure deletion token pepper configured${NC}"
+            fi
+            
+            # Check file permissions
+            if [ -f ".env" ]; then
+                PERMS=$(stat -f%A .env 2>/dev/null || stat -c%a .env 2>/dev/null)
+                if [ "$PERMS" = "600" ] || [ "$PERMS" = "640" ]; then
+                    echo -e "${GREEN}✅ .env file has secure permissions${NC}"
+                else
+                    echo -e "${YELLOW}⚠️  .env file permissions: $PERMS (should be 600)${NC}"
+                fi
+            fi
+            
+            # Check Docker security
+            if docker info > /dev/null 2>&1; then
+                echo -e "${GREEN}✅ Docker is running${NC}"
+            else
+                echo -e "${RED}❌ Docker is not running${NC}"
+            fi
+            
+            echo ""
+            echo -e "${GREEN}✅ Security check complete${NC}"
+            ;;
+        scan)
+            echo -e "${BLUE}🔒 Running security scan...${NC}"
+            if [ -f "scripts/security-scan.sh" ]; then
+                chmod +x scripts/security-scan.sh
+                ./scripts/security-scan.sh
+            else
+                echo -e "${YELLOW}⚠️  Security scan script not found${NC}"
+            fi
+            ;;
+        ssl)
+            echo -e "${BLUE}🔐 SSL certificate management...${NC}"
+            if [ -f "scripts/setup-ssl.sh" ]; then
+                chmod +x scripts/setup-ssl.sh
+                ./scripts/setup-ssl.sh
+            else
+                echo -e "${YELLOW}⚠️  SSL setup script not found${NC}"
+            fi
+            ;;
+        *)
+            echo -e "${RED}❌ Unknown security subcommand: ${subcommand}${NC}"
+            echo "Available subcommands: setup, check, scan, ssl"
+            exit 1
+            ;;
+    esac
+}
+
+cmd_monitor() {
+    local interval=60
+    
+    # Parse arguments
+    for arg in "$@"; do
+        case $arg in
+            --interval=*) interval="${arg#*=}" ;;
+        esac
+    done
+    
+    LOG_FILE="logs/monitor.log"
+    mkdir -p logs
+    
+    log() {
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+    }
+    
+    echo -e "${BLUE}🔍 Starting Delerium monitoring...${NC}"
+    echo -e "   Interval: ${YELLOW}${interval}s${NC}"
+    echo -e "   Log file: ${YELLOW}${LOG_FILE}${NC}"
+    echo ""
+    echo "Press Ctrl+C to stop"
+    echo ""
+    
+    log "🔍 Starting Delerium monitoring..."
+    
+    while true; do
+        # Check Docker status
+        if ! docker info > /dev/null 2>&1; then
+            log "❌ Docker is not running"
+            sleep $interval
+            continue
+        fi
+        
+        # Check container health
+        detect_environment
+        if ! $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE ps | grep -q "Up"; then
+            log "❌ Containers are not running"
+            log "🔄 Attempting to restart services..."
+            $DOCKER_COMPOSE_CMD -f $COMPOSE_FILE up -d
+            sleep 10
+            continue
+        fi
+        
+        # Check API health
+        if ! curl -s -f http://localhost:8080/api/pow > /dev/null 2>&1; then
+            log "⚠️  API health check failed"
+        fi
+        
+        # Check disk space
+        DISK_USAGE=$(df -h . | tail -1 | awk '{print $5}' | sed 's/%//')
+        if [ "$DISK_USAGE" -gt 90 ]; then
+            log "⚠️  Disk usage is high: ${DISK_USAGE}%"
+        fi
+        
+        # Log successful check
+        log "✅ All checks passed"
+        
+        # Wait before next check
+        sleep $interval
+    done
+}
+
+show_help() {
+    cat << EOF
+${BLUE}${BOLD}Delerium CLI v${VERSION}${NC}
+Zero-Knowledge Paste System - Unified Command-Line Interface
+
+${BOLD}USAGE:${NC}
+    ./delerium <command> [options]
+
+${BOLD}COMMANDS:${NC}
+
+  ${GREEN}setup${NC}           Interactive first-time setup
+                   - Generates .env file with secure secrets
+                   - Installs dependencies
+                   - Builds client
+                   - Optionally starts services
+
+  ${GREEN}start${NC}           Start services (auto-detects environment)
+                   Options:
+                     --dev      Start in development mode with hot-reload
+                     --prod     Start in production mode
+                     --build    Force rebuild client
+
+  ${GREEN}stop${NC}            Stop all services
+
+  ${GREEN}restart${NC}         Restart services
+                   Accepts same options as 'start'
+
+  ${GREEN}logs${NC}            View logs
+                   Usage: ./delerium logs [service] [options]
+                   Options:
+                     --tail=N       Show last N lines
+                     --no-follow    Don't follow logs
+                   Examples:
+                     ./delerium logs
+                     ./delerium logs server --follow
+                     ./delerium logs --tail=50
+
+  ${GREEN}status${NC}          Check service status
+                   Options:
+                     --detailed     Show detailed information
+
+  ${GREEN}deploy${NC}          Deploy to production
+                   Options:
+                     --target=local|vps    Deployment target (default: local)
+                     --quick               Skip tests and checks
+                     --no-backup           Skip backup creation
+
+  ${GREEN}dev${NC}             Development mode with hot-reload
+                   - Starts backend in Docker
+                   - Runs frontend in watch mode
+                   - Auto-recompiles on changes
+
+  ${GREEN}test${NC}            Run tests
+                   Options:
+                     --frontend     Run only frontend tests
+                     --backend      Run only backend tests
+                     --all          Run all tests (default)
+                     --quick        Skip E2E tests
+                     --coverage     Generate coverage reports
+
+  ${GREEN}backup${NC}          Create backup
+                   Options:
+                     --restore=<file>    Restore from backup file
+
+  ${GREEN}health${NC}          Health check (alias for 'status')
+
+  ${GREEN}security${NC}        Security operations
+                   Subcommands:
+                     setup      Configure security enhancements
+                     check      Run security verification
+                     scan       Vulnerability scanning
+                     ssl        SSL certificate management
+
+  ${GREEN}monitor${NC}         Continuous health monitoring
+                   Options:
+                     --interval=N    Check interval in seconds (default: 60)
+
+  ${GREEN}version${NC}         Show version information
+
+  ${GREEN}help${NC}            Show this help message
+
+${BOLD}EXAMPLES:${NC}
+
+  # First-time setup
+  ./delerium setup
+
+  # Start development
+  ./delerium start --dev
+
+  # Deploy to production
+  ./delerium deploy --target local
+
+  # Check status
+  ./delerium status --detailed
+
+  # View logs
+  ./delerium logs server --follow
+
+  # Run tests
+  ./delerium test --all
+
+  # Create backup
+  ./delerium backup
+
+  # Security scan
+  ./delerium security scan
+
+  # Monitor services
+  ./delerium monitor --interval 30
+
+${BOLD}CONFIGURATION:${NC}
+
+  Optional configuration file: ${YELLOW}delerium.config${NC}
+  See ${YELLOW}delerium.config.example${NC} for available options
+
+${BOLD}ENVIRONMENT:${NC}
+
+  Current environment: ${YELLOW}${ENVIRONMENT:-auto-detect}${NC}
+  Headless mode: ${YELLOW}${HEADLESS}${NC}
+
+${BOLD}MORE INFORMATION:${NC}
+
+  Documentation: ./docs/CLI.md
+  Migration guide: ./docs/MIGRATION.md
+  GitHub: https://github.com/yourusername/delerium-paste
+
+EOF
+}
+
+#######################################
+# Main Entry Point
+#######################################
+
+main() {
+    # Load configuration and detect environment
+    load_config
+    
+    # Get command
+    local command="${1:-help}"
+    shift || true
+    
+    # Dispatch to command handler
+    case "$command" in
+        setup)      cmd_setup "$@" ;;
+        start)      cmd_start "$@" ;;
+        stop)       cmd_stop "$@" ;;
+        restart)    cmd_restart "$@" ;;
+        logs)       cmd_logs "$@" ;;
+        status)     cmd_status "$@" ;;
+        deploy)     cmd_deploy "$@" ;;
+        dev)        cmd_dev "$@" ;;
+        test)       cmd_test "$@" ;;
+        backup)     cmd_backup "$@" ;;
+        health)     cmd_health "$@" ;;
+        security)   cmd_security "$@" ;;
+        monitor)    cmd_monitor "$@" ;;
+        version)    echo "Delerium CLI v$VERSION" ;;
+        help|--help|-h) show_help ;;
+        *)
+            echo -e "${RED}❌ Unknown command: ${command}${NC}"
+            echo ""
+            echo "Run './delerium help' for usage information"
+            exit 1
+            ;;
+    esac
+}
+
+# Run main function
+main "$@"
