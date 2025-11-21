@@ -1,13 +1,21 @@
 # Delirium - Zero-Knowledge Paste System
 # Makefile for local development and deployment
 
-.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan build-multiarch push-multiarch
+.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop
 
 # Default target
 help:
 	@echo "Delirium - Zero-Knowledge Paste System"
 	@echo ""
 	@echo "Available commands:"
+	@echo ""
+	@echo "🚀 Production:"
+	@echo "  make deploy-prod   - Deploy to production (with backup)"
+	@echo "  make prod-status   - Check production status"
+	@echo "  make prod-logs     - View production logs"
+	@echo "  make prod-stop     - Stop production containers"
+	@echo ""
+	@echo "🔧 Development:"
 	@echo "  make setup         - 🔐 Interactive setup wizard (configure secrets)"
 	@echo "  make start         - Start everything (build client + docker compose up)"
 	@echo "  make stop          - Stop all containers"
@@ -20,12 +28,18 @@ help:
 	@echo "  make health-check  - Verify services are running"
 	@echo "  make quick-start   - First-time setup and start"
 	@echo "  make quick-start-headless - First-time setup for headless environments"
+	@echo ""
+	@echo "🔒 Security:"
 	@echo "  make security-setup - Enhance security for headless environments"
 	@echo "  make start-secure  - Start with security enhancements"
 	@echo "  make security-check - Run security verification"
 	@echo "  make security-scan - Run automated vulnerability scanning"
+	@echo ""
+	@echo "📊 Monitoring:"
 	@echo "  make monitor       - Start service monitoring"
 	@echo "  make backup        - Create data backup"
+	@echo ""
+	@echo "🐳 Docker:"
 	@echo "  make deploy-full   - Full pipeline: clean, build, test, and deploy"
 	@echo "  make build-multiarch - Build multi-architecture Docker images locally"
 	@echo "  make push-multiarch - Build and push multi-architecture images to registry"
@@ -224,3 +238,24 @@ push-multiarch:
 	echo "   - $(REGISTRY)/delerium-paste-mono-server:$$TAG"; \
 	echo "   - $(REGISTRY)/delerium-paste-mono-server:latest"; \
 	echo "🔍 Inspect with: docker buildx imagetools inspect $(REGISTRY)/delerium-paste-mono-server:$$TAG"
+
+# Production deployment commands
+deploy-prod:
+	@echo "🚀 Deploying to production..."
+	@chmod +x scripts/deploy-prod.sh
+	./scripts/deploy-prod.sh
+
+prod-status:
+	@echo "📊 Checking production status..."
+	@chmod +x scripts/prod-status.sh
+	./scripts/prod-status.sh
+
+prod-logs:
+	@echo "📋 Viewing production logs..."
+	@chmod +x scripts/prod-logs.sh
+	./scripts/prod-logs.sh
+
+prod-stop:
+	@echo "🛑 Stopping production..."
+	@chmod +x scripts/prod-stop.sh
+	./scripts/prod-stop.sh
