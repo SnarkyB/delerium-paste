@@ -1,17 +1,17 @@
 # Container Image Publishing Guide
 
-This guide explains how to publish the delerium-paste-server as a reusable container image to Docker Hub or GitHub Container Registry (GHCR).
+This guide explains how to publish the delerium-paste as a reusable container image to Docker Hub or GitHub Container Registry (GHCR).
 
 ## Quick Start
 
 **For GitHub Container Registry (GHCR) - Easiest Option:**
 - ✅ **No setup required!** Just push to your GitHub repository
-- Images are automatically published to `ghcr.io/<your-username>/delerium-paste-server`
+- Images are automatically published to `ghcr.io/<your-username>/delerium-paste`
 - Works immediately - no secrets to configure
 
 **For Docker Hub:**
 - Requires setting up secrets in GitHub (see below)
-- Images published to `docker.io/<your-username>/delerium-paste-server`
+- Images published to `docker.io/<your-username>/delerium-paste`
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ This guide explains how to publish the delerium-paste-server as a reusable conta
    git push origin main
    ```
    This automatically builds and pushes:
-   - `ghcr.io/<your-username>/delerium-paste-server:latest`
+   - `ghcr.io/<your-username>/delerium-paste:latest`
 
 2. **Create a version tag:**
    ```bash
@@ -38,10 +38,10 @@ This guide explains how to publish the delerium-paste-server as a reusable conta
    git push origin v1.0.0
    ```
    This automatically creates multiple tags:
-   - `ghcr.io/<your-username>/delerium-paste-server:1.0.0`
-   - `ghcr.io/<your-username>/delerium-paste-server:1.0`
-   - `ghcr.io/<your-username>/delerium-paste-server:1`
-   - `ghcr.io/<your-username>/delerium-paste-server:latest`
+   - `ghcr.io/<your-username>/delerium-paste:1.0.0`
+   - `ghcr.io/<your-username>/delerium-paste:1.0`
+   - `ghcr.io/<your-username>/delerium-paste:1`
+   - `ghcr.io/<your-username>/delerium-paste:latest`
 
 3. **View your images:**
    - Go to your GitHub repository → Packages (right sidebar)
@@ -68,7 +68,7 @@ This guide explains how to publish the delerium-paste-server as a reusable conta
      ```bash
      git push origin main
      ```
-     Builds and pushes: `your-username/delerium-paste-server:latest`
+     Builds and pushes: `your-username/delerium-paste:latest`
    
    - **Create a version tag:**
      ```bash
@@ -76,15 +76,15 @@ This guide explains how to publish the delerium-paste-server as a reusable conta
      git push origin v1.0.0
      ```
      Builds and pushes multiple tags:
-     - `your-username/delerium-paste-server:1.0.0`
-     - `your-username/delerium-paste-server:1.0`
-     - `your-username/delerium-paste-server:1`
-     - `your-username/delerium-paste-server:latest`
+     - `your-username/delerium-paste:1.0.0`
+     - `your-username/delerium-paste:1.0`
+     - `your-username/delerium-paste:1`
+     - `your-username/delerium-paste:latest`
 
 3. **Verify the workflow:**
    - Go to your repository → Actions tab
    - You should see "Build and Push Docker Image" workflow running
-   - Once complete, check Docker Hub: https://hub.docker.com/r/your-username/delerium-paste-server
+   - Once complete, check Docker Hub: https://hub.docker.com/r/your-username/delerium-paste
 
 ## Manual Publishing
 
@@ -97,8 +97,8 @@ The project includes `docker-build.sh` for easy local builds:
 cd server  # Navigate to server directory in monorepo
 ./docker-build.sh 1.0.0 dockerhub your-dockerhub-username
 docker login
-docker push your-dockerhub-username/delerium-paste-server:1.0.0
-docker push your-dockerhub-username/delerium-paste-server:latest
+docker push your-dockerhub-username/delerium-paste:1.0.0
+docker push your-dockerhub-username/delerium-paste:latest
 ```
 
 **For GHCR:**
@@ -106,8 +106,8 @@ docker push your-dockerhub-username/delerium-paste-server:latest
 cd server  # Navigate to server directory in monorepo
 ./docker-build.sh 1.0.0 ghcr your-github-username
 echo $GITHUB_TOKEN | docker login ghcr.io -u your-github-username --password-stdin
-docker push ghcr.io/your-github-username/delerium-paste-server:1.0.0
-docker push ghcr.io/your-github-username/delerium-paste-server:latest
+docker push ghcr.io/your-github-username/delerium-paste:1.0.0
+docker push ghcr.io/your-github-username/delerium-paste:latest
 ```
 
 **Note:** For GHCR, create a GitHub Personal Access Token with `write:packages` permission at https://github.com/settings/tokens
@@ -123,7 +123,7 @@ docker buildx create --name multiarch --use
 # Build for multiple platforms
 docker buildx build \
   --platform linux/amd64,linux/arm64,linux/arm/v7 \
-  -t your-username/delerium-paste-server:latest \
+  -t your-username/delerium-paste:latest \
   --push \
   .
 ```
@@ -133,21 +133,21 @@ docker buildx build \
 **For Docker Hub:**
 ```bash
 cd server  # Navigate to server directory in monorepo
-docker build -t your-username/delerium-paste-server:1.0.0 .
-docker tag your-username/delerium-paste-server:1.0.0 your-username/delerium-paste-server:latest
+docker build -t your-username/delerium-paste:1.0.0 .
+docker tag your-username/delerium-paste:1.0.0 your-username/delerium-paste:latest
 docker login
-docker push your-username/delerium-paste-server:1.0.0
-docker push your-username/delerium-paste-server:latest
+docker push your-username/delerium-paste:1.0.0
+docker push your-username/delerium-paste:latest
 ```
 
 **For GHCR:**
 ```bash
 cd server  # Navigate to server directory in monorepo
-docker build -t ghcr.io/your-username/delerium-paste-server:1.0.0 .
-docker tag ghcr.io/your-username/delerium-paste-server:1.0.0 ghcr.io/your-username/delerium-paste-server:latest
+docker build -t ghcr.io/your-username/delerium-paste:1.0.0 .
+docker tag ghcr.io/your-username/delerium-paste:1.0.0 ghcr.io/your-username/delerium-paste:latest
 echo $GITHUB_TOKEN | docker login ghcr.io -u your-username --password-stdin
-docker push ghcr.io/your-username/delerium-paste-server:1.0.0
-docker push ghcr.io/your-username/delerium-paste-server:latest
+docker push ghcr.io/your-username/delerium-paste:1.0.0
+docker push ghcr.io/your-username/delerium-paste:latest
 ```
 
 ## CI/CD Workflow Details
@@ -284,28 +284,28 @@ git tag v1.0.0 && git push origin v1.0.0  # Pushes versioned tags
 ```bash
 ./docker-build.sh 1.0.0 ghcr your-github-username
 echo $GITHUB_TOKEN | docker login ghcr.io -u your-github-username --password-stdin
-docker push ghcr.io/your-github-username/delerium-paste-server:1.0.0
+docker push ghcr.io/your-github-username/delerium-paste:1.0.0
 ```
 
 **Docker Hub:**
 ```bash
 ./docker-build.sh 1.0.0 dockerhub your-dockerhub-username
 docker login
-docker push your-dockerhub-username/delerium-paste-server:1.0.0
+docker push your-dockerhub-username/delerium-paste:1.0.0
 ```
 
 ### Pull and Run Published Images
 
 **From GHCR:**
 ```bash
-docker pull ghcr.io/your-username/delerium-paste-server:latest
-docker run -d -p 8080:8080 -v ./data:/data -e DELETION_TOKEN_PEPPER=your-secret ghcr.io/your-username/delerium-paste-server:latest
+docker pull ghcr.io/your-username/delerium-paste:latest
+docker run -d -p 8080:8080 -v ./data:/data -e DELETION_TOKEN_PEPPER=your-secret ghcr.io/your-username/delerium-paste:latest
 ```
 
 **From Docker Hub:**
 ```bash
-docker pull your-username/delerium-paste-server:latest
-docker run -d -p 8080:8080 -v ./data:/data -e DELETION_TOKEN_PEPPER=your-secret your-username/delerium-paste-server:latest
+docker pull your-username/delerium-paste:latest
+docker run -d -p 8080:8080 -v ./data:/data -e DELETION_TOKEN_PEPPER=your-secret your-username/delerium-paste:latest
 ```
 
 ## Best Practices

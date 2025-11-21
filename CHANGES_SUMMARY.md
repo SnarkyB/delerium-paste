@@ -74,7 +74,7 @@ All references updated from `delerium-paste` to `delerium-paste-mono`:
 **Image Names:**
 - ✅ `delerium-paste-mono-server:latest`
 - ✅ `delerium-paste-mono-server:multi-arch`
-- ❌ ~~`delerium-paste-server:latest`~~ (removed)
+- ❌ ~~`delerium-paste:latest`~~ (removed)
 
 ### 3. README Restructuring
 

@@ -22,7 +22,7 @@ docker run -d \
   -p 8080:8080 \
   -v $(pwd)/data:/data \
   -e DELETION_TOKEN_PEPPER=$(openssl rand -hex 32) \
-  ghcr.io/your-username/delerium-paste-server:latest
+  ghcr.io/your-username/delerium-paste:latest
 ```
 
 The server will be available at `http://localhost:8080`
@@ -62,7 +62,7 @@ Or run the JAR directly:
 ./gradlew installDist
 
 # Run from distribution
-./build/install/delerium-paste-server/bin/delerium-paste-server
+./build/install/delerium-paste/bin/delerium-paste
 ```
 
 ## Configuration
@@ -124,36 +124,36 @@ storage {
 
 **From GitHub Container Registry (GHCR):**
 ```bash
-docker pull ghcr.io/your-username/delerium-paste-server:latest
+docker pull ghcr.io/your-username/delerium-paste:latest
 docker run -d \
   -p 8080:8080 \
   -v /path/to/data:/data \
   -e DELETION_TOKEN_PEPPER=your-secret-pepper \
-  ghcr.io/your-username/delerium-paste-server:latest
+  ghcr.io/your-username/delerium-paste:latest
 ```
 
 **From Docker Hub:**
 ```bash
-docker pull your-username/delerium-paste-server:latest
+docker pull your-username/delerium-paste:latest
 docker run -d \
   -p 8080:8080 \
   -v /path/to/data:/data \
   -e DELETION_TOKEN_PEPPER=your-secret-pepper \
-  your-username/delerium-paste-server:latest
+  your-username/delerium-paste:latest
 ```
 
 #### Building Docker Image Locally
 
 ```bash
 # Build the image
-docker build -t delerium-paste-server:latest .
+docker build -t delerium-paste:latest .
 
 # Run the container
 docker run -d \
   -p 8080:8080 \
   -v $(pwd)/data:/data \
   -e DELETION_TOKEN_PEPPER=$(openssl rand -hex 32) \
-  delerium-paste-server:latest
+  delerium-paste:latest
 
 # Verify health check
 docker inspect --format='{{json .State.Health}}' <container-id>
@@ -164,7 +164,7 @@ docker inspect --format='{{json .State.Health}}' <container-id>
 # Build for multiple platforms (requires Docker Buildx)
 docker buildx build \
   --platform linux/amd64,linux/arm64,linux/arm/v7 \
-  -t delerium-paste-server:latest \
+  -t delerium-paste:latest \
   .
 ```
 
@@ -177,7 +177,7 @@ version: '3.8'
 
 services:
   delerium-paste:
-    image: ghcr.io/your-username/delerium-paste-server:latest
+    image: ghcr.io/your-username/delerium-paste:latest
     ports:
       - "8080:8080"
     volumes:
@@ -266,10 +266,10 @@ server {
 
 After `installDist`, the distribution is available at:
 ```
-build/install/delerium-paste-server/
+build/install/delerium-paste/
 ├── bin/
-│   ├── delerium-paste-server      # Unix script
-│   └── delerium-paste-server.bat  # Windows script
+│   ├── delerium-paste      # Unix script
+│   └── delerium-paste.bat  # Windows script
 └── lib/
     └── *.jar                      # Application and dependencies
 ```
@@ -380,7 +380,7 @@ mkdir -p data
 
 # 4. Set database path and run
 export DB_PATH="jdbc:sqlite:$(pwd)/data/pastes.db"
-./build/install/delerium-paste-server/bin/delerium-paste-server
+./build/install/delerium-paste/bin/delerium-paste
 ```
 
 #### Option 3: Using Gradle Run

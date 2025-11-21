@@ -1,6 +1,6 @@
 # Test Suite Organization
 
-This directory contains the test suite for the delerium-paste-server API.
+This directory contains the test suite for the delerium-paste API.
 
 ## Test Structure
 

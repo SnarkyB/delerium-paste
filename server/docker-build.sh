@@ -13,7 +13,7 @@ VERSION=${1:-latest}
 REGISTRY=${2:-dockerhub}
 USERNAME=${3:-${DOCKERHUB_USERNAME:-${GITHUB_USERNAME:-"your-username"}}}
 
-IMAGE_NAME="delerium-paste-server"
+IMAGE_NAME="delerium-paste"
 
 # Determine registry URL and full image name
 case "${REGISTRY}" in
