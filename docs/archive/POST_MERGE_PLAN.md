@@ -10,7 +10,7 @@ This document outlines the steps to be taken after the monorepo decomposition mi
 
 ## 2. Cleanup
 
-- [ ] **Archive Old Monorepo**: Once verification is complete, archive `delerium-paste-mono` (or rename it) to prevent accidental usage.
+- [ ] **Archive Old Monorepo**: Once verification is complete, archive the old repository (or rename it) to prevent accidental usage.
 - [ ] **Update Registry Links**: Update Docker Hub, npm registry, etc., to point to the new repository locations.
 - [ ] **Remove Temporary Artifacts**: Delete `migration-artifacts/` directory from local machines.
 

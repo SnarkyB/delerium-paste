@@ -133,7 +133,7 @@ docker compose -f docker-compose.prod.yml logs -f
 
 If you need to deploy manually, you can still use:
 ```bash
-./push-to-vps.sh
+./scripts/push-to-vps.sh
 ```
 
 ## Security Notes
