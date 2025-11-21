@@ -603,6 +603,6 @@ Error responses include a JSON body with an `error` field describing the issue.
 
 ## Version
 
-Current API version: **1.0.2**
+Current API version: **1.0.3**
 
 API versioning may be added in future releases if breaking changes are needed.
