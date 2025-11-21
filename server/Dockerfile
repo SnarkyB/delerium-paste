@@ -1,15 +1,5 @@
 # ---- builder ----
-FROM --platform=$BUILDPLATFORM gradle:8.11.1-jdk21 AS builder
-
-# Multi-architecture build arguments
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
-ARG TARGETOS
-ARG TARGETARCH
-ARG TARGETVARIANT
-
-# Display build information
-RUN echo "Building on $BUILDPLATFORM for $TARGETPLATFORM (arch: $TARGETARCH)"
+FROM gradle:8.11.1-jdk21 AS builder
 
 WORKDIR /build
 COPY build.gradle.kts settings.gradle.kts ./
@@ -19,20 +9,12 @@ RUN gradle --no-daemon clean installDist
 # ---- runner ----
 FROM eclipse-temurin:21-jre-jammy
 
-# Multi-architecture runtime arguments
-ARG TARGETPLATFORM
-ARG TARGETOS
-ARG TARGETARCH
-
 # OCI metadata labels
 LABEL org.opencontainers.image.title="Delirium Paste Server"
 LABEL org.opencontainers.image.description="Zero-knowledge encrypted paste service backend"
 LABEL org.opencontainers.image.source="https://github.com/marcusb333/delerium-paste-mono"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.base.name="eclipse-temurin:21-jre-jammy"
-
-# Display target architecture
-RUN echo "Running on platform: $TARGETPLATFORM (arch: $TARGETARCH)"
 
 # Install curl for health checks
 RUN apt-get update && \
