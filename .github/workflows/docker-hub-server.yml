@@ -12,7 +12,7 @@ on:
       - 'v*'
 
 env:
-  IMAGE_NAME: delerium-paste-mono-server
+  IMAGE_NAME: delerium-paste-server
 
 jobs:
   publish-dockerhub:

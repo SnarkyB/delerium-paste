@@ -66,10 +66,14 @@ build-multiarch:
 	@docker buildx create --name delirium-builder --use 2>/dev/null || docker buildx use delirium-builder || docker buildx use default
 	@cd server && docker buildx build \
 		--platform linux/amd64,linux/arm64 \
-		--tag delerium-paste-mono-server:latest \
+		--tag delerium-paste-server:latest \
+		--tag delerium-paste-server:multi-arch \
 		--load \
 		.
 	@echo "✅ Multi-architecture build complete!"
+	@echo "📦 Images tagged as:"
+	@echo "   - delerium-paste-server:latest"
+	@echo "   - delerium-paste-server:multi-arch"
 
 push-multiarch:
 	@echo "🚀 Building and pushing multi-architecture Docker images..."
@@ -81,8 +85,12 @@ push-multiarch:
 	docker buildx create --name delirium-builder --use 2>/dev/null || docker buildx use delirium-builder || docker buildx use default; \
 	cd server && docker buildx build \
 		--platform linux/amd64,linux/arm64 \
-		--tag $(REGISTRY)/delerium-paste-mono-server:$$TAG \
-		--tag $(REGISTRY)/delerium-paste-mono-server:latest \
+		--tag $(REGISTRY)/delerium-paste-server:$$TAG \
+		--tag $(REGISTRY)/delerium-paste-server:latest \
 		--push \
-		.
-	@echo "✅ Multi-architecture images pushed!"
+		.; \
+	echo "✅ Multi-architecture images pushed successfully!"; \
+	echo "📦 Images available at:"; \
+	echo "   - $(REGISTRY)/delerium-paste-server:$$TAG"; \
+	echo "   - $(REGISTRY)/delerium-paste-server:latest"; \
+	echo "🔍 Inspect with: docker buildx imagetools inspect $(REGISTRY)/delerium-paste-server:$$TAG"

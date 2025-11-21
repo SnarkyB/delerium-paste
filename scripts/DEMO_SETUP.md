@@ -106,7 +106,7 @@ Do you want to start the services now? (yes/no) [yes]: yes
 
 [+] Running 3/3
  ? Network delerium-paste_default  Created
- ? Container delerium-paste-server-1  Started
+ ? Container delerium-paste-1  Started
  ? Container delerium-paste-web-1     Started
 
 ? Waiting for services to start...
@@ -116,7 +116,7 @@ Do you want to start the services now? (yes/no) [yes]: yes
 
 ?? Container Status:
 NAME                      IMAGE                   STATUS
-delerium-paste-server-1   delerium-paste-server   Up 5 seconds
+delerium-paste-1   delerium-paste   Up 5 seconds
 delerium-paste-web-1      nginx:1.27-alpine       Up 5 seconds
 
 ??????????????????????????????????????????????????
