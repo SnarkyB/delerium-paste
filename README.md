@@ -15,7 +15,7 @@ Deploy to a fresh VPS in under 5 minutes:
 ssh root@your-vps-ip
 
 # Run the one-command installer
-curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
+curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
 ```
 
 **That's it!** The script will:
@@ -32,7 +32,7 @@ curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main
 
 **Without a domain?** Skip SSL and run on port 8080:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main/scripts/vps-deploy.sh | bash
+curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste/main/scripts/vps-deploy.sh | bash
 ```
 
 📖 **Detailed deployment guide:** [docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)
@@ -43,8 +43,8 @@ Get started locally in 2 minutes:
 
 ```bash
 # Clone the repository
-git clone https://github.com/marcusb333/delerium-paste-mono.git
-cd delerium-paste-mono
+git clone https://github.com/marcusb333/delerium-paste.git
+cd delerium-paste
 
 # One-command setup and start
 make quick-start

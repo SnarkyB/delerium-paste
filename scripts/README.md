@@ -159,7 +159,7 @@ Quick checks (no E2E tests).
 One-command VPS deployment.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
+curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
 ```
 
 ### setup-vps-from-local.sh

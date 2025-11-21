@@ -61,7 +61,7 @@ Technical implementation summary documenting:
 
 ### 2. Naming Consistency Updates
 
-All references updated from `delerium-paste` to `delerium-paste-mono`:
+All references updated to use consistent `delerium-paste` naming:
 
 **Files Updated:**
 - `MULTI_ARCH_IMPLEMENTATION.md`
@@ -72,9 +72,8 @@ All references updated from `delerium-paste` to `delerium-paste-mono`:
 - `scripts/vps-deploy.sh`
 
 **Image Names:**
-- ✅ `delerium-paste-mono-server:latest`
-- ✅ `delerium-paste-mono-server:multi-arch`
-- ❌ ~~`delerium-paste:latest`~~ (removed)
+- ✅ `delerium-paste-server:latest`
+- ✅ `delerium-paste-server:multi-arch`
 
 ### 3. README Restructuring
 
@@ -177,15 +176,19 @@ make push-multiarch REGISTRY=docker.io/yourusername TAG=latest
 
 ```bash
 # With domain and SSL
-curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
+curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
 
 # Without SSL (port 8080)
-curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main/scripts/vps-deploy.sh | bash
+curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste/main/scripts/vps-deploy.sh | bash
 ```
 
 ### Local Development
 
 ```bash
+# Clone the repository
+git clone https://github.com/marcusb333/delerium-paste.git
+cd delerium-paste
+
 # One command
 make quick-start
 

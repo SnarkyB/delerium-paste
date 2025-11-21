@@ -8,7 +8,7 @@ set -e
 DOMAIN=${1:-}
 EMAIL=${2:-}
 GIT_USERNAME=${3:-}
-REPO_URL="https://github.com/$GIT_USERNAME/delerium-paste-mono.git"
+REPO_URL="https://github.com/$GIT_USERNAME/delerium-paste.git"
 INSTALL_DIR="$HOME/delirium"
 
 # Colors for output

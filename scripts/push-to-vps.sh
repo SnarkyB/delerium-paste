@@ -87,7 +87,7 @@ echo "?? Pulling latest code..."
 cd ~/delerium-paste 2>/dev/null || {
     echo "?? First time setup - cloning repository..."
     cd ~
-    git clone https://github.com/marcusb333/delerium-paste-mono.git
+    git clone https://github.com/marcusb333/delerium-paste.git
     cd delerium-paste
 }
 

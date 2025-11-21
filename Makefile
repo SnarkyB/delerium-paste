@@ -204,14 +204,14 @@ build-multiarch:
 	@echo "🏗️  Building for linux/amd64 and linux/arm64..."
 	@cd server && docker buildx build \
 		--platform linux/amd64,linux/arm64 \
-		--tag delerium-paste-mono-server:latest \
-		--tag delerium-paste-mono-server:multi-arch \
+		--tag delerium-paste-server:latest \
+		--tag delerium-paste-server:multi-arch \
 		--load \
 		.
 	@echo "✅ Multi-architecture build complete!"
 	@echo "📦 Images tagged as:"
-	@echo "   - delerium-paste-mono-server:latest"
-	@echo "   - delerium-paste-mono-server:multi-arch"
+	@echo "   - delerium-paste-server:latest"
+	@echo "   - delerium-paste-server:multi-arch"
 
 # Build and push multi-architecture images to registry
 # Usage: make push-multiarch REGISTRY=ghcr.io/username TAG=v1.0.0
@@ -229,15 +229,15 @@ push-multiarch:
 	echo "🏗️  Building and pushing for linux/amd64 and linux/arm64..."; \
 	cd server && docker buildx build \
 		--platform linux/amd64,linux/arm64 \
-		--tag $(REGISTRY)/delerium-paste-mono-server:$$TAG \
-		--tag $(REGISTRY)/delerium-paste-mono-server:latest \
+		--tag $(REGISTRY)/delerium-paste-server:$$TAG \
+		--tag $(REGISTRY)/delerium-paste-server:latest \
 		--push \
 		.; \
 	echo "✅ Multi-architecture images pushed successfully!"; \
 	echo "📦 Images available at:"; \
-	echo "   - $(REGISTRY)/delerium-paste-mono-server:$$TAG"; \
-	echo "   - $(REGISTRY)/delerium-paste-mono-server:latest"; \
-	echo "🔍 Inspect with: docker buildx imagetools inspect $(REGISTRY)/delerium-paste-mono-server:$$TAG"
+	echo "   - $(REGISTRY)/delerium-paste-server:$$TAG"; \
+	echo "   - $(REGISTRY)/delerium-paste-server:latest"; \
+	echo "🔍 Inspect with: docker buildx imagetools inspect $(REGISTRY)/delerium-paste-server:$$TAG"
 
 # Production deployment commands
 deploy-prod:
