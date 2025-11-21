@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2025-11-21
+
 ### Added
 - **Multi-architecture Docker support** - Server images now support linux/amd64 and linux/arm64 architectures
 - **Docker health checks** - Built-in container health monitoring via `/api/pow` endpoint
@@ -227,7 +229,8 @@ The v0.1.0-alpha release had a critical bug where TypeScript's module compilatio
 ### Notes
 This is an alpha release intended for testing and feedback. Not recommended for production use with sensitive data.
 
-[Unreleased]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.6-alpha...HEAD
+[Unreleased]: https://github.com/marcusb333/delerium-paste-mono/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/marcusb333/delerium-paste-mono/compare/v1.0.2...v1.0.3
 [0.1.6-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.5-alpha...v0.1.6-alpha
 [0.1.5-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.4-alpha...v0.1.5-alpha
 [0.1.4-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.3-alpha...v0.1.4-alpha
