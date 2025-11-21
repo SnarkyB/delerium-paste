@@ -10,11 +10,10 @@ services:
     environment:
       - DELETION_TOKEN_PEPPER=dev-pepper-change-me
       - LOG_LEVEL=DEBUG
+      - JAVA_OPTS=-Dconfig.override_with_env_vars=true -Dstorage.pow.difficulty=8 -Dstorage.rateLimit.enabled=false
     # Add volume for live code reloading (if needed for future development)
     volumes:
       - ./server/src:/app/src:ro
-    # Enable debug logging
-    command: ["/app/bin/cc.delerium", "--log-level=debug"]
     # Health check
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/api/pow"]
@@ -27,13 +26,10 @@ services:
     # Expose additional ports for development
     ports:
       - "8080:80"
-      - "8082:443"
     # Add development-specific nginx config
     volumes:
       - ./client:/usr/share/nginx/html:ro
-      - ./reverse-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./reverse-proxy/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./reverse-proxy/dev.conf:/etc/nginx/conf.d/dev.conf:ro
+      - ./reverse-proxy/nginx-dev.conf:/etc/nginx/nginx.conf:ro
     # Add development environment
     environment:
       - NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
