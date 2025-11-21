@@ -1,0 +1,14 @@
+# Delerium Configuration File (Optional)
+# Copy this file to 'delerium.config' and customize as needed
+
+# Environment (development or production)
+#ENVIRONMENT=production
+
+# Backup retention (days)
+#BACKUP_RETENTION_DAYS=7
+
+# Health check interval (seconds)
+#HEALTH_CHECK_INTERVAL=60
+
+# Docker compose command
+#DOCKER_COMPOSE_CMD="docker compose"

@@ -39,7 +39,7 @@ curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main
 
 ## 💻 Local Development Setup
 
-Get started locally in 2 minutes:
+Get started in 2 minutes:
 
 ```bash
 # Clone the repository
@@ -47,28 +47,44 @@ git clone https://github.com/marcusb333/delerium-paste-mono.git
 cd delerium-paste-mono
 
 # One-command setup and start
-make quick-start
+./delerium setup
 ```
 
 **That's it!** The application will open at `http://localhost:8080`
 
 **Requirements:**
 - Docker and Docker Compose
-- Node.js 18+ (for building the client)
-- Make (optional, can use docker compose directly)
+- Node.js 18+
 
-**Manual start:**
+## 🔧 CLI Commands
+
 ```bash
-# Build client
-cd client && npm install && npm run build && cd ..
-
-# Start services
-docker compose up -d
-
-# View logs
-docker compose logs -f
+./delerium setup              # Interactive setup
+./delerium start              # Start services
+./delerium start --dev        # Development mode
+./delerium stop               # Stop services
+./delerium logs               # View logs
+./delerium status             # Check status
+./delerium deploy             # Deploy to production
+./delerium test               # Run tests
+./delerium backup             # Create backup
+./delerium security check     # Security check
+./delerium monitor            # Monitoring
+./delerium help               # Show help
 ```
 
+**Make commands also work:**
+```bash
+make setup      # Setup
+make start      # Start
+make dev        # Development
+make logs       # Logs
+make test       # Tests
+make deploy     # Deploy
+make clean      # Cleanup
+```
+
+📖 **CLI Documentation:** [docs/CLI.md](docs/CLI.md)  
 📖 **Development guide:** [docs/development/](docs/development/)
 
 ---
