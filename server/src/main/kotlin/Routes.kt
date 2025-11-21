@@ -1,7 +1,7 @@
 /**
  * Routes.kt - HTTP API endpoint definitions
  * 
- * This file defines all the REST API endpoints for the delerium-paste-server application:
+ * This file defines all the REST API endpoints for the delerium-paste application:
  * - GET  /api/pow - Request a proof-of-work challenge
  * - POST /api/pastes - Create a new encrypted paste
  * - GET  /api/pastes/{id} - Retrieve an encrypted paste

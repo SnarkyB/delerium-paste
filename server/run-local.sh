@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Local deployment script for delerium-paste-server
+# Local deployment script for delerium-paste
 # This script sets up and runs the server locally
 
 set -e
@@ -21,12 +21,12 @@ if [ -z "$DELETION_TOKEN_PEPPER" ]; then
 fi
 
 # Check if distribution is built
-if [ ! -d "build/install/delerium-paste-server" ]; then
+if [ ! -d "build/install/delerium-paste" ]; then
     echo "📦 Building distribution..."
     ./gradlew installDist --no-daemon
 fi
 
-echo "🚀 Starting delerium-paste-server..."
+echo "🚀 Starting delerium-paste..."
 echo "   Database: ${DB_PATH}"
 echo "   Port: 8080"
 echo "   Access: http://localhost:8080"
@@ -35,4 +35,4 @@ echo "Press Ctrl+C to stop the server"
 echo ""
 
 # Run the server
-exec ./build/install/delerium-paste-server/bin/delerium-paste-server
+exec ./build/install/delerium-paste/bin/delerium-paste

@@ -4,7 +4,7 @@ This document summarizes the multi-architecture Docker deployment implementation
 
 ## Overview
 
-Delirium Paste Mono now fully supports multi-architecture Docker deployments, enabling the application to run natively on both AMD64 (x86_64) and ARM64 (aarch64) processors. This allows deployment on a wide range of hardware including:
+Delirium Paste now fully supports multi-architecture Docker deployments, enabling the application to run natively on both AMD64 (x86_64) and ARM64 (aarch64) processors. This allows deployment on a wide range of hardware including:
 
 - Traditional Intel/AMD servers (amd64)
 - Apple Silicon Macs (M1/M2/M3) (arm64)
@@ -185,12 +185,12 @@ Images are published as multi-architecture manifests:
 
 Verify multi-architecture images:
 ```bash
-docker buildx imagetools inspect ghcr.io/username/delerium-paste-mono-server:latest
+docker buildx imagetools inspect ghcr.io/username/delerium-paste-server:latest
 ```
 
 Output shows available platforms:
 ```
-Name:      ghcr.io/username/delerium-paste-mono-server:latest
+Name:      ghcr.io/username/delerium-paste-server:latest
 MediaType: application/vnd.docker.distribution.manifest.list.v2+json
 
 Manifests:
@@ -214,7 +214,7 @@ Manifests:
 
 3. **Test specific architecture (with QEMU):**
    ```bash
-   docker run --platform linux/arm64 delerium-paste-mono-server:latest
+   docker run --platform linux/arm64 delerium-paste-server:latest
    ```
 
 ### CI/CD Testing

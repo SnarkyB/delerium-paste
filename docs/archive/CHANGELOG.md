@@ -229,8 +229,8 @@ The v0.1.0-alpha release had a critical bug where TypeScript's module compilatio
 ### Notes
 This is an alpha release intended for testing and feedback. Not recommended for production use with sensitive data.
 
-[Unreleased]: https://github.com/marcusb333/delerium-paste-mono/compare/v1.0.3...HEAD
-[1.0.3]: https://github.com/marcusb333/delerium-paste-mono/compare/v1.0.2...v1.0.3
+[Unreleased]: https://github.com/marcusb333/delerium-paste/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/marcusb333/delerium-paste/compare/v1.0.2...v1.0.3
 [0.1.6-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.5-alpha...v0.1.6-alpha
 [0.1.5-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.4-alpha...v0.1.5-alpha
 [0.1.4-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.3-alpha...v0.1.4-alpha

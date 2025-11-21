@@ -1,7 +1,7 @@
 /**
  * App.kt - Main application configuration and initialization
  * 
- * This file contains the entry point for the delerium-paste-server Ktor server application.
+ * This file contains the entry point for the delerium-paste Ktor server application.
  * It handles:
  * - Application configuration loading from application.conf
  * - Database connection pooling with HikariCP

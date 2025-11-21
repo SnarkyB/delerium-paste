@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Successfully brought the monorepo server (`delerium-paste-mono/server/`) to **full feature parity** with the standalone `marcusb333/delerium-server` repository. All enhancements focus on infrastructure, security, and deployment improvements with **zero changes to application source code**.
+Successfully brought the repository server (`server/`) to **full feature parity** with the standalone `marcusb333/delerium-server` repository. All enhancements focus on infrastructure, security, and deployment improvements with **zero changes to application source code**.
 
 ---
 
@@ -312,8 +312,8 @@ docker push ghcr.io/marcusb333/delerium-server:latest
 ## Maintenance Notes
 
 ### Keeping Parity
-To maintain parity with standalone server:
-1. Monitor `marcusb333/delerium-server` for updates
+To maintain parity:
+1. Monitor upstream changes for updates
 2. Compare Dockerfiles and workflows periodically
 3. Update versions (Gradle, JDK) in sync
 4. Test multi-arch builds before releasing
