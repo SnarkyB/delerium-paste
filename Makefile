@@ -1,7 +1,7 @@
 # Delirium - Zero-Knowledge Paste System
 # Makefile for local development and deployment
 
-.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan
+.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan build-multiarch push-multiarch
 
 # Default target
 help:
@@ -27,6 +27,8 @@ help:
 	@echo "  make monitor       - Start service monitoring"
 	@echo "  make backup        - Create data backup"
 	@echo "  make deploy-full   - Full pipeline: clean, build, test, and deploy"
+	@echo "  make build-multiarch - Build multi-architecture Docker images locally"
+	@echo "  make push-multiarch - Build and push multi-architecture images to registry"
 	@echo ""
 
 # Interactive setup wizard
@@ -177,3 +179,48 @@ deploy-full:
 	@echo "=========================================="
 	@echo "🌐 Access at http://localhost:8080"
 	@echo "📊 Check logs: make logs"
+
+# Build multi-architecture Docker images locally
+build-multiarch:
+	@echo "🏗️  Building multi-architecture Docker images..."
+	@echo "📋 Checking Docker Buildx..."
+	@docker buildx version || (echo "❌ Docker Buildx not found. Please install Docker Desktop or enable buildx." && exit 1)
+	@echo "🔧 Creating/using buildx builder..."
+	@docker buildx create --name delirium-builder --use 2>/dev/null || docker buildx use delirium-builder || docker buildx use default
+	@echo "🏗️  Building for linux/amd64 and linux/arm64..."
+	@cd server && docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--tag delerium-paste-mono-server:latest \
+		--tag delerium-paste-mono-server:multi-arch \
+		--load \
+		.
+	@echo "✅ Multi-architecture build complete!"
+	@echo "📦 Images tagged as:"
+	@echo "   - delerium-paste-mono-server:latest"
+	@echo "   - delerium-paste-mono-server:multi-arch"
+
+# Build and push multi-architecture images to registry
+# Usage: make push-multiarch REGISTRY=ghcr.io/username TAG=v1.0.0
+push-multiarch:
+	@echo "🚀 Building and pushing multi-architecture Docker images..."
+	@if [ -z "$(REGISTRY)" ]; then \
+		echo "❌ REGISTRY variable not set. Usage: make push-multiarch REGISTRY=ghcr.io/username TAG=v1.0.0"; \
+		exit 1; \
+	fi
+	@TAG=$${TAG:-latest}; \
+	echo "📋 Registry: $(REGISTRY)"; \
+	echo "🏷️  Tag: $$TAG"; \
+	echo "🔧 Creating/using buildx builder..."; \
+	docker buildx create --name delirium-builder --use 2>/dev/null || docker buildx use delirium-builder || docker buildx use default; \
+	echo "🏗️  Building and pushing for linux/amd64 and linux/arm64..."; \
+	cd server && docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--tag $(REGISTRY)/delerium-paste-mono-server:$$TAG \
+		--tag $(REGISTRY)/delerium-paste-mono-server:latest \
+		--push \
+		.; \
+	echo "✅ Multi-architecture images pushed successfully!"; \
+	echo "📦 Images available at:"; \
+	echo "   - $(REGISTRY)/delerium-paste-mono-server:$$TAG"; \
+	echo "   - $(REGISTRY)/delerium-paste-mono-server:latest"; \
+	echo "🔍 Inspect with: docker buildx imagetools inspect $(REGISTRY)/delerium-paste-mono-server:$$TAG"

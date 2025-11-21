@@ -15,14 +15,14 @@ on:
       - 'server/build.gradle'
       - '.github/workflows/security-scan.yml'
   
-  # Run on pull requests
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'client/package*.json'
-      - 'server/build.gradle.kts'
-      - 'server/build.gradle'
+  # Run on pull requests - DISABLED
+  # pull_request:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'client/package*.json'
+  #     - 'server/build.gradle.kts'
+  #     - 'server/build.gradle'
   
   # Scheduled scans: daily at 2 AM UTC
   schedule:

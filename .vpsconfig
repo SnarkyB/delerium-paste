@@ -1,7 +1,7 @@
 # VPS Configuration
 # This file stores your VPS deployment settings
 
-VPS_USER=deploy
+VPS_USER=noob
 VPS_HOST=delerium.cc
-REPO_URL=https://github.com/SnarkyB/delerium-paste.git
-VPS_DEPLOY_DIR=~/delerium-paste
+REPO_URL=https://github.com/marcusb333/delerium-paste-mono.git
+VPS_DEPLOY_DIR=~/delerium-paste-mono

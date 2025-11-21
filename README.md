@@ -6,6 +6,73 @@ I got this idea from the cool people over at PrivateBin and the old school paste
 
 HACK THE PLANET!
 
+## 🚀 Quick Deploy to VPS
+
+Deploy to a fresh VPS in under 5 minutes:
+
+```bash
+# SSH into your VPS
+ssh root@your-vps-ip
+
+# Run the one-command installer
+curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
+```
+
+**That's it!** The script will:
+- ✅ Install Docker and dependencies
+- ✅ Clone and build the application
+- ✅ Configure SSL with Let's Encrypt
+- ✅ Start the service on ports 80/443
+- ✅ Set up automatic certificate renewal
+
+**Requirements:**
+- Ubuntu 22.04+ or Debian 11+ VPS
+- Domain name pointed to your VPS IP
+- At least 1GB RAM, 1 CPU core, 10GB disk
+
+**Without a domain?** Skip SSL and run on port 8080:
+```bash
+curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste-mono/main/scripts/vps-deploy.sh | bash
+```
+
+📖 **Detailed deployment guide:** [docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)
+
+## 💻 Local Development Setup
+
+Get started locally in 2 minutes:
+
+```bash
+# Clone the repository
+git clone https://github.com/marcusb333/delerium-paste-mono.git
+cd delerium-paste-mono
+
+# One-command setup and start
+make quick-start
+```
+
+**That's it!** The application will open at `http://localhost:8080`
+
+**Requirements:**
+- Docker and Docker Compose
+- Node.js 18+ (for building the client)
+- Make (optional, can use docker compose directly)
+
+**Manual start:**
+```bash
+# Build client
+cd client && npm install && npm run build && cd ..
+
+# Start services
+docker compose up -d
+
+# View logs
+docker compose logs -f
+```
+
+📖 **Development guide:** [docs/development/](docs/development/)
+
+---
+
 ## 🚀 Features
 
 - **Zero-Knowledge Architecture**: Server never sees unencrypted content
@@ -202,132 +269,38 @@ zkpaste-full-docker/
 - **E2E Tests**: 8+ tests covering complete user journeys
 - **Total Coverage**: 100% of critical client-side functions
 
-## 🚀 Quick Start
+## 🔧 Advanced Setup Options
 
-### Prerequisites
-- Docker and Docker Compose
-- Node.js 18+ (for local development and testing)
-- Java 21+ (for local server development)
+### Interactive Setup Wizard
 
-### Interactive Setup (Recommended for First-Time Users)
-
-**New!** Easy setup wizard that guides you through configuring secrets:
+For a guided setup experience with secret configuration:
 
 ```bash
-git clone <repository-url>
-cd delirium-paste
 ./scripts/setup.sh
 ```
 
 The wizard will:
-- 🔐 **Guide you through secrets configuration** - Auto-generate secure tokens or enter your own
-- 📝 **Create your .env file** - With clear explanations of each setting
-- ✅ **Check prerequisites** - Verify Docker, Docker Compose, etc.
-- 🚀 **Start services** - Option to launch everything immediately
-- 🌐 **Open in browser** - Automatically open http://localhost:8080
+- 🔐 Guide you through secrets configuration
+- 📝 Create your .env file with explanations
+- ✅ Check prerequisites
+- 🚀 Optionally start services
+- 🌐 Open in browser
 
-Perfect for users who want to understand where secrets go and what they're for!
-
-📖 **See [docs/getting-started/SETUP.md](docs/getting-started/SETUP.md) for detailed instructions and examples.**
-
-### One-Command Setup (Quick)
-
-For experienced users who want fast setup:
-
-```bash
-git clone <repository-url>
-cd delirium-paste
-make quick-start
-```
-
-This will:
-- Check all prerequisites
-- Auto-generate secure secrets
-- Install dependencies
-- Build the client
-- Start all services
-- Open your browser automatically
+📖 **See [docs/getting-started/SETUP.md](docs/getting-started/SETUP.md) for detailed instructions.**
 
 ### Headless Environment Setup
 
-For headless environments (servers, CI/CD, containers without display):
+For servers without a display:
 
 ```bash
-git clone <repository-url>
-cd delirium
 make quick-start-headless
-```
-
-Or set environment variables:
-```bash
-HEADLESS=1 make quick-start
 # or
-NO_BROWSER=1 make quick-start
+HEADLESS=1 make quick-start
 ```
 
-This will:
-- Check all prerequisites
-- Install dependencies
-- Build the client
-- Start all services
-- Skip browser opening (headless-friendly)
+### Development Mode with Hot-Reload
 
-### Alternative: Manual Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd delirium
-   ```
-
-2. **Start the application with Docker**
-   ```bash
-   make start
-   # or manually: docker-compose up --build -d
-   ```
-
-3. **Access the application**
-   - Frontend: http://localhost:8080
-   - API: http://localhost:8080/api
-   - PoW Challenge: http://localhost:8080/api/pow
-
-4. **View logs**
-   ```bash
-   make logs
-   # or manually: docker-compose logs -f
-   ```
-
-5. **Run the test suite** (optional)
-   ```bash
-   make test
-   # or manually: cd client && npm run test:all
-   ```
-
-### Local Development
-
-1. **Frontend Development**
-   ```bash
-   cd client
-   npm install
-   npm run watch       # TypeScript compilation in watch mode
-   npm run typecheck   # Type checking without emitting files
-   npm run lint        # Run ESLint
-   npm run test:unit   # Run unit tests
-   npm run test:all    # Run all tests (unit + integration + e2e)
-   ```
-
-2. **Backend Development**
-   ```bash
-   cd server
-   ./gradlew run       # Start Ktor server (requires Java 21+)
-   ./gradlew test      # Run backend tests
-   ```
-
-## 🔧 Development Workflows
-
-### Hot-Reload Development (Recommended)
-
-For active development with automatic TypeScript recompilation:
+For active development:
 
 ```bash
 make dev
@@ -589,13 +562,17 @@ The server Docker image includes several production-ready enhancements:
 **🌍 Multi-Architecture Support**
 - **amd64**: Traditional x86_64 servers
 - **arm64**: Apple Silicon (M1/M2/M3), AWS Graviton, Oracle Cloud ARM, Raspberry Pi 4+
+- **Automatic platform detection**: Docker automatically selects the correct image for your architecture
+- **Build locally**: `make build-multiarch` - Build for both architectures locally
+- **Push to registry**: `make push-multiarch REGISTRY=ghcr.io/username TAG=v1.0.0`
 
 **📦 Image Details**
 - **Base**: Gradle 8.11.1 + JDK 21 (builder), Eclipse Temurin 21 JRE (runtime)
 - **Size**: Optimized multi-stage build (< 300MB)
 - **Registry**: Available on GitHub Container Registry (GHCR)
 
-For detailed API documentation and container publishing guides, see:
+For detailed documentation, see:
+- [Multi-Architecture Deployment Guide](docs/deployment/multi-architecture.md) - Complete guide for multi-arch builds
 - [Server API Documentation](server/docs/API.md)
 - [Container Publishing Guide](server/docs/CONTAINER_PUBLISHING.md)
 

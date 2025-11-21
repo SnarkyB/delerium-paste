@@ -26,6 +26,13 @@ Welcome to the Delirium documentation! This index will help you find what you ne
   - Certificate renewal
   - Nginx SSL configuration
 
+- **[Multi-Architecture Deployment](deployment/multi-architecture.md)** - Build for multiple CPU architectures
+  - AMD64 and ARM64 support
+  - Local multi-arch builds
+  - CI/CD integration
+  - Platform-specific deployment
+  - Troubleshooting
+
 - **[Automated Deployment](AUTO_DEPLOYMENT.md)** - CI/CD with GitHub Actions
   - Setup instructions
   - Workflow configuration
@@ -74,6 +81,7 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 ### For DevOps/Deployers
 - [Deployment Guide](deployment/DEPLOYMENT.md) - Production deployment
 - [SSL Setup Guide](deployment/SSL_SETUP.md) - SSL configuration
+- [Multi-Architecture Deployment](deployment/multi-architecture.md) - Multi-arch builds
 - [Automated Deployment](AUTO_DEPLOYMENT.md) - CI/CD setup
 
 ### For Developers
@@ -91,6 +99,7 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 - **Set up locally?** ? [Setup Guide](getting-started/SETUP.md)
 - **Deploy to production?** ? [Deployment Guide](deployment/DEPLOYMENT.md)
 - **Configure SSL?** ? [SSL Setup Guide](deployment/SSL_SETUP.md)
+- **Build for ARM/AMD64?** ? [Multi-Architecture Guide](deployment/multi-architecture.md)
 - **Understand the architecture?** ? [C4 Diagrams](architecture/C4-DIAGRAMS.md)
 - **Contribute code?** ? [PR Guide](prs/README.md)
 - **Set up CI/CD?** ? [Automated Deployment](AUTO_DEPLOYMENT.md)
