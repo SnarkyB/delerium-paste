@@ -84,15 +84,17 @@ docker buildx build \
 
 ### Method 3: Using Docker Compose
 
-The docker-compose files are configured for multi-arch builds:
+Docker Compose builds for the host architecture by default:
 
 ```bash
-# Build with docker compose
+# Build with docker compose (builds for your current architecture)
 docker compose build
 
-# The server service will automatically build for the host architecture
-# For explicit multi-arch builds, use buildx as shown above
+# Start services
+docker compose up -d
 ```
+
+**Note**: Docker Compose does not support multi-arch builds natively. For multi-architecture images, use Docker Buildx (Method 1 or 2) to build and push to a registry, then pull from the registry in your docker-compose deployment.
 
 ## Deployment
 

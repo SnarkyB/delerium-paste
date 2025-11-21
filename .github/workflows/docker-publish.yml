@@ -15,7 +15,7 @@ on:
       - '.github/workflows/docker-publish.yml'
 
 env:
-  IMAGE_NAME: delerium-paste-server
+  IMAGE_NAME: delerium-paste-mono-server
 
 jobs:
   build-and-push:

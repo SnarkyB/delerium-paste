@@ -42,15 +42,17 @@ RUN echo "Running on platform: $TARGETPLATFORM (arch: $TARGETARCH)"
 
 ### 2. Docker Compose Configuration
 
-**Updated all docker-compose files with platform specifications:**
+**Docker Compose files configured for standard builds:**
 
 #### `docker-compose.yml`
-- Added `platforms` array to server build configuration
-- Added `platform` specification for nginx service
+- Builds for host architecture by default
+- No platform specifications needed (Docker auto-detects)
 
 #### `docker-compose.prod.yml`
-- Added `platforms` array to server build configuration
-- Added `platform` specification for nginx service
+- Builds for host architecture by default
+- No platform specifications needed (Docker auto-detects)
+
+**Note**: Multi-architecture builds are handled via Docker Buildx (see Makefile targets). Docker Compose does not support multi-arch builds natively. For multi-arch deployments, build with Buildx and push to a registry, then pull from the registry.
 
 **Example configuration:**
 ```yaml
@@ -58,12 +60,10 @@ services:
   server:
     build:
       context: ./server
-      platforms:
-        - linux/amd64
-        - linux/arm64
+    # Builds for current host architecture
   web:
     image: nginx:1.27-alpine
-    platform: linux/amd64
+    # Pulls appropriate architecture from Docker Hub
 ```
 
 ### 3. Makefile Enhancements
