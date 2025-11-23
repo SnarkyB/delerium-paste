@@ -127,7 +127,7 @@ security-setup:
 # Start with security enhancements
 start-secure: security-setup
 	@echo "🛡️  Starting with security enhancements..."
-	docker compose -f docker-compose.yml -f docker-compose.secure.yml up -d
+	docker compose -f docker-compose.prod.yml -f docker-compose.secure.yml up -d
 
 # Security check
 security-check:

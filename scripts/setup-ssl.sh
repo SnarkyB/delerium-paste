@@ -46,13 +46,19 @@ echo ""
 echo "📦 Checking for certbot..."
 if ! command -v certbot &> /dev/null; then
     echo "Certbot not found. Installing..."
-    if command -v apt &> /dev/null; then
+    if command -v brew &> /dev/null; then
+        echo "   → Installing via Homebrew..."
+        brew install certbot
+    elif command -v apt &> /dev/null; then
+        echo "   → Installing via apt..."
         sudo apt update
         sudo apt install certbot -y
     elif command -v yum &> /dev/null; then
+        echo "   → Installing via yum..."
         sudo yum install certbot -y
     else
-        echo "❌ Could not install certbot. Please install manually."
+        echo "❌ Could not install certbot automatically."
+        echo "   Please install certbot manually (see https://certbot.eff.org/) and rerun this script."
         exit 1
     fi
 fi
