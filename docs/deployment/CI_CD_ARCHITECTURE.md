@@ -138,6 +138,7 @@ Multi-architecture Docker image builds and publishing.
 - ~~docker-hub-server.yml~~ (manual publish workflow)
 
 **Triggers:**
+
 ```yaml
 on:
   # Manual dispatch (on-demand publishing)
@@ -146,19 +147,19 @@ on:
       tag:
         description: 'Optional custom tag (e.g., 1.0.0, latest)'
         default: ''
-  
+
   # On main branch push
   push:
-    branches: [main]
-    paths: [server/**, .github/workflows/docker-publish.yml]
-  
+    branches: [ main ]
+    paths: [ server/**, .github/workflows/docker-publish.yml ]
+    tags: [ 'v*' ]
+
   # On version tags
-  push:
-    tags: ['v*']
-  
+
+
   # On PR (build only, don't push)
   pull_request:
-    paths: [server/**, .github/workflows/docker-publish.yml]
+    paths: [ server/**, .github/workflows/docker-publish.yml ]
 ```
 
 **Platforms:**

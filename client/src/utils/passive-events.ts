@@ -20,11 +20,9 @@ export function applyPassiveEventsPatch(): void {
         return true;
       }
     });
-    // @ts-ignore - We're testing for support
     window.addEventListener('testPassive', null, opts);
-    // @ts-ignore - We're testing for support
     window.removeEventListener('testPassive', null, opts);
-  } catch (e) {
+  } catch {
     // Passive not supported
   }
 
@@ -33,7 +31,6 @@ export function applyPassiveEventsPatch(): void {
   const eventsToPatch = ['touchstart', 'touchmove', 'wheel', 'mousewheel'];
   const originalAddEventListener = EventTarget.prototype.addEventListener;
 
-  // @ts-ignore - Monkey patching
   EventTarget.prototype.addEventListener = function(
     type: string,
     listener: EventListenerOrEventListenerObject | null,

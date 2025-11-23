@@ -11,3 +11,4 @@ tests/**/*.d.ts
 
 # Playwright report
 playwright-report/
+/.eslintcache
