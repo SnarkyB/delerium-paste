@@ -46,7 +46,7 @@ fi
 # Check API endpoint
 echo ""
 echo "🌐 Checking API endpoints..."
-if curl -s -f http://localhost:8080/api/pow > /dev/null 2>&1; then
+if curl -s -f http://localhost:8080/api/health > /dev/null 2>&1; then
     echo "✅ API is responding"
 else
     echo "❌ API is not responding"
@@ -116,6 +116,7 @@ echo ""
 echo "🌐 Access URLs:"
 echo "   Frontend: http://localhost:8080"
 echo "   API:      http://localhost:8080/api"
+echo "   Health:   http://localhost:8080/api/health"
 echo "   PoW:      http://localhost:8080/api/pow"
 echo ""
 echo "📋 Useful commands:"

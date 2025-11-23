@@ -10,6 +10,11 @@ The tests are organized into three main categories:
 
 Individual endpoint tests with mocked dependencies to verify request validation, error handling, and response formats.
 
+- **`HealthRouteTest.kt`** (3 tests)
+  - GET/HEAD /api/health endpoint
+  - Feature flag reporting
+  - Basic availability responses
+
 - **`PowRouteTest.kt`** (3 tests)
   - GET /api/pow endpoint
   - PoW challenge generation
@@ -37,7 +42,7 @@ Individual endpoint tests with mocked dependencies to verify request validation,
   - Token validation (missing, invalid)
   - Non-existent paste handling
 
-**Total Route Tests: 24**
+**Total Route Tests: 27**
 
 ### 2. Integration Tests (`integration/`)
 

@@ -79,7 +79,7 @@ log "Waiting for services…"
 sleep 5
 sudo docker compose -f docker-compose.prod.yml ps || true
 echo "HTTP check:"; curl -s -I http://localhost/ | head -n1 || true
-echo "API check:";  curl -s -o /dev/null -w "%{http_code}\n" http://localhost/api/pow || true
+echo "API check:";  curl -s -o /dev/null -w "%{http_code}\n" http://localhost/api/health || true
 
 cat <<'EOS'
 
@@ -97,5 +97,4 @@ Security tips:
 - This script enabled UFW for ports 22, 80, 443. If SSH uses a custom port, allow it before enabling UFW.
 - Rotate DELETION_TOKEN_PEPPER for production secrets management.
 EOS
-
 

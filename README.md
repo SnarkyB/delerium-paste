@@ -307,8 +307,9 @@ make dev
 ```
 
 This starts:
-- Backend in Docker with development configuration
+- Backend API and Nginx Web Proxy in Docker with development configuration
 - TypeScript in watch mode for instant recompilation
+- Full stack accessible at http://localhost:8080
 - Combined logging for easy debugging
 
 ### Common Development Commands
@@ -555,7 +556,7 @@ The server Docker image includes several production-ready enhancements:
 - **Minimal attack surface**: JRE-only runtime image (no build tools)
 
 **🏥 Health Monitoring**
-- **Built-in health checks**: Automatic monitoring via `/api/pow` endpoint
+- **Built-in health checks**: Automatic monitoring via `/api/health` endpoint
 - **Orchestrator integration**: Works with Docker Compose, Kubernetes, and other orchestrators
 - **Health intervals**: 30s checks with 40s startup period
 
@@ -654,6 +655,8 @@ The project includes a comprehensive PR quality gates workflow (`.github/workflo
 5. Ensure all tests pass
 6. Submit a **small, focused** pull request (100-300 lines ideal)
 
+For a concise contributor playbook, see [`AGENTS.md`](AGENTS.md).
+
 ### Code Standards
 - **TypeScript** for frontend code with strict ESLint rules
 - **Kotlin** for backend code following Kotlin conventions
@@ -727,4 +730,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Ktor team for the excellent web framework
 - Jest and Playwright teams for testing tools
 - Docker team for containerization platform
-

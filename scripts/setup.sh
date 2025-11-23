@@ -263,7 +263,7 @@ if [ "$START_SERVICES" = "yes" ] || [ "$START_SERVICES" = "y" ]; then
         HEALTH_OK=false
     fi
     
-    if curl -s http://localhost:8080/api/pow > /dev/null 2>&1; then
+    if curl -s http://localhost:8080/api/health > /dev/null 2>&1; then
         echo -e "${GREEN}? Backend API is responding${NC}"
     else
         echo -e "${YELLOW}??  Backend API might not be ready yet${NC}"

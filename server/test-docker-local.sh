@@ -62,9 +62,26 @@ else
     echo "   ⚠️  Health check not showing (may be starting)"
 fi
 
-# Test 5: Test PoW endpoint (health check endpoint)
+# Test 5: Test /api/health endpoint
 echo ""
-echo "✅ Test 5: Testing /api/pow endpoint..."
+echo "✅ Test 5: Testing /api/health endpoint..."
+HEALTH_RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" http://localhost:9090/api/health)
+HEALTH_HTTP_CODE=$(echo "$HEALTH_RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+HEALTH_BODY=$(echo "$HEALTH_RESPONSE" | grep -v "HTTP_CODE:")
+
+echo "   HTTP Status: $HEALTH_HTTP_CODE"
+if [ "$HEALTH_HTTP_CODE" = "200" ]; then
+    echo "   ✓ Health endpoint responds correctly"
+    echo "   Response preview: $(echo "$HEALTH_BODY" | head -c 100)"
+else
+    echo "   ✗ Health endpoint returned unexpected status: $HEALTH_HTTP_CODE"
+    echo "   Response: $HEALTH_BODY"
+    exit 1
+fi
+
+# Test 6: Test PoW endpoint
+echo ""
+echo "✅ Test 6: Testing /api/pow endpoint..."
 POW_RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" http://localhost:9090/api/pow)
 HTTP_CODE=$(echo "$POW_RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
 RESPONSE_BODY=$(echo "$POW_RESPONSE" | grep -v "HTTP_CODE:")
@@ -81,9 +98,9 @@ else
     exit 1
 fi
 
-# Test 6: Test paste creation
+# Test 7: Test paste creation
 echo ""
-echo "✅ Test 6: Testing paste creation..."
+echo "✅ Test 7: Testing paste creation..."
 CREATE_RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST http://localhost:9090/api/pastes \
     -H "Content-Type: application/json" \
     -d '{"ct":"dGVzdGNpcGhlcnRleHQ=","iv":"dGVzdGl2MTIzNDU2Nzg5MA==","meta":{"expireTs":9999999999}}')
@@ -98,9 +115,9 @@ if [ "$CREATE_HTTP_CODE" = "201" ]; then
     if [ -n "$PASTE_ID" ]; then
         echo "   Paste ID: $PASTE_ID"
         
-        # Test 7: Test paste retrieval
+        # Test 8: Test paste retrieval
         echo ""
-        echo "✅ Test 7: Testing paste retrieval..."
+        echo "✅ Test 8: Testing paste retrieval..."
         GET_RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" http://localhost:9090/api/pastes/$PASTE_ID)
         GET_HTTP_CODE=$(echo "$GET_RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
         
@@ -116,9 +133,9 @@ else
     echo "   Response: $CREATE_BODY"
 fi
 
-# Test 8: Check container logs
+# Test 9: Check container logs
 echo ""
-echo "✅ Test 8: Checking container logs..."
+echo "✅ Test 9: Checking container logs..."
 LOG_LINES=$(docker logs delerium-test 2>&1 | wc -l)
 echo "   Log lines: $LOG_LINES"
 if [ "$LOG_LINES" -gt 0 ]; then
@@ -129,9 +146,9 @@ else
     echo "   ⚠️  No logs found"
 fi
 
-# Test 9: Verify file permissions in container
+# Test 10: Verify file permissions in container
 echo ""
-echo "✅ Test 9: Verifying file permissions..."
+echo "✅ Test 10: Verifying file permissions..."
 APP_OWNER=$(docker exec delerium-test stat -c '%U:%G' /app)
 DATA_OWNER=$(docker exec delerium-test stat -c '%U:%G' /data)
 echo "   /app ownership: $APP_OWNER"
@@ -142,9 +159,9 @@ else
     echo "   ✗ Incorrect ownership"
 fi
 
-# Test 10: Check image metadata
+# Test 11: Check image metadata
 echo ""
-echo "✅ Test 10: Checking OCI image metadata..."
+echo "✅ Test 11: Checking OCI image metadata..."
 echo "   Labels:"
 docker inspect delerium-server:local --format='{{range $k, $v := .Config.Labels}}   {{$k}}: {{$v}}{{println}}{{end}}' | grep "org.opencontainers" || echo "   (No OCI labels found)"
 

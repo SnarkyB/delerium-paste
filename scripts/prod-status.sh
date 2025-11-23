@@ -46,8 +46,8 @@ fi
 
 # API Health Check
 echo -e "${BLUE}🧪 API Health Check:${NC}"
-if curl -k -s https://localhost/api/pow > /dev/null 2>&1; then
-    RESPONSE=$(curl -k -s https://localhost/api/pow)
+if curl -k -s https://localhost/api/health > /dev/null 2>&1; then
+    RESPONSE=$(curl -k -s https://localhost/api/health)
     echo -e "${GREEN}✅ API is responding${NC}"
     echo -e "   Response: ${YELLOW}$RESPONSE${NC}"
 else

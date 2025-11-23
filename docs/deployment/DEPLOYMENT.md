@@ -204,8 +204,8 @@ docker compose -f docker-compose.prod.yml ps
 
 ```bash
 # Check if services are responding
-curl http://localhost/api/pow
-curl https://your-domain.com/api/pow
+curl http://localhost/api/health
+curl https://your-domain.com/api/health
 ```
 
 ## Backup Strategy

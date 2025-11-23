@@ -33,6 +33,42 @@ Common error codes:
 
 ## Endpoints
 
+### GET /api/health
+
+Lightweight health check endpoint intended for orchestrators and monitoring systems.
+
+**Request**: None
+
+**Response**:
+
+- **200 OK**
+  ```json
+  {
+    "status": "ok",
+    "timestampMs": 1700000000000,
+    "powEnabled": true,
+    "rateLimitingEnabled": true
+  }
+  ```
+
+**Response Fields**:
+- `status` (string): `"ok"` when the service is healthy
+- `timestampMs` (integer): Server timestamp in milliseconds when the response was generated
+- `powEnabled` (boolean): Indicates whether proof-of-work is currently enforced
+- `rateLimitingEnabled` (boolean): Indicates whether rate limiting is active
+
+**Example**:
+
+```bash
+curl http://localhost:8080/api/health
+```
+
+**Notes**:
+- `HEAD /api/health` is also supported and returns `200 OK` with no body
+- A 200 response confirms the API process is running and configuration loaded; use other endpoints for deeper diagnostics
+
+---
+
 ### GET /api/pow
 
 Request a proof-of-work challenge. This endpoint is used when proof-of-work is enabled to obtain a challenge that must be solved before creating a paste.

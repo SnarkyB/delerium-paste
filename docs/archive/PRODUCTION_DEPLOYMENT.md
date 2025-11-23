@@ -212,7 +212,7 @@ sudo docker run --rm -v delirium_server-data:/data alpine du -sh /data
 
 ### Check API Health
 ```bash
-curl -k https://localhost/api/pow
+curl -k https://localhost/api/health
 ```
 
 ### Monitor Resource Usage
@@ -259,7 +259,7 @@ free -h
 | Logs | `./scripts/prod-logs.sh` |
 | Stop | `./scripts/prod-stop.sh` |
 | Backup | Automatic on deploy |
-| Health check | `curl -k https://localhost/api/pow` |
+| Health check | `curl -k https://localhost/api/health` |
 
 ## 🎯 Best Practices
 

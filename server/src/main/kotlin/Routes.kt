@@ -2,6 +2,7 @@
  * Routes.kt - HTTP API endpoint definitions
  * 
  * This file defines all the REST API endpoints for the delerium-paste application:
+ * - GET  /api/health - Lightweight service health check
  * - GET  /api/pow - Request a proof-of-work challenge
  * - POST /api/pastes - Create a new encrypted paste
  * - GET  /api/pastes/{id} - Retrieve an encrypted paste
@@ -19,6 +20,7 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import io.ktor.server.routing.head
 import io.ktor.server.application.ApplicationCall
 
 /**
@@ -53,6 +55,21 @@ private fun clientIp(call: ApplicationCall): String {
 
 fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: AppConfig) {
     route("/api") {
+        /**
+         * GET /api/health
+         * Basic health check endpoint for orchestrators and monitors
+         */
+        route("/health") {
+            get {
+                call.respond(
+                    HealthStatus(
+                        powEnabled = cfg.powEnabled && pow != null,
+                        rateLimitingEnabled = rl != null
+                    )
+                )
+            }
+            head { call.respond(HttpStatusCode.OK) }
+        }
         /**
          * GET /api/pow
          * Request a new proof-of-work challenge
@@ -145,5 +162,5 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             if (!ok) call.respond(HttpStatusCode.Forbidden, ErrorResponse("invalid_token"))
             else call.respond(HttpStatusCode.NoContent)
         }
-    }
+	}
 }

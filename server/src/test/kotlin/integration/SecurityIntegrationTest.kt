@@ -52,7 +52,7 @@ class SecurityIntegrationTest {
             testModule(repo, null, null, cfg)
         }
 
-        val response = client.get("/api/pow")
+        val response = client.get("/api/health")
         val headers = response.headers
 
         // Check security headers (these would be set by App.kt intercept, but we're testing routes only)
@@ -75,7 +75,7 @@ class SecurityIntegrationTest {
 
         // CORS headers would be set by CORS plugin in App.kt
         // This test verifies the endpoint works
-        val response = client.get("/api/pow")
-        assertEquals(HttpStatusCode.NoContent, response.status)
+        val response = client.get("/api/health")
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 }

@@ -370,13 +370,13 @@ echo ""
 # Test API endpoint
 echo -e "${BLUE}🧪 Testing API endpoint...${NC}"
 if [ -f "ssl/fullchain.pem" ]; then
-    if curl -k -s https://localhost/api/pow > /dev/null 2>&1; then
+    if curl -k -s https://localhost/api/health > /dev/null 2>&1; then
         echo -e "${GREEN}✅ API is responding (HTTPS)${NC}"
     else
         echo -e "${YELLOW}⚠️  HTTPS API test failed (might need a moment to start)${NC}"
     fi
 else
-    if curl -s http://localhost/api/pow > /dev/null 2>&1; then
+    if curl -s http://localhost/api/health > /dev/null 2>&1; then
         echo -e "${GREEN}✅ API is responding (HTTP)${NC}"
     else
         echo -e "${YELLOW}⚠️  API test failed (might need a moment to start)${NC}"

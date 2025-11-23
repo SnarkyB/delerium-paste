@@ -12,7 +12,7 @@ FROM eclipse-temurin:21-jre-jammy
 # OCI metadata labels
 LABEL org.opencontainers.image.title="Delirium Paste Server"
 LABEL org.opencontainers.image.description="Zero-knowledge encrypted paste service backend"
-LABEL org.opencontainers.image.source="https://github.com/marcusb333/delerium-paste-mono"
+LABEL org.opencontainers.image.source="https://github.com/marcusb333/delerium-paste"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.base.name="eclipse-temurin:21-jre-jammy"
 
@@ -42,6 +42,6 @@ EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8080/api/pow || exit 1
+    CMD curl -f http://localhost:8080/api/health || exit 1
 
 ENTRYPOINT ["/app/bin/delerium-paste"]

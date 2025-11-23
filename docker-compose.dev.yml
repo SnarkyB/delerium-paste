@@ -17,7 +17,7 @@ services:
     command: ["/app/bin/cc.delerium", "--log-level=debug"]
     # Health check
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/pow"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -31,7 +31,7 @@ services:
     # Add development-specific nginx config
     volumes:
       - ./client:/usr/share/nginx/html:ro
-      - ./reverse-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./reverse-proxy/nginx-dev.conf:/etc/nginx/nginx.conf:ro
       - ./reverse-proxy/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./reverse-proxy/dev.conf:/etc/nginx/conf.d/dev.conf:ro
     # Add development environment

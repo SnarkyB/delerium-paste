@@ -21,7 +21,7 @@ Successfully brought the repository server (`server/`) to **full feature parity*
 - ✅ Upgraded to Gradle 8.11.1 + JDK 21 (from 8.10.2/JDK 17)
 - ✅ Multi-architecture support (linux/amd64, linux/arm64, linux/arm/v7)
 - ✅ Non-root user: Container runs as `delirium:delirium` (uid/gid 999)
-- ✅ Built-in health checks via `/api/pow` endpoint
+- ✅ Built-in health checks via `/api/health` endpoint
 - ✅ OCI-compliant metadata labels
 - ✅ Installed curl for health monitoring
 

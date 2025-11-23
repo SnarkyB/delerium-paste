@@ -27,15 +27,15 @@ if [ ! -d "client/node_modules" ]; then
 fi
 
 # Start backend in Docker
-echo "🐳 Starting backend services..."
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d server
+echo "🐳 Starting backend and web services..."
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d server web
 
 # Wait for backend to be ready
-echo "⏳ Waiting for backend to be ready..."
+echo "⏳ Waiting for services to be ready..."
 sleep 5
 
 # Check if backend is responding
-if ! curl -s http://localhost:8080/api/pow > /dev/null 2>&1; then
+if ! curl -s http://localhost:8080/api/health > /dev/null 2>&1; then
     echo "⚠️  Backend might not be ready yet, but continuing..."
 fi
 
