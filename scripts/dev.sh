@@ -35,7 +35,7 @@ echo "⏳ Waiting for services to be ready..."
 sleep 5
 
 # Check if backend is responding
-if ! curl -s http://localhost:8080/api/pow > /dev/null 2>&1; then
+if ! curl -s http://localhost:8080/api/health > /dev/null 2>&1; then
     echo "⚠️  Backend might not be ready yet, but continuing..."
 fi
 

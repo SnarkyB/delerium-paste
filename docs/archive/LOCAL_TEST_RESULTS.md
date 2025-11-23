@@ -31,7 +31,7 @@ uid=999(delirium) gid=999(delirium) groups=999(delirium)
 
 #### ✅ Health Check
 - **Status**: `healthy`
-- **Endpoint**: `/api/pow`
+- **Endpoint**: `/api/health`
 - **Configuration**: 
   - Interval: 30s
   - Timeout: 10s

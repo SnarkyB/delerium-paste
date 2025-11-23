@@ -17,7 +17,7 @@ services:
     command: ["/app/bin/cc.delerium", "--log-level=debug"]
     # Health check
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/pow"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

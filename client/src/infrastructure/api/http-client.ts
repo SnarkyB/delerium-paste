@@ -95,8 +95,8 @@ export class HttpApiClient implements IApiClient {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/pow`, { method: 'HEAD' });
-      return response.ok || response.status === 204;
+      const response = await fetch(`${this.baseUrl}/health`);
+      return response.ok;
     } catch {
       return false;
     }

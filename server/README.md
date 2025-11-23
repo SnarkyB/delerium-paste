@@ -29,7 +29,7 @@ The server will be available at `http://localhost:8080`
 
 **Docker Image Features:**
 - 🔒 **Non-root user** - Runs as `delirium:delirium` (uid 999) for enhanced security
-- 🏥 **Health checks** - Built-in monitoring via `/api/pow` endpoint
+- 🏥 **Health checks** - Built-in monitoring via `/api/health` endpoint
 - 🌍 **Multi-architecture** - Supports amd64, arm64, and arm/v7 (Raspberry Pi, Apple Silicon, etc.)
 - 📦 **Minimal size** - JRE-only runtime image
 - 🏷️ **OCI compliant** - Standard container metadata labels
@@ -185,7 +185,7 @@ services:
     environment:
       - DELETION_TOKEN_PEPPER=${DELETION_TOKEN_PEPPER:-change-me-in-production}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/pow"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

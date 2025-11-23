@@ -95,7 +95,7 @@ else
     echo "⚠️  Frontend might not be ready yet"
 fi
 
-if curl -s http://localhost:8080/api/pow > /dev/null 2>&1; then
+if curl -s http://localhost:8080/api/health > /dev/null 2>&1; then
     echo "✅ API is responding"
 else
     echo "⚠️  API might not be ready yet"

@@ -209,7 +209,7 @@ This allows deployment on a wide range of platforms including:
 
 The Docker image includes several security enhancements:
 - **Non-root user**: Application runs as `delirium:delirium` (uid/gid 999)
-- **Health checks**: Built-in health monitoring via `/api/pow` endpoint
+- **Health checks**: Built-in health monitoring via `/api/health` endpoint
 - **OCI labels**: Standard container metadata for better tooling support
 - **Minimal attack surface**: JRE-only runtime image (no build tools)
 
@@ -239,7 +239,7 @@ The multi-stage build produces a minimal runtime image containing only:
    - Option 2: Use Docker-managed volumes (recommended)
 
 4. **Health checks**: 
-   - Built-in health check monitors the `/api/pow` endpoint
+   - Built-in health check monitors the `/api/health` endpoint
    - Interval: 30s, Timeout: 10s, Start period: 40s, Retries: 3
    - Used by orchestrators (Docker Compose, Kubernetes) for automated restarts
 

@@ -51,7 +51,7 @@
 - [ ] Set up SSL/TLS certificates
 - [ ] Configure domain name
 - [ ] Set up backup strategy for database
-- [ ] Add health check endpoint
+- [x] Add health check endpoint
 - [ ] Set up monitoring/logging
 - [ ] Configure firewall rules
 

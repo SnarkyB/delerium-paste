@@ -67,3 +67,18 @@ data class PastePayload(val ct: String, val iv: String, val meta: PasteMeta, val
  * @property error Error code/message string
  */
 data class ErrorResponse(val error: String)
+
+/**
+ * Health check response payload
+ *
+ * @property status Overall service status string
+ * @property timestampMs Server timestamp in milliseconds
+ * @property powEnabled Whether proof-of-work is enabled
+ * @property rateLimitingEnabled Whether rate limiting is enabled
+ */
+data class HealthStatus(
+    val status: String = "ok",
+    val timestampMs: Long = System.currentTimeMillis(),
+    val powEnabled: Boolean,
+    val rateLimitingEnabled: Boolean
+)

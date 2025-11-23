@@ -556,7 +556,7 @@ The server Docker image includes several production-ready enhancements:
 - **Minimal attack surface**: JRE-only runtime image (no build tools)
 
 **🏥 Health Monitoring**
-- **Built-in health checks**: Automatic monitoring via `/api/pow` endpoint
+- **Built-in health checks**: Automatic monitoring via `/api/health` endpoint
 - **Orchestrator integration**: Works with Docker Compose, Kubernetes, and other orchestrators
 - **Health intervals**: 30s checks with 40s startup period
 
