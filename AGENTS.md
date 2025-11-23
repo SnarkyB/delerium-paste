@@ -1,5 +1,53 @@
 # Repository Guidelines
 
+## CI/CD & Quality Gates
+
+**Consolidated Workflow Architecture:** This project uses 4 streamlined GitHub Actions workflows (previously 7):
+
+| Workflow | Purpose | Trigger | Local Script |
+|----------|---------|---------|--------------|
+| **pr-checks.yml** (MASTER) | Single PR quality gate: frontend (ESLint, TypeScript, unit tests, coverage, security audit) + backend (build, tests) + docker validation | Every PR and push to main/parity | `./scripts/ci-verify-all.sh` |
+| **security-scan.yml** | Independent security scans (npm audit, OWASP dependency check). Runs scheduled (daily 2 AM UTC), on tags, and manual trigger. NOT triggered by PRs | Schedule + tags + manual dispatch | (runs independently) |
+| **docker-publish.yml** | Multi-arch Docker image builds (amd64, arm64) to GHCR and Docker Hub. Consolidates the old docker-hub-server.yml | push main + tags + workflow_dispatch | (runs on publish) |
+| **auto-release.yml** | Auto-creates Git tags from package.json version | push main | (runs on release) |
+
+**Why Consolidated?** Merging client-ci.yml and server-ci.yml into pr-checks.yml gives:
+- 🚀 **Faster PR feedback** (~30% reduction in runner minutes per PR)
+- 🎯 **Single source of truth** for quality gates
+- 🔍 **Parallel execution** of frontend/backend checks
+- ✨ **Easier maintenance** (fewer workflows to update)
+
+**Deprecated Workflows** (archived in `docs/archive/workflows/`):
+- ~~client-ci.yml~~ → Merged into pr-checks.yml
+- ~~server-ci.yml~~ → Merged into pr-checks.yml
+- ~~docker-hub-server.yml~~ → Merged into docker-publish.yml
+
+### Local Pre-PR Validation
+
+Run these scripts locally **before pushing** to catch issues early:
+
+```bash
+# Full validation (mirrors pr-checks.yml exactly)
+./scripts/ci-verify-all.sh
+
+# Fast iteration (just lint + typecheck + unit tests, ~2 min)
+./scripts/ci-verify-quick.sh
+
+# Individual components
+./scripts/ci-verify-frontend.sh     # Frontend only
+./scripts/ci-verify-backend.sh      # Backend only
+```
+
+**Why run locally?**
+- ⚡ Instant feedback (no GitHub Actions wait time)
+- 💰 Saves runner minutes
+- 🔄 Fast iteration during development
+- 🛡️ Catch issues before GitHub Actions reports them
+
+**Note:** These local scripts mirror GitHub Actions but are NOT replacements. GitHub Actions (pr-checks.yml) is the authoritative quality gate that blocks PRs.
+
+---
+
 ## Project Structure & Module Organization
 - `client/` hosts the TypeScript SPA (`src/` for UI/features modules, `tests/{unit,integration,e2e}` for Jest/Playwright suites, build output in `js/`).
 - `server/` holds the Kotlin Ktor API (`src/main/kotlin` routes and storage plus `build.gradle.kts` + Dockerfile).

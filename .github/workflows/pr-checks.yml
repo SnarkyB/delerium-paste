@@ -1,10 +1,20 @@
-name: PR Parallel Quality Gates
+name: PR Quality Gates (Consolidated)
+# This is the unified PR quality gate that consolidates:
+# - client-ci.yml (frontend checks)
+# - server-ci.yml (backend checks + docker validation)
+# 
+# Runs on all pull requests and pushes to main/parity branches.
+# Replaces individual client-ci.yml and server-ci.yml workflows for faster feedback.
 
 on:
   pull_request:
     branches:
       - main
       - '**'
+  push:
+    branches:
+      - main
+      - parity
 
 jobs:
   frontend-checks:

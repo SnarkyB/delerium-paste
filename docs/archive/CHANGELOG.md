@@ -231,10 +231,10 @@ This is an alpha release intended for testing and feedback. Not recommended for 
 
 [Unreleased]: https://github.com/marcusb333/delerium-paste/compare/v1.0.3...HEAD
 [1.0.3]: https://github.com/marcusb333/delerium-paste/compare/v1.0.2...v1.0.3
-[0.1.6-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.5-alpha...v0.1.6-alpha
-[0.1.5-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.4-alpha...v0.1.5-alpha
-[0.1.4-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.3-alpha...v0.1.4-alpha
-[0.1.3-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.2-alpha...v0.1.3-alpha
-[0.1.2-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.1-alpha...v0.1.2-alpha
-[0.1.1-alpha]: https://github.com/SnarkyB/delerium-paste/compare/v0.1.0-alpha...v0.1.1-alpha
-[0.1.0-alpha]: https://github.com/SnarkyB/delerium-paste/releases/tag/v0.1.0-alpha
+[0.1.6-alpha]: https://github.com/marcusb333/delerium-paste/compare/v0.1.5-alpha...v0.1.6-alpha
+[0.1.5-alpha]: https://github.com/marcusb333/delerium-paste/compare/v0.1.4-alpha...v0.1.5-alpha
+[0.1.4-alpha]: https://github.com/marcusb333/delerium-paste/compare/v0.1.3-alpha...v0.1.4-alpha
+[0.1.3-alpha]: https://github.com/marcusb333/delerium-paste/compare/v0.1.2-alpha...v0.1.3-alpha
+[0.1.2-alpha]: https://github.com/marcusb333/delerium-paste/compare/v0.1.1-alpha...v0.1.2-alpha
+[0.1.1-alpha]: https://github.com/marcusb333/delerium-paste/compare/v0.1.0-alpha...v0.1.1-alpha
+[0.1.0-alpha]: https://github.com/marcusb333/delerium-paste/releases/tag/v0.1.0-alpha

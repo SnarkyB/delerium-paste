@@ -1,4 +1,30 @@
 #!/bin/bash
+################################################################################
+# Frontend CI Verification Script (Local Pre-PR Validation)
+#
+# This script runs frontend CI checks locally for pre-PR validation.
+# It mirrors the checks in: .github/workflows/pr-checks.yml (frontend-checks job)
+#
+# Purpose:
+#   - Quick feedback during frontend development
+#   - Validate TypeScript, ESLint, unit tests, coverage
+#   - Catch issues before pushing to GitHub
+#
+# Checks performed:
+#   ✓ ESLint: Code style and quality
+#   ✓ TypeScript: Type checking (tsc --noEmit)
+#   ✓ Unit Tests: Jest test suite
+#   ✓ E2E Tests: Playwright browser tests (currently disabled in CI)
+#   ✓ Coverage: 85% minimum threshold
+#   ✓ Security: npm audit for vulnerabilities
+#
+# Note: GitHub Actions pr-checks.yml is the authoritative quality gate
+#
+# For GitHub Actions details, see:
+#   .github/workflows/pr-checks.yml (frontend-checks job)
+#
+################################################################################
+
 set -e  # Exit on any error
 
 echo "=========================================="

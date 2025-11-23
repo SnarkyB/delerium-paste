@@ -1,28 +1,19 @@
-name: Security Scan
+name: Security Scan (Scheduled)
+# This workflow runs security scans independently from PR checks.
+# It is NOT triggered by pull requests - all security checks on PRs are handled by pr-checks.yml
+# 
+# This workflow is designed to:
+# - Run scheduled daily scans (2 AM UTC) for ongoing security monitoring
+# - Run on tag pushes for release validation
+# - Support manual triggers for on-demand security scans
 
 on:
-  # Run on push to main branch or tags
+  # Run on tags for releases
   push:
-    branches:
-      - main
     tags:
       - 'v*.*.*-alpha'
       - 'v*.*.*-beta'
       - 'v*.*.*'
-    paths:
-      - 'client/package*.json'
-      - 'server/build.gradle.kts'
-      - 'server/build.gradle'
-      - '.github/workflows/security-scan.yml'
-  
-  # Run on pull requests - DISABLED
-  # pull_request:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'client/package*.json'
-  #     - 'server/build.gradle.kts'
-  #     - 'server/build.gradle'
   
   # Scheduled scans: daily at 2 AM UTC
   schedule:
@@ -30,6 +21,8 @@ on:
   
   # Manual trigger
   workflow_dispatch:
+
+# Do NOT add pull_request trigger here - PR checks are handled by pr-checks.yml
 
 jobs:
   frontend-security:

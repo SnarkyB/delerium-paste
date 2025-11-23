@@ -15,7 +15,7 @@ Delirium has successfully migrated from a single monorepo to a modern multi-repo
 
 The project is now split across **four focused repositories**:
 
-### 1. 🎨 [delerium-client](https://github.com/SnarkyB/delerium-client)
+### 1. 🎨 [delerium-client](https://github.com/marcusb333/delerium-client)
 **Frontend TypeScript Application**
 
 - Client-side encryption (AES-256-GCM)
@@ -23,12 +23,12 @@ The project is now split across **four focused repositories**:
 - Independent CI/CD pipeline
 
 ```bash
-git clone https://github.com/SnarkyB/delerium-client.git
+git clone https://github.com/marcusb333/delerium-client.git
 cd delerium-client
 npm install && npm run build
 ```
 
-### 2. ⚡ [delerium-server](https://github.com/SnarkyB/delerium-server)
+### 2. ⚡ [delerium-server](https://github.com/marcusb333/delerium-server)
 **Backend Kotlin/Ktor API**
 
 - REST API for paste operations
@@ -36,12 +36,12 @@ npm install && npm run build
 - Docker image publishing
 
 ```bash
-git clone https://github.com/SnarkyB/delerium-server.git
+git clone https://github.com/marcusb333/delerium-server.git
 cd delerium-server
 ./gradlew run
 ```
 
-### 3. 🐳 [delerium-infrastructure](https://github.com/SnarkyB/delerium-infrastructure)
+### 3. 🐳 [delerium-infrastructure](https://github.com/marcusb333/delerium-infrastructure)
 **Deployment & Orchestration**
 
 - Docker Compose configurations
@@ -49,12 +49,12 @@ cd delerium-server
 - Integration tests
 
 ```bash
-git clone https://github.com/SnarkyB/delerium-infrastructure.git
+git clone https://github.com/marcusb333/delerium-infrastructure.git
 cd delerium-infrastructure
 ./scripts/setup.sh
 ```
 
-### 4. 📚 [delerium](https://github.com/SnarkyB/delerium)
+### 4. 📚 [delerium](https://github.com/marcusb333/delerium)
 **Documentation Hub**
 
 - Architecture documentation
@@ -62,7 +62,7 @@ cd delerium-infrastructure
 - Project overview
 
 ```bash
-git clone https://github.com/SnarkyB/delerium.git
+git clone https://github.com/marcusb333/delerium.git
 ```
 
 ---
@@ -73,7 +73,7 @@ git clone https://github.com/SnarkyB/delerium.git
 
 ```bash
 # Clone infrastructure repository
-git clone https://github.com/SnarkyB/delerium-infrastructure.git
+git clone https://github.com/marcusb333/delerium-infrastructure.git
 cd delerium-infrastructure
 
 # Run automated setup
@@ -92,7 +92,7 @@ cd delerium-infrastructure
 
 1. **For deployment**, use the new infrastructure repository:
    ```bash
-   git clone https://github.com/SnarkyB/delerium-infrastructure.git
+   git clone https://github.com/marcusb333/delerium-infrastructure.git
    ```
 
 2. **For development**, clone only what you need:
@@ -118,9 +118,9 @@ cd delerium-infrastructure
 
 ## 📚 Documentation
 
-- **Project Overview:** https://github.com/SnarkyB/delerium
-- **Migration Guide:** https://github.com/SnarkyB/delerium/blob/main/docs/MIGRATION_GUIDE.md
-- **Architecture Docs:** https://github.com/SnarkyB/delerium/tree/main/docs/architecture
+- **Project Overview:** https://github.com/marcusb333/delerium
+- **Migration Guide:** https://github.com/marcusb333/delerium/blob/main/docs/MIGRATION_GUIDE.md
+- **Architecture Docs:** https://github.com/marcusb333/delerium/tree/main/docs/architecture
 
 ---
 
@@ -128,9 +128,9 @@ cd delerium-infrastructure
 
 Each repository has its own contribution guidelines:
 
-- [Client Contributing](https://github.com/SnarkyB/delerium-client/blob/main/CONTRIBUTING.md)
-- [Server Contributing](https://github.com/SnarkyB/delerium-server/blob/main/CONTRIBUTING.md)
-- [Infrastructure Contributing](https://github.com/SnarkyB/delerium-infrastructure/blob/main/CONTRIBUTING.md)
+- [Client Contributing](https://github.com/marcusb333/delerium-client/blob/main/CONTRIBUTING.md)
+- [Server Contributing](https://github.com/marcusb333/delerium-server/blob/main/CONTRIBUTING.md)
+- [Infrastructure Contributing](https://github.com/marcusb333/delerium-infrastructure/blob/main/CONTRIBUTING.md)
 
 **Choose the repository that matches what you want to work on!**
 
@@ -153,18 +153,18 @@ Each repository has its own contribution guidelines:
 ### Q: Where do I report bugs now?
 
 **A:** Report bugs in the appropriate repository:
-- UI bugs → [delerium-client issues](https://github.com/SnarkyB/delerium-client/issues)
-- API bugs → [delerium-server issues](https://github.com/SnarkyB/delerium-server/issues)
-- Deployment bugs → [delerium-infrastructure issues](https://github.com/SnarkyB/delerium-infrastructure/issues)
+- UI bugs → [delerium-client issues](https://github.com/marcusb333/delerium-client/issues)
+- API bugs → [delerium-server issues](https://github.com/marcusb333/delerium-server/issues)
+- Deployment bugs → [delerium-infrastructure issues](https://github.com/marcusb333/delerium-infrastructure/issues)
 
 ---
 
 ## 🔗 Important Links
 
-- **Main Hub:** https://github.com/SnarkyB/delerium
-- **Client:** https://github.com/SnarkyB/delerium-client
-- **Server:** https://github.com/SnarkyB/delerium-server
-- **Infrastructure:** https://github.com/SnarkyB/delerium-infrastructure
+- **Main Hub:** https://github.com/marcusb333/delerium
+- **Client:** https://github.com/marcusb333/delerium-client
+- **Server:** https://github.com/marcusb333/delerium-server
+- **Infrastructure:** https://github.com/marcusb333/delerium-infrastructure
 
 ---
 
@@ -172,7 +172,7 @@ Each repository has its own contribution guidelines:
 
 Thank you for being part of the Delirium community! This migration sets us up for faster development, better organization, and an improved contributor experience.
 
-**Questions?** Open a discussion in the [main repository](https://github.com/SnarkyB/delerium/discussions).
+**Questions?** Open a discussion in the [main repository](https://github.com/marcusb333/delerium/discussions).
 
 ---
 

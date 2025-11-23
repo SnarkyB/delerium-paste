@@ -15,7 +15,7 @@ Thank you for your interest in contributing to Delirium Paste! This document pro
 ### Step-by-Step: Fork → Contribute → Pull Request
 
 1. **Fork the repository**
-   - Click the "Fork" button at the top right of the [repository page](https://github.com/SnarkyB/delerium-paste)
+   - Click the "Fork" button at the top right of the [repository page](https://github.com/marcusb333/delerium-paste)
    - This creates your own copy at `https://github.com/YOUR_USERNAME/delerium-paste`
 
 2. **Clone your fork**
@@ -26,7 +26,7 @@ Thank you for your interest in contributing to Delirium Paste! This document pro
 
 3. **Add the upstream repository** (to keep your fork updated)
    ```bash
-   git remote add upstream https://github.com/SnarkyB/delerium-paste.git
+   git remote add upstream https://github.com/marcusb333/delerium-paste.git
    ```
 
 4. **Create a branch** for your changes
@@ -90,7 +90,7 @@ git push origin main
    cd delerium-paste
    
    # Add upstream remote to keep your fork updated
-   git remote add upstream https://github.com/SnarkyB/delerium-paste.git
+   git remote add upstream https://github.com/marcusb333/delerium-paste.git
    ```
 
 2. **Set up the development environment**

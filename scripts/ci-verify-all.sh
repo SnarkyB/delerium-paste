@@ -1,4 +1,33 @@
 #!/bin/bash
+################################################################################
+# CI Verification Script - All Checks (Local Pre-PR Validation)
+#
+# This script runs all CI checks locally for pre-PR validation.
+# It mirrors the checks in: .github/workflows/pr-checks.yml
+#
+# Purpose:
+#   - Quick feedback loop during development (before pushing to GitHub)
+#   - Catch issues early without waiting for GitHub Actions
+#   - Validate that your code will pass PR checks
+#
+# Note:
+#   - GitHub Actions (pr-checks.yml) is the source of truth for quality gates
+#   - This script is for local convenience only
+#   - Always verify that pr-checks.yml passes on your PR
+#
+# Usage:
+#   ./scripts/ci-verify-all.sh       # Full check (frontend + backend + docker)
+#   ./scripts/ci-verify-quick.sh     # Fast check (lint + tsc + jest only)
+#   ./scripts/ci-verify-frontend.sh  # Frontend checks only
+#   ./scripts/ci-verify-backend.sh   # Backend checks only
+#
+# For details on checks, see:
+#   - Frontend: .github/workflows/pr-checks.yml (frontend-checks job)
+#   - Backend:  .github/workflows/pr-checks.yml (backend-checks job)
+#   - Docker:   .github/workflows/pr-checks.yml (docker-checks job)
+#
+################################################################################
+
 set -e  # Exit on any error
 
 echo "=========================================="

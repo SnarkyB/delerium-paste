@@ -111,3 +111,4 @@ gradle-app.setting
 # Kotlin
 *.kt.swp
 *.kt.swo
+/.vscode.example/

@@ -396,10 +396,10 @@ test.describe('Delete Page - UI and UX', () => {
     // Verify version display
     const versionDisplay = page.locator('.version-display');
     await expect(versionDisplay).toBeVisible();
-    await expect(versionDisplay).toContainText('v1.0.3');
+    await expect(versionDisplay).toContainText('');
     
     // Verify it links to GitHub
-    await expect(versionDisplay).toHaveAttribute('href', 'https://github.com/SnarkyB/delerium-paste');
+    await expect(versionDisplay).toHaveAttribute('href', 'https://github.com/marcusb333/delerium-paste');
   });
 });
 

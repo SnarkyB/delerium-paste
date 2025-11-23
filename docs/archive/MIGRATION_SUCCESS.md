@@ -2,7 +2,7 @@
 
 **Date:** 2025-11-16  
 **Status:** ✅ Successfully Implemented  
-**GitHub Account:** SnarkyB
+**GitHub Account:** marcusb333
 
 ---
 
@@ -16,21 +16,21 @@ Successfully migrated the Delirium monorepo into four focused repositories with 
 
 ### ✅ All Repositories Created and Pushed
 
-1. **[delerium-client](https://github.com/SnarkyB/delerium-client)**
+1. **[delerium-client](https://github.com/marcusb333/delerium-client)**
    - ✅ Extracted from `client/` directory
    - ✅ Git history preserved (81 commits)
    - ✅ CI/CD pipeline added
    - ✅ TypeScript source, tests, and configs at root
    - Status: **LIVE** 🟢
 
-2. **[delerium-server](https://github.com/SnarkyB/delerium-server)**
+2. **[delerium-server](https://github.com/marcusb333/delerium-server)**
    - ✅ Extracted from `server/` directory
    - ✅ Git history preserved (81 commits)
    - ✅ CI/CD pipeline added  
    - ✅ Kotlin source, Gradle configs at root
    - Status: **LIVE** 🟢
 
-3. **[delerium-infrastructure](https://github.com/SnarkyB/delerium-infrastructure)**
+3. **[delerium-infrastructure](https://github.com/marcusb333/delerium-infrastructure)**
    - ✅ Extracted infrastructure files
    - ✅ Git history preserved
    - ✅ Reorganized structure (docker-compose/, nginx/, scripts/)
@@ -39,7 +39,7 @@ Successfully migrated the Delirium monorepo into four focused repositories with 
    - ✅ Integration test pipeline added
    - Status: **LIVE** 🟢
 
-4. **[delerium](https://github.com/SnarkyB/delerium)** (Meta/Docs)
+4. **[delerium](https://github.com/marcusb333/delerium)** (Meta/Docs)
    - ✅ Extracted documentation
    - ✅ Git history preserved
    - ✅ README updated for multi-repo
@@ -91,13 +91,13 @@ Successfully migrated the Delirium monorepo into four focused repositories with 
 ## 🔗 Repository Links
 
 ### Primary Repositories
-- **Main Hub:** https://github.com/SnarkyB/delerium
-- **Client:** https://github.com/SnarkyB/delerium-client
-- **Server:** https://github.com/SnarkyB/delerium-server
-- **Infrastructure:** https://github.com/SnarkyB/delerium-infrastructure
+- **Main Hub:** https://github.com/marcusb333/delerium
+- **Client:** https://github.com/marcusb333/delerium-client
+- **Server:** https://github.com/marcusb333/delerium-server
+- **Infrastructure:** https://github.com/marcusb333/delerium-infrastructure
 
 ### Original Monorepo
-- **Original:** https://github.com/SnarkyB/delerium-paste (with migration notice)
+- **Original:** https://github.com/marcusb333/delerium-paste (with migration notice)
 
 ---
 
@@ -105,7 +105,7 @@ Successfully migrated the Delirium monorepo into four focused repositories with 
 
 ### For End Users (Deploy Delirium)
 ```bash
-git clone https://github.com/SnarkyB/delerium-infrastructure.git
+git clone https://github.com/marcusb333/delerium-infrastructure.git
 cd delerium-infrastructure
 ./scripts/setup.sh
 # Access at http://localhost:8080
@@ -114,9 +114,9 @@ cd delerium-infrastructure
 ### For Contributors (Develop)
 ```bash
 # Clone only what you need
-git clone https://github.com/SnarkyB/delerium-client.git     # Frontend
-git clone https://github.com/SnarkyB/delerium-server.git     # Backend
-git clone https://github.com/SnarkyB/delerium-infrastructure.git  # Deployment
+git clone https://github.com/marcusb333/delerium-client.git     # Frontend
+git clone https://github.com/marcusb333/delerium-server.git     # Backend
+git clone https://github.com/marcusb333/delerium-infrastructure.git  # Deployment
 ```
 
 ---
@@ -151,7 +151,7 @@ git clone https://github.com/SnarkyB/delerium-infrastructure.git  # Deployment
 - [x] Meta README updated for multi-repo
 - [x] Migration guide added
 - [x] Migration notice added to original repo
-- [x] All links updated to use SnarkyB
+- [x] All links updated to use marcusb333
 
 ---
 
@@ -280,10 +280,10 @@ The Delirium monorepo has been successfully decomposed into four focused reposit
 
 | Repository | URL | Status |
 |------------|-----|--------|
-| **Main Hub** | https://github.com/SnarkyB/delerium | 🟢 Live |
-| **Client** | https://github.com/SnarkyB/delerium-client | 🟢 Live |
-| **Server** | https://github.com/SnarkyB/delerium-server | 🟢 Live |
-| **Infrastructure** | https://github.com/SnarkyB/delerium-infrastructure | 🟢 Live |
+| **Main Hub** | https://github.com/marcusb333/delerium | 🟢 Live |
+| **Client** | https://github.com/marcusb333/delerium-client | 🟢 Live |
+| **Server** | https://github.com/marcusb333/delerium-server | 🟢 Live |
+| **Infrastructure** | https://github.com/marcusb333/delerium-infrastructure | 🟢 Live |
 
 ---
 

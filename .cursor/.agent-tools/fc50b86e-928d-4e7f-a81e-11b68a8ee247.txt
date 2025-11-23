@@ -6,9 +6,9 @@ index 225b879..b6d3ffb 100644
  ### Notes
  This is an alpha release intended for testing and feedback. Not recommended for production use with sensitive data.
  
--[Unreleased]: https://github.com/SnarkyB/delerium/compare/v0.1.1-alpha...HEAD
--[0.1.1-alpha]: https://github.com/SnarkyB/delerium/compare/v0.1.0-alpha...v0.1.1-alpha
--[0.1.0-alpha]: https://github.com/SnarkyB/delerium/releases/tag/v0.1.0-alpha
+-[Unreleased]: https://github.com/marcusb333/delerium/compare/v0.1.1-alpha...HEAD
+-[0.1.1-alpha]: https://github.com/marcusb333/delerium/compare/v0.1.0-alpha...v0.1.1-alpha
+-[0.1.0-alpha]: https://github.com/marcusb333/delerium/releases/tag/v0.1.0-alpha
 +[Unreleased]: https://github.com/SleepIsTheCousinOfDeath/delerium-paste/compare/v0.1.1-alpha...HEAD
 +[0.1.1-alpha]: https://github.com/SleepIsTheCousinOfDeath/delerium-paste/compare/v0.1.0-alpha...v0.1.1-alpha
 +[0.1.0-alpha]: https://github.com/SleepIsTheCousinOfDeath/delerium-paste/releases/tag/v0.1.0-alpha
@@ -443,7 +443,7 @@ index 0000000..abed8c4
 +
 +## ✅ Updates Completed
 +
-+- ✅ All GitHub URLs updated from `SnarkyB/delerium` → `SleepIsTheCousinOfDeath/delerium-paste`
++- ✅ All GitHub URLs updated from `marcusb333/delerium` → `SleepIsTheCousinOfDeath/delerium-paste`
 +- ✅ All raw.githubusercontent.com URLs updated
 +- ✅ All git clone commands updated
 +- ✅ All scripts made executable
@@ -759,7 +759,7 @@ index 92728a8..5b99376 100644
  ### 2. Clone Repository
  
  ```bash
--git clone https://github.com/SnarkyB/delerium.git
+-git clone https://github.com/marcusb333/delerium.git
 +git clone https://github.com/SleepIsTheCousinOfDeath/delerium-paste.git
  cd delerium
  
@@ -768,8 +768,8 @@ index 92728a8..5b99376 100644
  
  ## Support
  
--- GitHub Issues: https://github.com/SnarkyB/delerium/issues
--- Documentation: https://github.com/SnarkyB/delerium
+-- GitHub Issues: https://github.com/marcusb333/delerium/issues
+-- Documentation: https://github.com/marcusb333/delerium
 +- GitHub Issues: https://github.com/SleepIsTheCousinOfDeath/delerium-paste/issues
 +- Documentation: https://github.com/SleepIsTheCousinOfDeath/delerium-paste
 diff --git a/docs/VPS_DEPLOYMENT.md b/docs/VPS_DEPLOYMENT.md
@@ -1133,17 +1133,17 @@ index 83c2437..135f3a7 100755
  
  # Delirium - Headless Ubuntu VPS install script
  # Usage (default /opt/delirium):
--#   curl -fsSL https://raw.githubusercontent.com/SnarkyB/delerium/main/scripts/install-headless.sh | bash
+-#   curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium/main/scripts/install-headless.sh | bash
 +#   curl -fsSL https://raw.githubusercontent.com/SleepIsTheCousinOfDeath/delerium-paste/main/scripts/install-headless.sh | bash
  # Custom dir via env:
--#   APP_DIR=/srv/delirium curl -fsSL https://raw.githubusercontent.com/SnarkyB/delerium/main/scripts/install-headless.sh | bash
+-#   APP_DIR=/srv/delirium curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium/main/scripts/install-headless.sh | bash
 +#   APP_DIR=/srv/delirium curl -fsSL https://raw.githubusercontent.com/SleepIsTheCousinOfDeath/delerium-paste/main/scripts/install-headless.sh | bash
  # Custom dir via arg (with -s -- to pass args to bash):
--#   curl -fsSL https://raw.githubusercontent.com/SnarkyB/delerium/main/scripts/install-headless.sh | bash -s -- /srv/delirium
+-#   curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium/main/scripts/install-headless.sh | bash -s -- /srv/delirium
 +#   curl -fsSL https://raw.githubusercontent.com/SleepIsTheCousinOfDeath/delerium-paste/main/scripts/install-headless.sh | bash -s -- /srv/delirium
  # Or copy this file to the server and run: bash install-headless.sh [/custom/path]
  
--REPO_URL="https://github.com/SnarkyB/delerium.git"
+-REPO_URL="https://github.com/marcusb333/delerium.git"
 +REPO_URL="https://github.com/SleepIsTheCousinOfDeath/delerium-paste.git"
  TAG="v0.1.2-alpha"
  # Install directory (env APP_DIR or first arg, defaults to /opt/delirium)
@@ -1152,7 +1152,7 @@ index 83c2437..135f3a7 100755
      git checkout "$TAG"
    fi
  else
--  ZIP_URL="https://github.com/SnarkyB/delerium/archive/refs/tags/${TAG}.zip"
+-  ZIP_URL="https://github.com/marcusb333/delerium/archive/refs/tags/${TAG}.zip"
 +  ZIP_URL="https://github.com/SleepIsTheCousinOfDeath/delerium-paste/archive/refs/tags/${TAG}.zip"
    TMP_ZIP="/tmp/delerium-${TAG}.zip"
    curl -fsSL "$ZIP_URL" -o "$TMP_ZIP"
