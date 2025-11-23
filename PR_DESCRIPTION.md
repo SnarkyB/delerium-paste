@@ -1,39 +1,28 @@
 ## Summary
 
-This PR updates repository name references throughout the codebase from `delerium-paste-server` to `delerium-paste` for consistency and clarity. Additionally, it reorganizes documentation by moving historical migration artifacts to the `docs/archive/` directory.
+This PR improves the local development experience by fixing the `make dev` command, resolving browser console warnings, and streamlining the configuration for easier launching.
 
 ## Changes
 
-### Repository Name Updates
-- Updated Docker image names from `delerium-paste-server` to `delerium-paste` in:
-  - GitHub Actions workflows (`.github/workflows/`)
-  - Dockerfiles and build scripts
-  - Server source code (Kotlin files)
-  - Documentation and README files
-  - Deployment scripts
+### 🔧 Development Environment
+- Updated `scripts/dev.sh` to launch both the backend server and the web proxy (nginx) when running `make dev`.
+- Updated `docker-compose.dev.yml` to use a development-specific Nginx configuration (`nginx-dev.conf`) which serves on port 8080 without requiring SSL certificates.
+- Updated `README.md` to reflect the improved local development workflow.
 
-### Documentation Reorganization
-- Moved historical migration documentation to `docs/archive/`:
-  - Migration guides and artifacts
-  - Old changelogs and summaries
-  - Decomposition plans and migration notices
+### 🐛 Bug Fixes
+- Implemented a patch for `addEventListener` in `client/src/utils/passive-events.ts` to force `passive: true` for scroll-blocking events (touchstart, wheel), resolving browser violation warnings.
+- Fixed `server/Dockerfile` source label URL.
 
-### Files Modified
-- **Workflows**: `.github/workflows/docker-publish.yml`, `.github/workflows/docker-hub-server.yml`, `.github/workflows/server-ci.yml`
-- **Server**: Dockerfiles, Gradle config, Kotlin source files
-- **Scripts**: Deployment and build scripts
-- **Documentation**: README files and deployment guides
-- **Infrastructure**: Nginx configuration updates
+### 📝 Documentation & Security
+- Added `SECURITY_CHECKLIST.md` for headless environment deployments.
+- Minor adjustments to `docker-compose.secure.yml` and `security.conf` for compatibility.
 
 ## Impact
-
-- ✅ **No breaking changes** - This is a naming consistency update
-- ✅ **Docker images** will be published with the new naming convention
-- ✅ **Documentation** is better organized with historical docs archived
-- ⚠️ **Note**: Existing Docker images using the old name (`delerium-paste-server`) will need to be updated to use the new name (`delerium-paste`)
+- Developers can now run `make dev` and immediately have a working full-stack environment at `http://localhost:8080`.
+- Browser console is cleaner without scroll performance warnings.
 
 ## Testing
-
-- [x] Verified Docker image names are consistent across all workflows
-- [x] Confirmed build scripts reference correct image names
-- [x] Checked that documentation links are still valid after reorganization
+- [x] Verified `make dev` starts all services.
+- [x] Verified access to `http://localhost:8080`.
+- [x] Verified console warnings are gone.
+- [x] Built and tested client and server components.

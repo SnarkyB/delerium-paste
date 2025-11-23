@@ -28,6 +28,7 @@ import {
 import { initializeWindowUI } from './ui/ui-manager.js';
 import { setupPasteCreation } from './features/paste-creator.js';
 import { setupPasteViewing } from './features/paste-viewer.js';
+import { applyPassiveEventsPatch } from './utils/passive-events.js';
 
 // ============================================================================
 // CONSTANTS
@@ -43,6 +44,9 @@ const MAX_CONTENT_CHARACTERS = 1048576;
  * Initialize the application
  */
 function initializeApp(): void {
+  // Apply passive events patch to fix scroll performance warnings
+  applyPassiveEventsPatch();
+
   // Initialize window UI functions
   initializeWindowUI();
   
