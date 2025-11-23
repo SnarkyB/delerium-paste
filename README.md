@@ -69,6 +69,8 @@ docker compose up -d
 docker compose logs -f
 ```
 
+ℹ️ The default compose file now runs the stack over plain HTTP on port `8080` for local development, so you can bootstrap without SSL certificates. When you're ready to run behind HTTPS, switch to `docker-compose.prod.yml` (see below).
+
 📖 **Development guide:** [docs/development/](docs/development/)
 
 ---
@@ -514,17 +516,19 @@ npx playwright install --with-deps
 ### Development Deployment
 ```bash
 # Build and start all services (port 8080)
-docker-compose up --build -d
+docker compose up --build -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Check service status
-docker-compose ps
+docker compose ps
 
 # Stop services
-docker-compose down
+docker compose down
 ```
+
+This runs the HTTP-only stack aimed at local development, so no SSL material is required and everything is served on `http://localhost:8080`.
 
 ### Production Deployment with HTTPS
 
@@ -534,7 +538,7 @@ docker-compose down
 ./scripts/setup-ssl.sh
 
 # Start with production config (ports 80/443)
-docker-compose -f docker-compose.prod.yml up --build -d
+docker compose -f docker-compose.prod.yml up --build -d
 ```
 
 **Manual Setup:**
