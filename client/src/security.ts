@@ -146,6 +146,19 @@ export function getSafeErrorMessage(error: unknown, context: string = 'operation
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
     
+    // Check for specific server error codes first
+    if (message.includes('pow_required')) {
+      return 'Proof of work is required. Please try again.';
+    }
+    
+    if (message.includes('pow_invalid')) {
+      return 'Proof of work verification failed. Please try again.';
+    }
+    
+    if (message.includes('rate_limited') || message.includes('rate limit') || message.includes('429')) {
+      return ERROR_MESSAGES.RATE_LIMITED;
+    }
+    
     if (message.includes('network') || message.includes('fetch')) {
       return ERROR_MESSAGES.NETWORK_ERROR;
     }
@@ -154,12 +167,12 @@ export function getSafeErrorMessage(error: unknown, context: string = 'operation
       return ERROR_MESSAGES.NOT_FOUND;
     }
     
-    if (message.includes('rate limit') || message.includes('429')) {
-      return ERROR_MESSAGES.RATE_LIMITED;
-    }
-    
     if (message.includes('encrypt')) {
       return ERROR_MESSAGES.ENCRYPTION_ERROR;
+    }
+    
+    if (message.includes('forbidden') || message.includes('403')) {
+      return 'Access denied. Please check your request and try again.';
     }
     
     if (message.includes('decrypt')) {

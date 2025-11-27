@@ -434,6 +434,27 @@ npm run test:coverage
 - **Integration Tests**: Test API interactions and workflows
 - **E2E Tests**: Test complete user journeys in real browsers
 
+### CORS and Deployment Tests
+
+The project includes comprehensive tests for CORS handling and deployment:
+
+```bash
+# Backend CORS integration tests
+cd server && ./gradlew test --tests "integration.CorsIntegrationTest"
+
+# End-to-end deployment tests (requires running Docker services)
+./scripts/test-deployment-cors.sh
+```
+
+These tests verify that:
+- ✅ Requests with `Origin` headers don't get `403 Forbidden` errors
+- ✅ CORS is properly handled at the Nginx level
+- ✅ All HTTP methods work with cross-origin requests
+- ✅ Security headers are correctly configured
+- ✅ Form fields have proper accessibility attributes
+
+📖 **Detailed testing guide:** [docs/TESTING.md](docs/TESTING.md)
+
 ## ✅ Local CI Verification
 
 Before pushing your changes, you can run the same checks that CI will run to catch issues early and save time.

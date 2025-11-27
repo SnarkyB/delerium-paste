@@ -133,7 +133,7 @@ docker compose -f docker-compose.prod.yml logs -f
 
 If you need to deploy manually, you can still use:
 ```bash
-./scripts/push-to-vps.sh
+./scripts/vps-deploy.sh your-domain.com your@email.com your-github-username
 ```
 
 ## Security Notes

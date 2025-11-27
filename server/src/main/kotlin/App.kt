@@ -120,10 +120,8 @@ fun Application.module() {
     install(Compression)
     install(ContentNegotiation) { jackson() }
     install(CallLogging) { level = org.slf4j.event.Level.INFO }
-    install(CORS) {
-        allowMethod(HttpMethod.Get); allowMethod(HttpMethod.Post); allowMethod(HttpMethod.Delete)
-        anyHost(); allowHeaders { true }; exposeHeader(HttpHeaders.ContentType)
-    }
+    // CORS is handled by Nginx reverse proxy
+    // install(CORS) { ... }
     intercept(ApplicationCallPipeline.Setup) {
         call.response.headers.append("Referrer-Policy", "no-referrer")
         call.response.headers.append("X-Content-Type-Options", "nosniff")
@@ -133,9 +131,11 @@ fun Application.module() {
         call.response.headers.append("Content-Security-Policy",
             "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';")
         call.response.headers.append("Permissions-Policy", "accelerometer=(), geolocation=(), camera=(), microphone=(), payment=(), usb=()")
-        call.response.headers.append("Cross-Origin-Embedder-Policy", "require-corp")
-        call.response.headers.append("Cross-Origin-Opener-Policy", "same-origin")
-        call.response.headers.append("Cross-Origin-Resource-Policy", "same-origin")
+        // COEP, COOP, CORP are too restrictive for API endpoints that need CORS
+        // These headers are better suited for HTML pages served by the frontend
+        // call.response.headers.append("Cross-Origin-Embedder-Policy", "require-corp")
+        // call.response.headers.append("Cross-Origin-Opener-Policy", "same-origin")
+        // call.response.headers.append("Cross-Origin-Resource-Policy", "same-origin")
     }
 
     val hikari = HikariDataSource(HikariConfig().apply {

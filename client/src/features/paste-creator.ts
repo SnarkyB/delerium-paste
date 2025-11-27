@@ -105,6 +105,11 @@ export async function createPaste(): Promise<void> {
         pow = await powSolver.solve(challenge);
       }
     } catch (error) {
+      // If PoW is required by server, we must fail
+      const errorMsg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+      if (errorMsg.includes('pow_required') || errorMsg.includes('pow_invalid')) {
+        throw error; // Re-throw PoW errors so they're handled properly
+      }
       // PoW is optional, continue without it
       console.warn('PoW challenge failed:', error);
     }
