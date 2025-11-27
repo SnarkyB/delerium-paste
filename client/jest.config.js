@@ -45,6 +45,8 @@ module.exports = {
     '!src/infrastructure/**',
     '!src/application/**',
     '!src/presentation/**',
+    // Exclude passive-events.ts (browser API monkey-patch utility, difficult to test in Jest)
+    '!src/utils/passive-events.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],

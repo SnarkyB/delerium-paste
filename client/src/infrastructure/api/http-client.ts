@@ -32,8 +32,24 @@ export class HttpApiClient implements IApiClient {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: response.statusText }));
-      throw new Error(error.error || `HTTP ${response.status}: ${response.statusText}`);
+      // Try to get error message from response body
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use status text
+        const text = await response.text().catch(() => '');
+        if (text) {
+          try {
+            const errorData = JSON.parse(text);
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          } catch {
+            errorMessage = text || errorMessage;
+          }
+        }
+      }
+      throw new Error(errorMessage);
     }
 
     return response.json();

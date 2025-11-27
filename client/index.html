@@ -624,7 +624,8 @@
           <div class="section-title">Your Content</div>
           <div class="textarea-wrapper">
             <textarea 
-              id="paste" 
+              id="paste"
+              name="paste"
               placeholder="Type or paste your text here... It will be encrypted in your browser before upload."
               maxlength="1048576"
             ></textarea>
@@ -640,7 +641,7 @@
               Expire after (minutes)
               <span class="tooltip" data-tooltip="How long before the paste is automatically deleted">ℹ️</span>
             </label>
-            <input type="number" id="mins" value="60" min="1" max="10080">
+            <input type="number" id="mins" name="mins" value="60" min="1" max="10080">
             <div class="presets">
               <button class="preset-btn" onclick="document.getElementById('mins').value=60">1 hour</button>
               <button class="preset-btn" onclick="document.getElementById('mins').value=1440">1 day</button>
@@ -658,12 +659,12 @@
                 Maximum views
                 <span class="tooltip" data-tooltip="Paste will be deleted after this many views">??</span>
               </label>
-              <input type="number" id="views" value="10" min="1" max="100">
+              <input type="number" id="views" name="views" value="10" min="1" max="100">
             </div>
 
             <div class="option-group">
               <div class="checkbox-group">
-                <input type="checkbox" id="single">
+                <input type="checkbox" id="single" name="single">
                 <label for="single" class="checkbox-label">
                   🔥 Burn after reading
                   <span class="tooltip" data-tooltip="Delete immediately after first view">ℹ️</span>
@@ -671,7 +672,7 @@
               </div>
 
               <div class="checkbox-group">
-                <input type="checkbox" id="usePassword">
+                <input type="checkbox" id="usePassword" name="usePassword">
                 <label for="usePassword" class="checkbox-label">
                   🔐 Password protect
                   <span class="tooltip" data-tooltip="Add an extra layer of encryption">ℹ️</span>
@@ -683,7 +684,7 @@
           <div id="passwordGroup" style="display: none;">
             <div class="option-group">
               <label for="password">Password (min 8 characters)</label>
-              <input type="password" id="password" placeholder="Enter a strong password">
+              <input type="password" id="password" name="password" placeholder="Enter a strong password" autocomplete="new-password">
             </div>
           </div>
         </div>
@@ -701,7 +702,7 @@
           <div class="output-title" id="outputTitle">Success! Your paste is ready</div>
           <div id="outputMessage"></div>
           <div class="output-url">
-            <input type="text" id="pasteUrl" readonly>
+            <input type="text" id="pasteUrl" name="pasteUrl" readonly>
             <button class="btn-copy" id="copyBtn">Copy Link</button>
             <button class="btn-view" id="viewBtn" style="display: none;">View Paste</button>
           </div>
