@@ -10,10 +10,8 @@ on:
       - '.github/workflows/server-ci.yml'
     tags:
       - 'v*'
-  pull_request:
-    paths:
-      - 'server/**'
-      - '.github/workflows/server-ci.yml'
+  # PR testing handled by pr-checks.yml to avoid duplication
+  # pull_request removed to eliminate redundant backend testing
 
 env:
   REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/delerium-paste
