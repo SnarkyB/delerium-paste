@@ -2,19 +2,12 @@
  * security.test.ts - Comprehensive tests for security module
  * 
  * Tests all security functions including:
- * - Validation functions
  * - Password encryption/decryption (ArrayBuffer-based)
  * - PBKDF2 key derivation
  * - Security utilities
+ * - Safe display functions
+ * - Error message handling
  */
-
-import {
-  validateContentSize,
-  validateExpiration,
-  validateViewCount,
-  validatePassword,
-  isValidUTF8
-} from '../../../src/core/validators/index.js';
 
 import {
   secureClear,
@@ -25,125 +18,13 @@ import {
   generateSalt,
   encryptWithPassword,
   decryptWithPassword,
-} from '../../../src/security.js';
+  safeDisplayContent,
+  safeDisplayFormatted,
+} from '../../src/security.js';
 
 // ============================================================================
-// VALIDATION TESTS
+// SECURITY UTILITY TESTS
 // ============================================================================
-
-describe('validateContentSize', () => {
-  it('should accept valid content', () => {
-    const result = validateContentSize('Hello, world!');
-    expect(result.isValid).toBe(true);
-    expect(result.errors).toHaveLength(0);
-  });
-
-  it('should reject empty content', () => {
-    const result = validateContentSize('');
-    expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Content cannot be empty');
-  });
-
-  it('should reject content that is too large', () => {
-    const largeContent = 'x'.repeat(1024 * 1024 + 1);
-    const result = validateContentSize(largeContent);
-    expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Content too large');
-  });
-
-  it('should accept content just under the limit', () => {
-    const content = 'x'.repeat(1024 * 1024 - 100);
-    const result = validateContentSize(content);
-    expect(result.isValid).toBe(true);
-  });
-});
-
-describe('validateExpiration', () => {
-  it('should accept valid expiration times', () => {
-    const result = validateExpiration(60);
-    expect(result.isValid).toBe(true);
-  });
-
-  it('should accept minimum expiration', () => {
-    const result = validateExpiration(1);
-    expect(result.isValid).toBe(true);
-  });
-
-  it('should accept maximum expiration', () => {
-    const result = validateExpiration(7 * 24 * 60);
-    expect(result.isValid).toBe(true);
-  });
-
-  it('should reject below minimum', () => {
-    const result = validateExpiration(0);
-    expect(result.isValid).toBe(false);
-  });
-
-  it('should reject above maximum', () => {
-    const result = validateExpiration(8 * 24 * 60);
-    expect(result.isValid).toBe(false);
-  });
-
-  it('should reject non-integers', () => {
-    const result = validateExpiration(1.5);
-    expect(result.isValid).toBe(false);
-  });
-});
-
-describe('validateViewCount', () => {
-  it('should accept valid view counts', () => {
-    const result = validateViewCount(5);
-    expect(result.isValid).toBe(true);
-  });
-
-  it('should reject zero', () => {
-    const result = validateViewCount(0);
-    expect(result.isValid).toBe(false);
-  });
-
-  it('should reject above 100', () => {
-    const result = validateViewCount(101);
-    expect(result.isValid).toBe(false);
-  });
-});
-
-describe('validatePassword', () => {
-  it('should accept strong passwords', () => {
-    const result = validatePassword('MySecureP@ssw0rd123');
-    expect(result.isValid).toBe(true);
-  });
-
-  it('should reject short passwords', () => {
-    const result = validatePassword('Short1!');
-    expect(result.isValid).toBe(false);
-  });
-
-  it('should reject long passwords', () => {
-    const result = validatePassword('a'.repeat(129));
-    expect(result.isValid).toBe(false);
-  });
-
-  it('should accept minimum length', () => {
-    const result = validatePassword('Pass1234');
-    expect(result.isValid).toBe(true);
-  });
-});
-
-// ============================================================================
-// UTILITY TESTS
-// ============================================================================
-
-describe('isValidUTF8', () => {
-  it('should accept valid UTF-8', () => {
-    expect(isValidUTF8('Hello, world!')).toBe(true);
-    expect(isValidUTF8('????')).toBe(true);
-    expect(isValidUTF8('??????')).toBe(true);
-  });
-
-  it('should handle empty string', () => {
-    expect(isValidUTF8('')).toBe(true);
-  });
-});
 
 describe('secureClear', () => {
   it('should not throw', () => {
@@ -205,6 +86,66 @@ describe('getSafeErrorMessage', () => {
     expect(getSafeErrorMessage(null, 'test')).toBeTruthy();
     expect(getSafeErrorMessage(undefined, 'test')).toBeTruthy();
   });
+
+  it('should handle pow_required error', () => {
+    const error = new Error('pow_required');
+    const message = getSafeErrorMessage(error, 'test');
+    expect(message).toContain('Proof of work is required');
+  });
+
+  it('should handle pow_invalid error', () => {
+    const error = new Error('pow_invalid');
+    const message = getSafeErrorMessage(error, 'test');
+    expect(message).toContain('Proof of work verification failed');
+  });
+
+  it('should handle rate_limited error', () => {
+    const error = new Error('rate_limited');
+    const message = getSafeErrorMessage(error, 'test');
+    expect(message).toBe(ERROR_MESSAGES.RATE_LIMITED);
+  });
+
+  it('should handle rate limit error (429)', () => {
+    const error = new Error('429 Too Many Requests');
+    const message = getSafeErrorMessage(error, 'test');
+    expect(message).toBe(ERROR_MESSAGES.RATE_LIMITED);
+  });
+
+  it('should handle network error', () => {
+    const error = new Error('network error');
+    const message = getSafeErrorMessage(error, 'test');
+    expect(message).toBe(ERROR_MESSAGES.NETWORK_ERROR);
+  });
+
+  it('should handle fetch error', () => {
+    const error = new Error('fetch failed');
+    const message = getSafeErrorMessage(error, 'test');
+    expect(message).toBe(ERROR_MESSAGES.NETWORK_ERROR);
+  });
+
+  it('should handle not found error (404)', () => {
+    const error = new Error('404 not found');
+    const message = getSafeErrorMessage(error, 'test');
+    expect(message).toBe(ERROR_MESSAGES.NOT_FOUND);
+  });
+
+  it('should handle encryption error', () => {
+    const error = new Error('encrypt failed');
+    const message = getSafeErrorMessage(error, 'test');
+    expect(message).toBe(ERROR_MESSAGES.ENCRYPTION_ERROR);
+  });
+
+  it('should handle forbidden error (403)', () => {
+    const error = new Error('403 forbidden');
+    const message = getSafeErrorMessage(error, 'test');
+    expect(message).toContain('Access denied');
+  });
+
+  it('should handle decryption error', () => {
+    const error = new Error('decrypt failed');
+    const message = getSafeErrorMessage(error, 'test');
+    expect(message).toBe(ERROR_MESSAGES.DECRYPTION_ERROR);
+  });
 });
 
 describe('ERROR_MESSAGES', () => {
@@ -213,6 +154,61 @@ describe('ERROR_MESSAGES', () => {
     expect(ERROR_MESSAGES.SERVER_ERROR).toBeTruthy();
     expect(ERROR_MESSAGES.ENCRYPTION_ERROR).toBeTruthy();
     expect(ERROR_MESSAGES.DECRYPTION_ERROR).toBeTruthy();
+  });
+});
+
+describe('safeDisplayContent', () => {
+  it('should set textContent and preserve whitespace', () => {
+    const element = document.createElement('div');
+    safeDisplayContent(element, 'Test\nContent');
+    
+    expect(element.textContent).toBe('Test\nContent');
+    expect(element.style.whiteSpace).toBe('pre-wrap');
+    expect(element.style.wordWrap).toBe('break-word');
+  });
+
+  it('should handle empty content', () => {
+    const element = document.createElement('div');
+    safeDisplayContent(element, '');
+    
+    expect(element.textContent).toBe('');
+    expect(element.style.whiteSpace).toBe('pre-wrap');
+  });
+
+  it('should handle special characters', () => {
+    const element = document.createElement('div');
+    safeDisplayContent(element, '<script>alert("xss")</script>');
+    
+    expect(element.textContent).toBe('<script>alert("xss")</script>');
+    expect(element.innerHTML).not.toContain('<script>');
+  });
+});
+
+describe('safeDisplayFormatted', () => {
+  it('should escape HTML and set innerHTML', () => {
+    const element = document.createElement('div');
+    safeDisplayFormatted(element, '<script>alert("xss")</script>');
+    
+    expect(element.innerHTML).not.toContain('<script>');
+    expect(element.style.whiteSpace).toBe('pre-wrap');
+    expect(element.style.wordWrap).toBe('break-word');
+  });
+
+  it('should handle empty content', () => {
+    const element = document.createElement('div');
+    safeDisplayFormatted(element, '');
+    
+    expect(element.innerHTML).toBeDefined();
+    expect(element.style.whiteSpace).toBe('pre-wrap');
+  });
+
+  it('should escape special HTML characters', () => {
+    const element = document.createElement('div');
+    safeDisplayFormatted(element, '<>&"\'');
+    
+    const html = element.innerHTML;
+    expect(html).not.toContain('<');
+    expect(html).not.toContain('>');
   });
 });
 

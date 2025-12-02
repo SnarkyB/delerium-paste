@@ -1,7 +1,7 @@
 # Delirium - Zero-Knowledge Paste System
 # Makefile for local development and deployment
 
-.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop bazel-setup build-server-bazel test-server-bazel run-server-bazel
+.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop bazel-setup build-server-bazel test-server-bazel run-server-bazel ci-check ci-quick
 
 # Default target
 help:
@@ -28,6 +28,10 @@ help:
 	@echo "  make health-check  - Verify services are running"
 	@echo "  make quick-start   - First-time setup and start"
 	@echo "  make quick-start-headless - First-time setup for headless environments"
+	@echo ""
+	@echo "🧪 CI Verification:"
+	@echo "  make ci-check      - Run full CI checks locally (parallel)"
+	@echo "  make ci-quick       - Run quick CI checks (lint, type, tests)"
 	@echo ""
 	@echo "🔧 Bazel (Server Build):"
 	@echo "  make bazel-setup   - Install Bazelisk (one-time setup)"
@@ -285,3 +289,14 @@ test-server-bazel:
 run-server-bazel:
 	@echo "🚀 Running server with Bazel..."
 	bazel run //server:delerium_server
+
+# CI verification targets
+ci-check:
+	@echo "🧪 Running CI checks locally..."
+	@chmod +x scripts/ci-verify-all.sh
+	./scripts/ci-verify-all.sh
+
+ci-quick:
+	@echo "⚡ Running quick CI checks..."
+	@chmod +x scripts/ci-verify-quick.sh
+	./scripts/ci-verify-quick.sh

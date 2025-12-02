@@ -67,8 +67,8 @@ echo ""
 echo "=========================================="
 echo "DOCKER VALIDATION"
 echo "=========================================="
-echo "🐳 Validating docker-compose..."
-docker-compose -f docker-compose.yml config > "$DOCKER_LOG" 2>&1
+echo "🐳 Validating docker compose..."
+docker compose -f docker-compose.yml config > "$DOCKER_LOG" 2>&1
 DOCKER_EXIT=$?
 
 display_output "$DOCKER_LOG" "DOCKER VALIDATION"

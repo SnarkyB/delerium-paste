@@ -22,8 +22,12 @@ npx jest --testPathIgnorePatterns=/integration/ --testPathIgnorePatterns=/e2e/
 cd ../server
 
 echo ""
-echo "🏗️  Building backend..."
-./gradlew build test
+echo "🏗️  Building backend with Bazel..."
+bazel build //server:delerium_server_deploy
+
+echo ""
+echo "🧪 Running backend tests..."
+bazel test //server:all_tests --test_output=errors
 
 echo ""
 echo "✅ Quick checks passed!"

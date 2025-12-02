@@ -56,7 +56,7 @@ export function showError(message: string): void {
 /**
  * Show success result
  */
-export function showSuccess(shareUrl: string, deleteUrl: string): void {
+export function showSuccess(shareUrl: string, _deleteUrl: string): void {
   const win = window as WindowWithUI;
   if (typeof win.showOutput === 'function') {
     const title = 'Password or PIN required to view';
