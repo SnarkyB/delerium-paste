@@ -8,6 +8,7 @@ RUN apt-get update && \
         ca-certificates \
         openjdk-21-jdk \
         git \
+        build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Bazelisk with architecture detection
@@ -34,7 +35,7 @@ RUN bazel build //server:delerium_server_deploy --config=ci
 
 # Extract the deploy JAR (uber jar with all dependencies)
 RUN mkdir -p /app/lib && \
-    cp bazel-bin/server/delerium_server_deploy_deploy.jar /app/lib/delerium-paste.jar
+    cp bazel-bin/server/delerium_server_deploy.jar /app/lib/delerium-paste.jar
 
 # ---- runner ----
 FROM eclipse-temurin:21-jre-jammy

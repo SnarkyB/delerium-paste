@@ -66,13 +66,24 @@ This will:
 ./scripts/ci-verify-backend.sh
 ```
 **What it does:**
-- Builds Kotlin/Ktor backend
-- Runs tests
-- Runs OWASP dependency check
+- Builds Kotlin/Ktor backend with Bazel
+- Runs tests with Bazel
+- Queries dependencies for security analysis
 
 **When to use:** When working on backend code only
 
 ### Makefile Commands
+
+#### CI Verification
+```bash
+make ci-check       # Run full CI checks locally (parallel execution)
+make ci-quick        # Run quick CI checks (lint, type, tests)
+```
+**What it does:**
+- `ci-check`: Runs frontend and backend checks in parallel, validates Docker config
+- `ci-quick`: Fast checks for lint, type checking, and unit tests
+
+**When to use:** Before pushing code, before creating a PR
 
 #### Full Deployment Pipeline
 ```bash
@@ -99,13 +110,14 @@ make health-check   # Check if services are running
 
 ### GitHub Actions (Automatic)
 
-#### PR Checks Workflow
+#### PR Checks Workflow (`pr-checks.yml`)
 **Triggers:** Automatically on every pull request
 
 **What it does:**
-- Runs frontend checks (parallel job)
-- Runs backend checks (parallel job)
-- Runs Docker checks (parallel job)
+- Runs frontend checks (lint, typecheck, unit tests, coverage)
+- Runs backend checks (Bazel build and tests)
+- Runs Docker checks (config validation, build, health checks)
+- All jobs run **in parallel** for faster feedback
 - Shows summary of all checks
 
 **How to view:**
@@ -114,38 +126,59 @@ make health-check   # Check if services are running
 3. Click on "PR Parallel Quality Gates" to see details
 4. Each job shows its status (✅ success, ❌ failure)
 
-#### Client CI Workflow
-**Triggers:** Automatically when files in `client/` change
+**Note:** Integration and E2E tests are temporarily disabled (see TODOs in workflow)
+
+#### Server CI Workflow (`server-ci.yml`)
+**Triggers:** Automatically on push to `main` or `parity` branches
 
 **What it does:**
-- Runs lint (parallel job)
-- Runs typecheck (parallel job)
-- Runs tests (parallel job)
-- Generates coverage (parallel job)
-- Shows summary
+- Builds server with Bazel
+- Runs all server tests
+- Generates coverage reports
+- Tests Docker image build and startup
+- All jobs run **in parallel** where possible
 
 **How to view:**
 1. Go to Actions tab in GitHub
-2. Find "Client CI" workflow run
+2. Find "Server CI/CD" workflow run
 3. Click to see individual job results
 
-#### Security Scan Workflow
+#### Docker Publish Workflow (`docker-publish.yml`)
 **Triggers:**
-- Automatically on push to `main`
-- Automatically on PRs that change dependencies
-- Daily at 2 AM UTC (scheduled)
-- Manually via Actions → Security Scan → Run workflow
+- Push to tags (v*) → publish to both GHCR and Docker Hub
+- Workflow dispatch with tag input → publish to both registries
+- Push to main → publish "latest" to GHCR only (for internal use)
 
 **What it does:**
-- Scans frontend dependencies (npm audit)
-- Scans backend dependencies (OWASP Dependency Check)
+- Builds multi-architecture images (linux/amd64, linux/arm64)
+- Publishes to GitHub Container Registry (GHCR)
+- Publishes to Docker Hub (on tags/workflow_dispatch)
+- Creates and merges manifest lists
+
+**How to view:**
+1. Go to Actions tab
+2. Find "Docker Image Publishing" workflow
+3. Check published image tags and digests
+
+#### Security Scan Workflow (`security-scan.yml`)
+**Triggers:**
+- Daily at 2 AM UTC (scheduled)
+- Manual workflow dispatch
+- Push to main branch (for dependency changes)
+
+**What it does:**
+- Scans frontend dependencies (npm audit with severity-based failures)
+- Scans backend dependencies (Bazel dependency query + Dependabot)
+- Critical/High vulnerabilities → FAIL build
+- Moderate vulnerabilities → WARNING (pass but report)
 - Both run **in parallel**
-- Shows vulnerability summary
 
 **How to view:**
 1. Go to Actions tab
 2. Find "Security Scan" workflow
 3. Check the summary for vulnerability counts
+
+**Note:** This is the single source of truth for security scanning. PR checks no longer duplicate security scans.
 
 ## 🎯 Common Workflows
 
@@ -199,9 +232,10 @@ npm run test:unit
 # Quick check
 ./scripts/ci-verify-backend.sh
 
-# Or use Gradle directly
+# Or use Bazel directly
 cd server
-./gradlew test
+bazel build //server:delerium_server_deploy
+bazel test //server:all_tests --test_output=errors
 ```
 
 ## 🔍 Understanding Output

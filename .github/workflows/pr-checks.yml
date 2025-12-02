@@ -89,7 +89,7 @@ jobs:
 
       - name: Lint (frontend)
         working-directory: ./client
-        run: npx eslint src/**/*.ts --cache --cache-location .eslintcache
+        run: npx eslint "src/**/*.ts" --cache --cache-location .eslintcache
 
       - name: Type Check (frontend)
         working-directory: ./client
@@ -99,10 +99,13 @@ jobs:
         working-directory: ./client
         run: npx jest --testPathIgnorePatterns=/integration/ --testPathIgnorePatterns=/e2e/ --cache
 
+      # TODO: Re-enable integration tests once supertest v7 compatibility issues resolved
       # - name: Integration Tests (frontend)
       #   working-directory: ./client
       #   run: npx jest --config jest.integration.config.js
       #   Note: Temporarily disabled due to supertest v7 compatibility issues with mock server
+      
+      # TODO: Re-enable E2E tests once webkit timing issues resolved (see issue #19)
       # - name: E2E Tests (frontend)
       #   working-directory: ./client
       #   run: npx playwright test
@@ -127,31 +130,6 @@ jobs:
             exit 1
           fi
           echo "Coverage check passed: $COVERAGE% >= $THRESHOLD%"
-        continue-on-error: true
-
-      - name: Security Audit (frontend)
-        working-directory: ./client
-        run: |
-          echo "🔍 Running npm security audit..."
-          npm audit --audit-level=moderate --json > npm-audit-report.json || true
-          npm audit --audit-level=moderate
-        continue-on-error: true
-
-      - name: Check security audit results
-        working-directory: ./client
-        run: |
-          if [ -f npm-audit-report.json ]; then
-            CRITICAL=$(jq -r '.metadata.vulnerabilities.critical' npm-audit-report.json 2>/dev/null || echo "0")
-            HIGH=$(jq -r '.metadata.vulnerabilities.high' npm-audit-report.json 2>/dev/null || echo "0")
-            
-            if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
-              echo "❌ Critical or High severity vulnerabilities found!"
-              echo "Critical: $CRITICAL, High: $HIGH"
-              exit 1
-            else
-              echo "✅ No critical or high severity vulnerabilities found"
-            fi
-          fi
 
       - name: Cleanup on failure
         if: failure()
@@ -174,31 +152,38 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-          cache: 'gradle'  # Built-in Gradle caching
 
-      - name: Cache Gradle packages
+      - name: Cache Bazel
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            server/.gradle
-            server/build
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          path: ~/.cache/bazel
+          key: ${{ runner.os }}-bazel-${{ hashFiles('.bazelversion', 'WORKSPACE', '**/*.bzl', 'server/BUILD.bazel') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
+            ${{ runner.os }}-bazel-
+
+      - name: Install Bazelisk
+        run: |
+          ARCH=$(uname -m)
+          case $ARCH in
+            x86_64) BAZELISK_ARCH="amd64" ;;
+            aarch64|arm64) BAZELISK_ARCH="arm64" ;;
+            *) echo "Unsupported arch: $ARCH"; exit 1 ;;
+          esac
+          curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-${BAZELISK_ARCH}"
+          chmod +x "bazelisk-linux-${BAZELISK_ARCH}"
+          sudo mv "bazelisk-linux-${BAZELISK_ARCH}" /usr/local/bin/bazel
+          bazel --version
 
       - name: Build & Test (backend)
-        working-directory: ./server
-        run: ./gradlew clean build test
+        run: |
+          bazel build //server:delerium_server_deploy
+          bazel test //server:all_tests --test_output=errors
 
       - name: Cleanup on failure
         if: failure()
         run: |
           echo "Cleaning up after failed backend job..."
-          rm -rf server/build
-          rm -rf server/.gradle
-          rm -rf .gradle
+          bazel clean --expunge || true
 
   docker-checks:
     name: Docker Checks
@@ -226,27 +211,52 @@ jobs:
         run: docker compose -f docker-compose.yml build --parallel
 
       - name: Start Docker services
+        env:
+          DELETION_TOKEN_PEPPER: test-pepper-for-ci-$(date +%s)
         run: docker compose -f docker-compose.yml up -d
 
       - name: Wait for services to be healthy
         run: |
           echo "Waiting for services to start..."
-          sleep 10
+          sleep 30
+          
+          # Show container status
           docker compose -f docker-compose.yml ps
-
-          # Check if containers are running
-          if ! docker compose -f docker-compose.yml ps | grep -q "Up"; then
-            echo "Services failed to start"
+          
+          # Check if services are running
+          if ! docker compose -f docker-compose.yml ps | grep -qE "(Up|running)"; then
+            echo "No containers are in 'Up' or 'running' state"
+            docker compose -f docker-compose.yml ps
+            docker compose -f docker-compose.yml logs
+            exit 1
+          fi
+          
+          # Check for exited containers
+          if docker compose -f docker-compose.yml ps | grep -q "Exited"; then
+            echo "Some containers have exited"
+            docker compose -f docker-compose.yml ps
             docker compose -f docker-compose.yml logs
             exit 1
           fi
 
-          # Test nginx is responding (with timeout to prevent hanging)
-          timeout 10 curl -f http://localhost:8080 || {
-            echo "Nginx health check failed"
+          # Test nginx is responding (with retries)
+          echo "Testing nginx health endpoint..."
+          NGINX_HEALTHY=false
+          for i in {1..5}; do
+            if timeout 5 curl -f http://localhost:8080 > /dev/null 2>&1; then
+              echo "Nginx is responding!"
+              NGINX_HEALTHY=true
+              break
+            fi
+            echo "Attempt $i failed, retrying in 2 seconds..."
+            sleep 2
+          done
+          
+          if [ "$NGINX_HEALTHY" != "true" ]; then
+            echo "Nginx health check failed after 5 attempts"
             docker compose -f docker-compose.yml logs
             exit 1
-          }
+          fi
 
           echo "All services healthy!"
 
@@ -268,16 +278,20 @@ jobs:
     steps:
       - name: Check results
         run: |
+          FRONTEND_RESULT="${{ needs.frontend-checks.result }}"
+          BACKEND_RESULT="${{ needs.backend-checks.result }}"
+          DOCKER_RESULT="${{ needs.docker-checks.result }}"
+          
           echo "## PR Checks Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend Checks | ${{ needs.frontend-checks.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Backend Checks | ${{ needs.backend-checks.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker Checks | ${{ needs.docker-checks.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Checks | $FRONTEND_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend Checks | $BACKEND_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Checks | $DOCKER_RESULT |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ needs.frontend-checks.result }}" != "success" ] || [ "${{ needs.backend-checks.result }}" != "success" ] || [ "${{ needs.docker-checks.result }}" != "success" ]; then
+          if [ "$FRONTEND_RESULT" != "success" ] || [ "$BACKEND_RESULT" != "success" ] || [ "$DOCKER_RESULT" != "success" ]; then
             echo "❌ Some checks failed. Please review the logs above." >> $GITHUB_STEP_SUMMARY
             exit 1
           else

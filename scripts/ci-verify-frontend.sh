@@ -48,9 +48,15 @@ echo ""
 echo "🧪 Running unit tests..."
 npx jest --testPathIgnorePatterns=/integration/ --testPathIgnorePatterns=/e2e/ --cache || npx jest --testPathIgnorePatterns=/integration/ --testPathIgnorePatterns=/e2e/
 
-echo ""
-echo "🎭 Running E2E tests..."
-npx playwright test
+if [ "${SKIP_E2E_TESTS:-false}" != "true" ]; then
+  echo ""
+  echo "🎭 Running E2E tests..."
+  npx playwright test
+else
+  echo ""
+  echo "⏭️  Skipping E2E tests (SKIP_E2E_TESTS=true)"
+  echo "   Note: E2E tests temporarily disabled due to webkit timing issues (see #19)"
+fi
 
 echo ""
 echo "📊 Generating coverage report..."
