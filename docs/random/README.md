@@ -87,7 +87,7 @@ Access at `https://your-domain.com`
 - **Local:** Docker, Docker Compose, Node.js 18+
 - **VPS:** Ubuntu 22.04+/Debian 11+, Domain pointed to server IP, 1GB RAM, 1 CPU, 10GB disk
 
-📖 **Detailed deployment guide:** [docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)
+📖 **Detailed deployment guide:** [docs/deployment/DEPLOYMENT.md](../deployment/DEPLOYMENT.md)
 
 ## 💻 Alternative: Make Commands
 
@@ -126,7 +126,7 @@ make clean
 
 ## 🏗️ Architecture
 
-This project follows the **[C4 model](https://c4model.com/)** for architecture documentation. Full diagrams available in [`docs/architecture/C4-DIAGRAMS.md`](docs/architecture/C4-DIAGRAMS.md).
+This project follows the **[C4 model](https://c4model.com/)** for architecture documentation. Full diagrams available in [`docs/architecture/C4-DIAGRAMS.md`](../architecture/C4-DIAGRAMS.md).
 
 ### System Context (C4 Level 1)
 
@@ -206,9 +206,9 @@ We're migrating from a monolithic to a modular architecture through **13 increme
   - **Infrastructure Layer**: API clients, crypto providers, PoW solvers
 
 **See Full Architecture**:
-- [`docs/architecture/C4-DIAGRAMS.md`](docs/architecture/C4-DIAGRAMS.md) - Complete C4 model with all levels
+- [`docs/architecture/C4-DIAGRAMS.md`](../architecture/C4-DIAGRAMS.md) - Complete C4 model with all levels
 - [`REFACTORING-PLAN.md`](REFACTORING-PLAN.md) - Migration strategy (13 PRs)
-- [`docs/prs/README.md`](docs/prs/README.md) - PR series overview
+- [`docs/prs/README.md`](../prs/README.md) - PR series overview
 
 ### Deployment
 
@@ -328,7 +328,7 @@ The wizard will:
 - 🚀 Optionally start services
 - 🌐 Open in browser
 
-📖 **See [docs/getting-started/SETUP.md](docs/getting-started/SETUP.md) for detailed instructions.**
+📖 **See [docs/getting-started/SETUP.md](../getting-started/SETUP.md) for detailed instructions.**
 
 ### Development Mode with Hot-Reload
 
@@ -422,7 +422,7 @@ make clean          # Clean everything
 - **Difficulty Scaling**: Adjustable based on system load (default: 10 bits)
 - **Client-Side**: PoW computation happens in browser
 - **Server Validation**: Server verifies PoW solutions
-- **Documentation**: See [docs/architecture/PROOF_OF_WORK.md](docs/architecture/PROOF_OF_WORK.md) for details
+- **Documentation**: See [docs/architecture/PROOF_OF_WORK.md](../architecture/PROOF_OF_WORK.md) for details
 
 ## 📊 API Documentation
 
@@ -498,7 +498,7 @@ These tests verify that:
 - ✅ Security headers are correctly configured
 - ✅ Form fields have proper accessibility attributes
 
-📖 **Detailed testing guide:** [docs/TESTING.md](docs/TESTING.md)
+📖 **Detailed testing guide:** [docs/TESTING.md](../TESTING.md)
 
 ## ✅ Local CI Verification
 
@@ -608,7 +608,7 @@ docker compose -f docker-compose.prod.yml up --build -d
 ```
 
 **Manual Setup:**
-See the comprehensive guide: [docs/deployment/SSL_SETUP.md](docs/deployment/SSL_SETUP.md)
+See the comprehensive guide: [docs/deployment/SSL_SETUP.md](../deployment/SSL_SETUP.md)
 
 ### Architecture
 The Docker setup includes:
@@ -643,9 +643,9 @@ The server Docker image includes several production-ready enhancements:
 - **Registry**: Available on GitHub Container Registry (GHCR)
 
 For detailed documentation, see:
-- [Multi-Architecture Deployment Guide](docs/deployment/multi-architecture.md) - Complete guide for multi-arch builds
-- [Server API Documentation](server/docs/API.md)
-- [Container Publishing Guide](server/docs/CONTAINER_PUBLISHING.md)
+- [Multi-Architecture Deployment Guide](../deployment/multi-architecture.md) - Complete guide for multi-arch builds
+- [Server API Documentation](../../server/docs/API.md)
+- [Container Publishing Guide](../../server/docs/CONTAINER_PUBLISHING.md)
 
 ### Environment Variables
 - `DELETION_TOKEN_PEPPER`: Secret pepper for hashing deletion tokens (defaults to "change-me" - change this in production!)
@@ -725,7 +725,7 @@ The project includes a comprehensive PR quality gates workflow (`.github/workflo
 5. Ensure all tests pass
 6. Submit a **small, focused** pull request (100-300 lines ideal)
 
-For a concise contributor playbook, see [`AGENTS.md`](AGENTS.md).
+For a concise contributor playbook, see [`AGENTS.md`](../../AGENTS.md).
 
 ### Code Standards
 - **TypeScript** for frontend code with strict ESLint rules
@@ -740,7 +740,7 @@ If working with AI assistants (Cursor AI, Copilot, etc.):
 - Keep PRs small and focused on a single concern
 - Use contextual commit messages that align with your branch purpose
 - Manual review required - AI should not auto-commit or auto-push
-- See [`.cursor/rules/workspace.md`](.cursor/rules/workspace.md) for detailed guidelines
+- See [`.cursor/rules/workspace.md`](../../.cursor/rules/workspace.md) for detailed guidelines
 
 ### Commit Message Format
 ```

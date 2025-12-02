@@ -190,4 +190,4 @@ For future enhancements:
 
 - [docs/TESTING.md](../docs/TESTING.md) - Comprehensive testing guide
 - [docs/DEPLOYMENT_FIXES.md](../docs/DEPLOYMENT_FIXES.md) - Deployment fix details
-- [README.md](../README.md) - Updated with test instructions
+- [README.md](random/README.md) - Updated with test instructions

@@ -266,5 +266,5 @@ vim .env
 
 For detailed documentation, see:
 - [Production Deployment Guide](../PRODUCTION_DEPLOYMENT.md)
-- [Main README](../README.md)
+- [Main README](../docs/random/README.md)
 - [Deployment Docs](../docs/deployment/)

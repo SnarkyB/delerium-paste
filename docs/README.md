@@ -69,7 +69,7 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 
 ## ?? Quick Links
 
-- **Main README**: [../README.md](../README.md)
+- **Main README**: [../README.md](random/README.md)
 - **Security Checklist**: [security/CHECKLIST.md](security/CHECKLIST.md)
 - **Changelog**: [archive/CHANGELOG.md](archive/CHANGELOG.md)
 
@@ -116,7 +116,7 @@ This documentation is maintained alongside the codebase. When making changes:
 ## ?? Tips
 
 - Use the search function in your editor to find specific topics
-- Check the [main README](../README.md) for project overview
+- Check the [main README](random/README.md) for project overview
 - See [archive/CHANGELOG.md](archive/CHANGELOG.md) for recent changes
 
 ---
