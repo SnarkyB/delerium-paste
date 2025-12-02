@@ -60,19 +60,15 @@ test.describe('UI Snapshots', () => {
     });
   });
 
-  test('index page - password protection enabled', async ({ page }) => {
+  test('index page - password or PIN required', async ({ page }) => {
     await page.goto('/');
-    
-    // Enable password protection
-    await page.check('#usePassword');
-    
-    // Wait for password field to appear
+
     await page.waitForSelector('#passwordGroup', { state: 'visible' });
-    await page.fill('#password', 'test-password-123');
-    
+    await page.fill('#password', '1234');
+
     await page.waitForLoadState('networkidle');
-    
-    await expect(page).toHaveScreenshot('index-password-enabled.png', {
+
+    await expect(page).toHaveScreenshot('index-password-required.png', {
       fullPage: true,
       animations: 'disabled'
     });

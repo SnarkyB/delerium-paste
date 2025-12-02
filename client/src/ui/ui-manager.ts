@@ -56,18 +56,18 @@ export function showError(message: string): void {
 /**
  * Show success result
  */
-export function showSuccess(shareUrl: string, deleteUrl: string, isPasswordProtected: boolean = false): void {
+export function showSuccess(shareUrl: string, deleteUrl: string): void {
   const win = window as WindowWithUI;
   if (typeof win.showOutput === 'function') {
-    const title = isPasswordProtected ? 'Password-protected paste ready!' : 'Success! Your paste is ready';
-    const message = `Share this link with anyone you want to give access to:`;
+    const title = 'Password or PIN required to view';
+    const message = 'Share this link and provide the password or PIN separately.';
     win.showOutput(true, title, message, shareUrl);
   } else {
     // Fallback for old UI
     const out = document.getElementById('out');
     if (out) {
-      const title = isPasswordProtected ? 'Your password-protected paste is ready!' : 'Your secure paste is ready!';
-      out.textContent = `${title}\n\nShare URL:\n${shareUrl}`;
+      const title = 'Your protected paste is ready!';
+      out.textContent = `${title}\n\nShare URL:\n${shareUrl}\n\nRemember to send the password or PIN separately.`;
       out.style.color = '';
     }
   }

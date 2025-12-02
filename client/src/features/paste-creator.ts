@@ -3,7 +3,7 @@
  * 
  * Handles the complete paste creation workflow including:
  * - Form validation
- * - Encryption (regular or password-based)
+ * - Encryption (password or PIN-based)
  * - Proof-of-work solving
  * - API submission
  * - Success display
@@ -24,7 +24,6 @@ import {
 } from '../security.js';
 
 import { encodeBase64Url } from '../core/crypto/encoding.js';
-import { AesGcmCryptoProvider } from '../core/crypto/aes-gcm.js';
 import { HttpApiClient } from '../infrastructure/api/http-client.js';
 import { InlinePowSolver } from '../infrastructure/pow/inline-solver.js';
 import { storeDeleteToken } from '../utils/storage.js';
@@ -32,7 +31,6 @@ import { showLoading, showError, showSuccess } from '../ui/ui-manager.js';
 
 const apiClient = new HttpApiClient();
 const powSolver = new InlinePowSolver();
-const cryptoProvider = new AesGcmCryptoProvider();
 
 /**
  * Create a new paste
@@ -44,13 +42,12 @@ export async function createPaste(): Promise<void> {
   const views = parseInt((document.getElementById("views") as HTMLInputElement).value || "10", 10);
   const singleView = (document.getElementById("single") as HTMLInputElement).checked;
   const password = (document.getElementById("password") as HTMLInputElement).value;
-  const usePassword = (document.getElementById("usePassword") as HTMLInputElement).checked;
 
   // Privacy-preserving validation (without reading content)
   const contentValidation = validateContentSize(text);
   const expirationValidation = validateExpiration(mins);
   const viewValidation = validateViewCount(views);
-  const passwordValidation = usePassword ? validatePassword(password) : { isValid: true, errors: [] };
+  const passwordValidation = validatePassword(password);
 
   // Check for validation errors
   const allErrors = [
@@ -77,23 +74,11 @@ export async function createPaste(): Promise<void> {
   try {
     const expireTs = Math.floor(Date.now()/1000) + mins * 60;
     
-    let keyB64: string, ivB64: string, ctB64: string;
-    
-    if (usePassword) {
-      // Password-based encryption
-      showLoading(true, 'Encrypting with password...');
-      const { encryptedData, salt, iv } = await encryptWithPassword(text, password);
-      keyB64 = encodeBase64Url(salt); // Use salt as the "key" in the URL
-      ivB64 = encodeBase64Url(iv);
-      ctB64 = encodeBase64Url(encryptedData);
-    } else {
-      // Regular encryption
-      showLoading(true, 'Encrypting content...');
-      const encrypted = await cryptoProvider.encrypt(text);
-      keyB64 = encrypted.key;
-      ivB64 = encrypted.iv;
-      ctB64 = encrypted.ciphertext;
-    }
+    showLoading(true, 'Encrypting with password or PIN...');
+    const { encryptedData, salt, iv } = await encryptWithPassword(text, password);
+    const keyB64 = encodeBase64Url(salt); // Use salt as the "key" in the URL
+    const ivB64 = encodeBase64Url(iv);
+    const ctB64 = encodeBase64Url(encryptedData);
 
     // Solve proof-of-work challenge if enabled
     let pow = null;
@@ -134,16 +119,14 @@ export async function createPaste(): Promise<void> {
     storeDeleteToken(data.id, data.deleteToken);
     
     // Show success result
-    showSuccess(url, deleteUrl, usePassword);
+    showSuccess(url, deleteUrl);
     
     // Securely clear sensitive data from memory
     secureClear(text);
     secureClear(keyB64);
     secureClear(ivB64);
     secureClear(ctB64);
-    if (usePassword) {
-      secureClear(password);
-    }
+    secureClear(password);
     
   } catch (error) {
     showError(getSafeErrorMessage(error, 'paste creation'));
