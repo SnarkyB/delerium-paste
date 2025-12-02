@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Local deployment script for delerium-paste
-# This script sets up and runs the server locally
+# Local deployment script for delerium-paste (Bazel)
+# This script sets up and runs the server locally with Bazel
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+cd "$SCRIPT_DIR/.."
 
 # Create data directory if it doesn't exist
-mkdir -p data
+mkdir -p server/data
 
 # Set database path to local data directory
 export DB_PATH="jdbc:sqlite:${SCRIPT_DIR}/data/pastes.db"
@@ -20,13 +20,14 @@ if [ -z "$DELETION_TOKEN_PEPPER" ]; then
     echo "   For production, set DELETION_TOKEN_PEPPER explicitly."
 fi
 
-# Check if distribution is built
-if [ ! -d "build/install/delerium-paste" ]; then
-    echo "📦 Building distribution..."
-    ./gradlew installDist --no-daemon
+# Check if Bazel is installed
+if ! command -v bazel &> /dev/null; then
+    echo "❌ Bazel not found. Please install Bazelisk first:"
+    echo "   Run: ./scripts/setup-bazel.sh"
+    exit 1
 fi
 
-echo "🚀 Starting delerium-paste..."
+echo "🚀 Starting delerium-paste (Bazel)..."
 echo "   Database: ${DB_PATH}"
 echo "   Port: 8080"
 echo "   Access: http://localhost:8080"
@@ -34,5 +35,5 @@ echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-# Run the server
-exec ./build/install/delerium-paste/bin/delerium-paste
+# Run the server with Bazel
+exec bazel run //server:delerium_server

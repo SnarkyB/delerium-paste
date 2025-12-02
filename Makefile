@@ -1,7 +1,7 @@
 # Delirium - Zero-Knowledge Paste System
 # Makefile for local development and deployment
 
-.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop
+.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop bazel-setup build-server-bazel test-server-bazel run-server-bazel
 
 # Default target
 help:
@@ -28,6 +28,12 @@ help:
 	@echo "  make health-check  - Verify services are running"
 	@echo "  make quick-start   - First-time setup and start"
 	@echo "  make quick-start-headless - First-time setup for headless environments"
+	@echo ""
+	@echo "🔧 Bazel (Server Build):"
+	@echo "  make bazel-setup   - Install Bazelisk (one-time setup)"
+	@echo "  make build-server-bazel - Build server with Bazel"
+	@echo "  make test-server-bazel  - Run server tests with Bazel"
+	@echo "  make run-server-bazel   - Run server locally with Bazel"
 	@echo ""
 	@echo "🔒 Security:"
 	@echo "  make security-setup - Enhance security for headless environments"
@@ -259,3 +265,23 @@ prod-stop:
 	@echo "🛑 Stopping production..."
 	@chmod +x scripts/prod-stop.sh
 	./scripts/prod-stop.sh
+
+# Bazel-specific targets
+bazel-setup:
+	@echo "🔧 Setting up Bazel..."
+	@chmod +x scripts/setup-bazel.sh
+	./scripts/setup-bazel.sh
+
+build-server-bazel:
+	@echo "📦 Building server with Bazel..."
+	bazel build //server:delerium_server_deploy
+	@echo "✅ Server built"
+
+test-server-bazel:
+	@echo "🧪 Running server tests with Bazel..."
+	bazel test //server:all_tests --test_output=errors
+	@echo "✅ Tests completed"
+
+run-server-bazel:
+	@echo "🚀 Running server with Bazel..."
+	bazel run //server:delerium_server

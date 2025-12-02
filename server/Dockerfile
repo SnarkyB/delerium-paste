@@ -1,10 +1,36 @@
 # ---- builder ----
-FROM gradle:8.11.1-jdk21 AS builder
+FROM ubuntu:22.04 AS builder
+
+# Install dependencies for Bazel and Java
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        openjdk-21-jdk \
+        git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Bazelisk
+RUN curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64" && \
+    chmod +x bazelisk-linux-amd64 && \
+    mv bazelisk-linux-amd64 /usr/local/bin/bazel
 
 WORKDIR /build
-COPY build.gradle.kts settings.gradle.kts ./
-COPY src ./src
-RUN gradle --no-daemon clean installDist
+
+# Copy Bazel configuration files
+COPY WORKSPACE .bazelrc .bazelversion .bazelignore ./
+
+# Copy server source and BUILD files
+COPY server/ ./server/
+
+# Build with Bazel using CI configuration
+RUN bazel build //server:delerium_server_deploy --config=ci
+
+# Extract the binary JAR and create deployment structure
+RUN mkdir -p /app/bin /app/lib && \
+    cp bazel-bin/server/delerium_server_deploy.jar /app/lib/ && \
+    cp bazel-bin/server/delerium_server_deploy_deploy.jar /app/lib/delerium-paste.jar || \
+    cp bazel-bin/server/delerium_server_deploy.jar /app/lib/delerium-paste.jar
 
 # ---- runner ----
 FROM eclipse-temurin:21-jre-jammy
@@ -25,7 +51,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Copy application from builder
-COPY --from=builder /build/build/install/delerium-paste/ /app/
+COPY --from=builder /app/ /app/
 
 # Create non-root user and set permissions
 RUN groupadd -r delirium && \
@@ -44,4 +70,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8080/api/health || exit 1
 
-ENTRYPOINT ["/app/bin/delerium-paste"]
+ENTRYPOINT ["java", "-jar", "/app/lib/delerium-paste.jar"]
