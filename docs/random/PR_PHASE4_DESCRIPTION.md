@@ -256,8 +256,8 @@ After merge:
 ## Resources
 
 **Documentation:**
-- [BAZEL_QUICKSTART.md](docs/development/BAZEL_QUICKSTART.md) - Quick start guide
-- [BAZEL_MIGRATION.md](docs/development/BAZEL_MIGRATION.md) - Complete migration guide
+- [BAZEL_QUICKSTART.md](../development/BAZEL_QUICKSTART.md) - Quick start guide
+- [BAZEL_MIGRATION.md](../development/BAZEL_MIGRATION.md) - Complete migration guide
 
 **External:**
 - [Bazel Documentation](https://bazel.build/docs)

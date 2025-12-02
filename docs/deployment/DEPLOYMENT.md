@@ -374,4 +374,4 @@ services:
 - ?? See [Setup Guide](../getting-started/SETUP.md) for initial configuration
 - ?? Check [Security Checklist](../security/CHECKLIST.md) for security best practices
 - ?? Open an issue on GitHub for bugs or questions
-- ?? See [SSL Setup Guide](../SSL_SETUP_GUIDE.md) for detailed SSL configuration
+- ?? See [SSL Setup Guide](SSL_SETUP.md) for detailed SSL configuration

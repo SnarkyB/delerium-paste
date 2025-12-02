@@ -326,7 +326,7 @@ A: Yes! It uses `openssl rand` for cryptographic randomness and never logs secre
 
 ## Next Steps
 
-- 📖 Read the [README.md](../../README.md) for general documentation
+- 📖 Read the [README.md](../random/README.md) for general documentation
 - 🔒 Check [Security Documentation](../security/CHECKLIST.md) for security guidelines
 - 🚀 See [Deployment Guide](../deployment/DEPLOYMENT.md) for production deployment
 - 📝 Review [scripts/DEMO_SETUP.md](../../scripts/DEMO_SETUP.md) for setup examples
