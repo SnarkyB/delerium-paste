@@ -1,7 +1,8 @@
 services:
   server:
     build:
-      context: ./server
+      context: .
+      dockerfile: ./server/Dockerfile
     restart: unless-stopped
     environment:
       - DELETION_TOKEN_PEPPER=${DELETION_TOKEN_PEPPER}

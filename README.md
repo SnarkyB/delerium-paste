@@ -6,70 +6,106 @@ I got this idea from the cool people over at PrivateBin and the old school paste
 
 HACK THE PLANET!
 
-## 🚀 Quick Deploy to VPS
+## 🚀 Quick Deploy
 
-Deploy to a fresh VPS in under 5 minutes:
+### One-Command Deployment
 
+Delirium includes a unified deployment script that handles all scenarios:
+
+```bash
+# Local development (port 8080)
+./deploy.sh local
+
+# VPS setup with SSL (ports 80/443)
+./deploy.sh vps-setup example.com admin@example.com
+
+# Production deployment (existing setup)
+./deploy.sh production
+
+# Update existing deployment
+./deploy.sh update
+```
+
+### Quick Start Guide
+
+**For Local Development:**
+```bash
+git clone https://github.com/marcusb333/delerium-paste.git
+cd delerium-paste
+./deploy.sh local
+```
+Access at `http://localhost:8080`
+
+**For VPS Production:**
 ```bash
 # SSH into your VPS
-ssh root@your-vps-ip
+ssh user@your-vps-ip
 
-# Run the one-command installer
-curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
-```
-
-**That's it!** The script will:
-- ✅ Install Docker and dependencies
-- ✅ Clone and build the application
-- ✅ Configure SSL with Let's Encrypt
-- ✅ Start the service on ports 80/443
-- ✅ Set up automatic certificate renewal
-
-**Requirements:**
-- Ubuntu 22.04+ or Debian 11+ VPS
-- Domain name pointed to your VPS IP
-- At least 1GB RAM, 1 CPU core, 10GB disk
-
-**Without a domain?** Skip SSL and run on port 8080:
-```bash
-curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste/main/scripts/vps-deploy.sh | bash
-```
-
-📖 **Detailed deployment guide:** [docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)
-
-## 💻 Local Development Setup
-
-Get started locally in 2 minutes:
-
-```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/marcusb333/delerium-paste.git
 cd delerium-paste
 
-# One-command setup and start
-make quick-start
+# Run VPS setup (installs Docker, SSL, etc.)
+./deploy.sh vps-setup your-domain.com your@email.com
 ```
+Access at `https://your-domain.com`
 
-**That's it!** The application will open at `http://localhost:8080`
+### Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `./deploy.sh local` | Deploy locally for development (port 8080) |
+| `./deploy.sh vps-setup <domain> <email>` | Initial VPS setup with SSL |
+| `./deploy.sh production` | Deploy to production (existing setup) |
+| `./deploy.sh update` | Update and redeploy (git pull + rebuild) |
+| `./deploy.sh status` | Check deployment status |
+| `./deploy.sh logs` | View application logs |
+| `./deploy.sh stop` | Stop all services |
+| `./deploy.sh clean` | Stop services and remove volumes |
+| `./deploy.sh help` | Show detailed help |
+
+### What the Script Does
+
+**Local Deployment:**
+- ✅ Creates secure `.env` file
+- ✅ Builds frontend client
+- ✅ Starts Docker containers
+- ✅ Runs on `http://localhost:8080`
+
+**VPS Setup:**
+- ✅ Installs Docker and dependencies
+- ✅ Configures firewall (ports 22, 80, 443)
+- ✅ Obtains SSL certificate from Let's Encrypt
+- ✅ Builds and deploys application
+- ✅ Sets up automatic SSL renewal
+- ✅ Runs on `https://your-domain.com`
 
 **Requirements:**
-- Docker and Docker Compose
-- Node.js 18+ (for building the client)
-- Make (optional, can use docker compose directly)
+- **Local:** Docker, Docker Compose, Node.js 18+
+- **VPS:** Ubuntu 22.04+/Debian 11+, Domain pointed to server IP, 1GB RAM, 1 CPU, 10GB disk
 
-**Manual start:**
+📖 **Detailed deployment guide:** [docs/deployment/DEPLOYMENT.md](docs/deployment/DEPLOYMENT.md)
+
+## 💻 Alternative: Make Commands
+
+If you prefer using Make, traditional commands are still available:
+
 ```bash
-# Build client
-cd client && npm install && npm run build && cd ..
+# Quick start (builds and starts everything)
+make quick-start
 
-# Start services
-docker compose up -d
+# Development mode with hot-reload
+make dev
 
-# View logs
-docker compose logs -f
+# Run tests
+make test
+
+# Stop services
+make stop
+
+# Clean everything
+make clean
 ```
-
-ℹ️ The default compose file now runs the stack over plain HTTP on port `8080` for local development, so you can bootstrap without SSL certificates. When you're ready to run behind HTTPS, switch to `docker-compose.prod.yml` (see below).
 
 📖 **Development guide:** [docs/development/](docs/development/)
 
@@ -291,72 +327,77 @@ The wizard will:
 
 📖 **See [docs/getting-started/SETUP.md](docs/getting-started/SETUP.md) for detailed instructions.**
 
-### Headless Environment Setup
-
-For servers without a display:
-
-```bash
-make quick-start-headless
-# or
-HEADLESS=1 make quick-start
-```
-
 ### Development Mode with Hot-Reload
 
-For active development:
+For active development with automatic recompilation:
 
 ```bash
 make dev
+# or
+./deploy.sh local
 ```
 
 This starts:
-- Backend API and Nginx Web Proxy in Docker with development configuration
+- Backend API and Nginx Web Proxy in Docker
 - TypeScript in watch mode for instant recompilation
 - Full stack accessible at http://localhost:8080
 - Combined logging for easy debugging
 
-### Common Development Commands
+### Deployment Script Details
+
+The `deploy.sh` script consolidates all deployment workflows:
 
 ```bash
-# Start everything
-make start
+# Get detailed help
+./deploy.sh help
 
-# Development mode with hot-reload
-make dev
+# Check what's running
+./deploy.sh status
+
+# View logs in real-time
+./deploy.sh logs
+
+# Update and redeploy
+./deploy.sh update
+```
+
+**Script Features:**
+- 🎯 Single entry point for all deployments
+- 🔍 Auto-detects environment (local vs production)
+- ✅ Validates prerequisites before running
+- 🛡️ Prevents running as root
+- 📊 Clear status reporting
+- 🔄 Handles updates automatically
+
+### Common Management Commands
+
+Using the unified deployment script:
+
+```bash
+# Check deployment status
+./deploy.sh status
+
+# View live logs
+./deploy.sh logs
+
+# Update to latest version
+./deploy.sh update
 
 # Stop services
-make stop
+./deploy.sh stop
 
-# Restart services
-make restart
-
-# View logs
-make logs
-
-# Run tests
-make test
-
-# Build client only
-make build-client
-
-# Health check
-make health-check
-
-# Clean up everything
-make clean
+# Clean everything (including volumes)
+./deploy.sh clean
 ```
 
-### Stopping the Application
-
+Or using Make:
 ```bash
-make stop
-# or manually: docker-compose down
-```
-
-To remove volumes as well:
-```bash
-make clean
-# or manually: docker-compose down -v
+make start          # Start services
+make stop           # Stop services
+make logs           # View logs
+make restart        # Restart services
+make health-check   # Check health
+make clean          # Clean everything
 ```
 
 ## 🔐 Security Features
