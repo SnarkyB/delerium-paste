@@ -10,10 +10,16 @@ RUN apt-get update && \
         git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Bazelisk
-RUN curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64" && \
-    chmod +x bazelisk-linux-amd64 && \
-    mv bazelisk-linux-amd64 /usr/local/bin/bazel
+# Install Bazelisk with architecture detection
+RUN ARCH=$(uname -m) && \
+    case $ARCH in \
+        x86_64) BAZELISK_ARCH="amd64" ;; \
+        aarch64|arm64) BAZELISK_ARCH="arm64" ;; \
+        *) echo "Unsupported architecture: $ARCH"; exit 1 ;; \
+    esac && \
+    curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-${BAZELISK_ARCH}" && \
+    chmod +x "bazelisk-linux-${BAZELISK_ARCH}" && \
+    mv "bazelisk-linux-${BAZELISK_ARCH}" /usr/local/bin/bazel
 
 WORKDIR /build
 

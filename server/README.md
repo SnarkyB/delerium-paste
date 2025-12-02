@@ -39,30 +39,39 @@ The server will be available at `http://localhost:8080`
 #### Prerequisites
 
 - JDK 21 or higher
-- Gradle 8.x (included via wrapper)
+- Bazelisk (Bazel version manager)
+
+Install Bazelisk:
+```bash
+# macOS
+brew install bazelisk
+
+# Linux
+../scripts/setup-bazel.sh
+
+# Or use Make target from project root
+make bazel-setup
+```
 
 #### Build and Run
 
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd delerium-paste/server
+cd delerium-paste
 
 # Build the project
-./gradlew build
+bazel build //server:delerium_server_deploy
 
 # Run the server
-./gradlew run
+bazel run //server:delerium_server
 ```
 
-Or run the JAR directly:
-
+Or use the convenience scripts:
 ```bash
-# Build distribution
-./gradlew installDist
-
-# Run from distribution
-./build/install/delerium-paste/bin/delerium-paste
+# From project root
+make build-server-bazel
+make run-server-bazel
 ```
 
 ## Configuration
@@ -241,37 +250,47 @@ server {
 #### Prerequisites
 
 - JDK 21+
-- Gradle (included via wrapper)
+- Bazelisk (Bazel version manager) - Install with `make bazel-setup`
 
 #### Build Steps
 
 ```bash
-# Clean previous builds
-./gradlew clean
+# From project root
+cd /path/to/delerium-paste
 
-# Build project (includes tests)
-./gradlew build
+# Build project
+bazel build //server:delerium_server_deploy
 
-# Run tests only
-./gradlew test
-
-# Create distribution
-./gradlew installDist
+# Run tests
+bazel test //server:all_tests
 
 # Run application
-./gradlew run
+bazel run //server:delerium_server
+
+# Clean build artifacts
+bazel clean
 ```
 
-#### Distribution Structure
+#### Using Make Targets
 
-After `installDist`, the distribution is available at:
+```bash
+# Build server
+make build-server-bazel
+
+# Run tests
+make test-server-bazel
+
+# Run server
+make run-server-bazel
 ```
-build/install/delerium-paste/
-├── bin/
-│   ├── delerium-paste      # Unix script
-│   └── delerium-paste.bat  # Windows script
-└── lib/
-    └── *.jar                      # Application and dependencies
+
+#### Build Artifacts
+
+After building, artifacts are available at:
+```
+bazel-bin/server/
+├── delerium_server              # Executable binary
+└── delerium_server_deploy.jar   # Deployable JAR with dependencies
 ```
 
 ## API Endpoints
@@ -440,20 +459,29 @@ kill $(lsof -ti:8080)
 
 ### Local Development Tips
 
-1. **Auto-reload**: Use `./gradlew run` for development with hot reload
+1. **Quick start**: Use `bazel run //server:delerium_server` for fast iteration
 2. **Logs**: Check console output for server logs
 3. **Database**: The SQLite database is created automatically on first run
-4. **Testing**: Run tests with `./gradlew test`
+4. **Testing**: Run tests with `bazel test //server:all_tests --test_output=errors`
 5. **Port conflicts**: If port 8080 is in use, modify `application.conf`
+6. **Incremental builds**: Bazel only rebuilds changed files (very fast!)
 
 ### Running Tests
 
 ```bash
 # Run all tests
-./gradlew test
+bazel test //server:all_tests
+
+# Run specific test suite
+bazel test //server:routes_tests
+bazel test //server:integration_tests
+bazel test //server:storage_test
 
 # Run with coverage
-./gradlew test jacocoTestReport
+bazel coverage //server:all_tests
+
+# Run with detailed output
+bazel test //server:all_tests --test_output=all
 ```
 
 ### Project Structure
@@ -474,10 +502,12 @@ server/
 │   │       └── application.conf # Configuration
 │   └── test/
 │       └── kotlin/
-│           └── StorageTest.kt  # Tests
-├── build.gradle.kts
+│           ├── routes/         # Route tests
+│           ├── integration/    # Integration tests
+│           └── StorageTest.kt  # Unit tests
+├── BUILD.bazel                 # Bazel build configuration
 ├── Dockerfile
-└── docker-build.sh
+└── bazel-build.sh             # Helper build script
 ```
 
 ## Publishing Container Images
@@ -515,9 +545,10 @@ See [docs/CONTAINER_PUBLISHING.md](docs/CONTAINER_PUBLISHING.md) for detailed in
 ### Build failures
 
 - Ensure JDK 21+ is installed: `java -version`
+- Ensure Bazel is installed: `bazel --version`
 - Check network connectivity for dependencies
 - Review build logs for specific errors
-- Try: `./gradlew clean build`
+- Try: `bazel clean --expunge && bazel build //server:delerium_server_deploy`
 
 ### Performance issues
 

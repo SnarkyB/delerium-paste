@@ -232,9 +232,10 @@ zkpaste-full-docker/
 - **Supertest**: API testing
 
 ### Backend
-- **Kotlin**: JVM-based server development
-- **Ktor**: Lightweight web framework
-- **Gradle**: Build automation
+- **Kotlin**: Server implementation language
+- **Ktor**: Async web framework
+- **Exposed**: Type-safe SQL framework
+- **Bazel**: Build system (hermetic, fast, reproducible)
 - **Docker**: Containerization
 
 ### Infrastructure
@@ -440,7 +441,7 @@ The project includes comprehensive tests for CORS handling and deployment:
 
 ```bash
 # Backend CORS integration tests
-cd server && ./gradlew test --tests "integration.CorsIntegrationTest"
+bazel test //server:integration_tests
 
 # End-to-end deployment tests (requires running Docker services)
 ./scripts/test-deployment-cors.sh
@@ -510,7 +511,7 @@ npx playwright install --with-deps
 - ✅ **Security Audit** - npm vulnerability scanning
 
 #### Backend Checks
-- ✅ **Gradle Build** - Kotlin compilation and build
+- ✅ **Bazel Build** - Kotlin compilation and build
 - ✅ **Unit Tests** - Kotlin/Ktor test suite
 - ✅ **Dependency Check** - OWASP security scanning
 
@@ -593,7 +594,7 @@ The server Docker image includes several production-ready enhancements:
 - **Push to registry**: `make push-multiarch REGISTRY=ghcr.io/username TAG=v1.0.0`
 
 **📦 Image Details**
-- **Base**: Gradle 8.11.1 + JDK 21 (builder), Eclipse Temurin 21 JRE (runtime)
+- **Base**: Bazel 7.4.0 + JDK 21 (builder), Eclipse Temurin 21 JRE (runtime)
 - **Size**: Optimized multi-stage build (< 300MB)
 - **Registry**: Available on GitHub Container Registry (GHCR)
 
@@ -654,7 +655,7 @@ The project includes a comprehensive PR quality gates workflow (`.github/workflo
 - **Security Audit**: npm dependency vulnerability scanning
 
 #### Backend Quality Gates
-- **Gradle Build**: Kotlin compilation and build validation
+- **Bazel Build**: Kotlin compilation and build validation
 - **Unit Tests**: Kotlin/Ktor test suite execution
 - **OWASP Dependency Check**: Security vulnerability scanning (optional)
 
@@ -668,7 +669,7 @@ The project includes a comprehensive PR quality gates workflow (`.github/workflo
 - ✅ ESLint checks must pass
 - ✅ Code coverage must meet 85% threshold
 - ✅ No moderate or higher security vulnerabilities
-- ✅ Gradle build must complete successfully
+- ✅ Bazel build must complete successfully
 
 ## 🤝 Contributing
 
