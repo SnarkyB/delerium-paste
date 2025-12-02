@@ -329,5 +329,5 @@ After verification:
 ## References
 
 - [Main PoW Documentation](../architecture/PROOF_OF_WORK.md)
-- [Testing Guide](../TEST_COVERAGE_RULES.md)
-- [Deployment Guide](DEPLOYMENT.md)
+- [Testing Guide](../TESTING.md)
+- [Deployment Guide](../deployment/DEPLOYMENT.md)

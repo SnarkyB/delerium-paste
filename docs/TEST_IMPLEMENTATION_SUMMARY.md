@@ -188,6 +188,6 @@ For future enhancements:
 
 ## See Also
 
-- [docs/TESTING.md](../docs/TESTING.md) - Comprehensive testing guide
-- [docs/DEPLOYMENT_FIXES.md](../docs/DEPLOYMENT_FIXES.md) - Deployment fix details
-- [README.md](random/README.md) - Updated with test instructions
+- [TESTING.md](TESTING.md) - Comprehensive testing guide
+- [DEPLOYMENT_FIXES.md](DEPLOYMENT_FIXES.md) - Deployment fix details
+- [README.md](../random/README.md) - Updated with test instructions

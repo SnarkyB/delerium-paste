@@ -6,7 +6,7 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 
 ### Getting Started
 
-- **[Setup Guide](getting-started/SETUP.md)** - Configure secrets and get started locally
+- **[Setup Guide](docs/getting-started/SETUP.md)** - Configure secrets and get started locally
   - Interactive setup wizard
   - Manual configuration
   - Security best practices
@@ -14,19 +14,19 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 
 ### Deployment
 
-- **[Deployment Guide](deployment/DEPLOYMENT.md)** - Deploy to production VPS
+- **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Deploy to production VPS
   - Quick deployment options
   - Manual deployment steps
   - SSL/TLS setup
   - Monitoring and backups
   - Troubleshooting
 
-- **[SSL Setup Guide](deployment/SSL_SETUP.md)** - Detailed SSL/TLS configuration
+- **[SSL Setup Guide](docs/deployment/SSL_SETUP.md)** - Detailed SSL/TLS configuration
   - Let's Encrypt setup
   - Certificate renewal
   - Nginx SSL configuration
 
-- **[Multi-Architecture Deployment](deployment/multi-architecture.md)** - Build for multiple CPU architectures
+- **[Multi-Architecture Deployment](docs/deployment/multi-architecture.md)** - Build for multiple CPU architectures
   - AMD64 and ARM64 support
   - Local multi-arch builds
   - CI/CD integration
@@ -40,7 +40,7 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 
 ### Architecture
 
-- **[C4 Architecture Diagrams](architecture/C4-DIAGRAMS.md)** - System architecture documentation
+- **[C4 Architecture Diagrams](docs/architecture/C4-DIAGRAMS.md)** - System architecture documentation
   - System context
   - Container diagrams
   - Component diagrams
@@ -48,7 +48,7 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 
 ### Development
 
-- **[PR Guide](prs/README.md)** - Pull request workflow and guidelines
+- **[PR Guide](docs/prs/README.md)** - Pull request workflow and guidelines
   - PR series overview
   - Review process
   - Development workflow
@@ -69,24 +69,24 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 
 ## ?? Quick Links
 
-- **Main README**: [../README.md](random/README.md)
-- **Security Checklist**: [security/CHECKLIST.md](security/CHECKLIST.md)
+- **Main README**: [../README.md](docs/random/README.md)
+- **Security Checklist**: [security/CHECKLIST.md](docs/security/CHECKLIST.md)
 - **Changelog**: [archive/CHANGELOG.md](archive/CHANGELOG.md)
 
 ## ?? Documentation by Role
 
 ### For Users
-- [Setup Guide](getting-started/SETUP.md) - Get started quickly
+- [Setup Guide](docs/getting-started/SETUP.md) - Get started quickly
 
 ### For DevOps/Deployers
-- [Deployment Guide](deployment/DEPLOYMENT.md) - Production deployment
-- [SSL Setup Guide](deployment/SSL_SETUP.md) - SSL configuration
-- [Multi-Architecture Deployment](deployment/multi-architecture.md) - Multi-arch builds
+- [Deployment Guide](docs/deployment/DEPLOYMENT.md) - Production deployment
+- [SSL Setup Guide](docs/deployment/SSL_SETUP.md) - SSL configuration
+- [Multi-Architecture Deployment](docs/deployment/multi-architecture.md) - Multi-arch builds
 - [Automated Deployment](AUTO_DEPLOYMENT.md) - CI/CD setup
 
 ### For Developers
-- [Architecture Diagrams](architecture/C4-DIAGRAMS.md) - System design
-- [PR Guide](prs/README.md) - Contribution workflow
+- [Architecture Diagrams](docs/architecture/C4-DIAGRAMS.md) - System design
+- [PR Guide](docs/prs/README.md) - Contribution workflow
 - [Testing Guide](../../client/tests/README.md) - Testing practices
 
 ### For Contributors
@@ -96,12 +96,12 @@ Welcome to the Delirium documentation! This index will help you find what you ne
 ## ?? Finding Documentation
 
 ### Need to...
-- **Set up locally?** ? [Setup Guide](getting-started/SETUP.md)
-- **Deploy to production?** ? [Deployment Guide](deployment/DEPLOYMENT.md)
-- **Configure SSL?** ? [SSL Setup Guide](deployment/SSL_SETUP.md)
-- **Build for ARM/AMD64?** ? [Multi-Architecture Guide](deployment/multi-architecture.md)
-- **Understand the architecture?** ? [C4 Diagrams](architecture/C4-DIAGRAMS.md)
-- **Contribute code?** ? [PR Guide](prs/README.md)
+- **Set up locally?** ? [Setup Guide](docs/getting-started/SETUP.md)
+- **Deploy to production?** ? [Deployment Guide](docs/deployment/DEPLOYMENT.md)
+- **Configure SSL?** ? [SSL Setup Guide](docs/deployment/SSL_SETUP.md)
+- **Build for ARM/AMD64?** ? [Multi-Architecture Guide](docs/deployment/multi-architecture.md)
+- **Understand the architecture?** ? [C4 Diagrams](docs/architecture/C4-DIAGRAMS.md)
+- **Contribute code?** ? [PR Guide](docs/prs/README.md)
 - **Set up CI/CD?** ? [Automated Deployment](AUTO_DEPLOYMENT.md)
 
 ## ?? Documentation Maintenance
@@ -116,7 +116,7 @@ This documentation is maintained alongside the codebase. When making changes:
 ## ?? Tips
 
 - Use the search function in your editor to find specific topics
-- Check the [main README](random/README.md) for project overview
+- Check the [main README](docs/random/README.md) for project overview
 - See [archive/CHANGELOG.md](archive/CHANGELOG.md) for recent changes
 
 ---

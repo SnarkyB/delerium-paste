@@ -207,7 +207,7 @@ We're migrating from a monolithic to a modular architecture through **13 increme
 
 **See Full Architecture**:
 - [`docs/architecture/C4-DIAGRAMS.md`](../architecture/C4-DIAGRAMS.md) - Complete C4 model with all levels
-- [`REFACTORING-PLAN.md`](REFACTORING-PLAN.md) - Migration strategy (13 PRs)
+- [`REFACTORING-PLAN.md`](../development/REFACTORING-PLAN.md) - Migration strategy (13 PRs)
 - [`docs/prs/README.md`](../prs/README.md) - PR series overview
 
 ### Deployment
@@ -498,7 +498,7 @@ These tests verify that:
 - ✅ Security headers are correctly configured
 - ✅ Form fields have proper accessibility attributes
 
-📖 **Detailed testing guide:** [docs/TESTING.md](../TESTING.md)
+📖 **Detailed testing guide:** [TESTING.md](../TESTING.md)
 
 ## ✅ Local CI Verification
 
@@ -740,7 +740,7 @@ If working with AI assistants (Cursor AI, Copilot, etc.):
 - Keep PRs small and focused on a single concern
 - Use contextual commit messages that align with your branch purpose
 - Manual review required - AI should not auto-commit or auto-push
-- See [`.cursor/rules/workspace.md`](../../.cursor/rules/workspace.md) for detailed guidelines
+- See [`.cursorrules`](../../.cursorrules) for detailed guidelines
 
 ### Commit Message Format
 ```
@@ -788,7 +788,7 @@ Example: `feat: add rate limiting to paste creation endpoint`
 - [Jest Testing Framework](https://jestjs.io/docs/getting-started)
 - [Playwright Testing](https://playwright.dev/docs/intro)
 - [Docker Documentation](https://docs.docker.com/)
-- [Cursor IDE Rules Migration](CURSOR_MIGRATION.md) - Guide for migrating to new Cursor Rules feature
+- [Cursor IDE Rules Migration](../contributing/CURSOR_MIGRATION.md) - Guide for migrating to new Cursor Rules feature
 
 ## 📄 License
 

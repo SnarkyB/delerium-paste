@@ -189,7 +189,7 @@ The workspace rules now include comprehensive guidelines for working with AI ass
 - **Contextual Commits**: Commit messages must align with branch purpose
 - **Explicit Confirmation**: Developer must explicitly request git operations
 
-See [`.cursor/rules/workspace.md`](.cursor/rules/workspace.md) for complete guidelines on:
+See [`.cursorrules`](../../.cursorrules) for complete guidelines on:
 - Pull request philosophy and sizing
 - Commit message conventions
 - Breaking down large tasks
