@@ -1,0 +1,57 @@
+# Bazel configuration for Delirium Paste
+
+# Java/Kotlin version configuration
+build --java_language_version=21
+build --java_runtime_version=remotejdk_21
+build --tool_java_language_version=21
+build --tool_java_runtime_version=remotejdk_21
+
+# Kotlin settings
+build --kotlin_jvm_target=21
+
+# Performance optimizations
+build --worker_sandboxing
+build --experimental_worker_cancellation
+build --experimental_reuse_sandbox_directories
+
+# Increase worker resources
+build --worker_max_instances=4
+
+# Test output configuration
+test --test_output=errors
+test --test_summary=detailed
+
+# Coverage settings
+coverage --combined_report=lcov
+coverage --experimental_generate_llvm_lcov
+coverage --instrumentation_filter="//server[/:]"
+
+# CI-specific settings
+build:ci --loading_phase_threads=1
+build:ci --jobs=2
+build:ci --verbose_failures
+build:ci --show_timestamps
+build:ci --test_output=errors
+build:ci --noshow_progress
+
+# Local development settings
+build:local --keep_going
+build:local --test_output=streamed
+build:local --show_timestamps
+
+# Debug configuration
+build:debug --compilation_mode=dbg
+build:debug --strip=never
+build:debug --test_output=all
+
+# Release configuration
+build:release --compilation_mode=opt
+build:release --strip=always
+
+# Remote cache configuration (optional - configure as needed)
+# build:remote --remote_cache=grpc://your-cache-server:9092
+# build:remote --experimental_remote_cache_compression
+# build:remote --remote_timeout=60s
+
+# Try importing user-specific settings
+try-import %workspace%/.bazelrc.user

@@ -111,3 +111,8 @@ gradle-app.setting
 # Kotlin
 *.kt.swp
 *.kt.swo
+
+# Bazel build artifacts
+bazel-*
+.bazel
+.bazelrc.user
