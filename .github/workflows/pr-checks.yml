@@ -79,12 +79,12 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: ./client
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: (steps.playwright-cache.outputs.cache-hit != 'true') && (startsWith(github.base_ref, 'release') || startsWith(github.head_ref, 'release'))
         run: npx playwright install --with-deps
 
       - name: Install Playwright system dependencies
         working-directory: ./client
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        if: (steps.playwright-cache.outputs.cache-hit == 'true') && (startsWith(github.base_ref, 'release') || startsWith(github.head_ref, 'release'))
         run: npx playwright install-deps
 
       - name: Lint (frontend)
@@ -105,11 +105,12 @@ jobs:
       #   run: npx jest --config jest.integration.config.js
       #   Note: Temporarily disabled due to supertest v7 compatibility issues with mock server
       
-      # TODO: Re-enable E2E tests once webkit timing issues resolved (see issue #19)
-      # - name: E2E Tests (frontend)
-      #   working-directory: ./client
-      #   run: npx playwright test
-      #   Note: Temporarily disabled due to webkit timing issues (see #19)
+      - name: E2E Tests (frontend)
+        working-directory: ./client
+        if: startsWith(github.base_ref, 'release') || startsWith(github.head_ref, 'release')
+        run: npx playwright test
+        env:
+          CI: true
 
       - name: Coverage Report (frontend)
         working-directory: ./client
@@ -120,8 +121,12 @@ jobs:
         run: |
           # Adjust the threshold as needed
           THRESHOLD=85
-          # Extract coverage percentage using awk (more reliable than grep -oP)
-          COVERAGE=$(grep -i "All files" coverage/lcov-report/index.html | awk -F'|' '{print $NF}' | grep -oE '[0-9]+\.?[0-9]*' | head -1)
+          # Extract statements coverage percentage from HTML (first percentage after "All files")
+          COVERAGE=$(grep -A 10 "All files" coverage/lcov-report/index.html | grep -oE 'class="strong">[0-9]+\.[0-9]+%' | head -1 | grep -oE '[0-9]+\.[0-9]+')
+          if [ -z "$COVERAGE" ]; then
+            echo "Failed to extract coverage percentage"
+            exit 1
+          fi
           echo "Detected coverage: $COVERAGE%"
           # Use awk for floating point comparison (bc might not be installed)
           COMPARE=$(echo "$COVERAGE $THRESHOLD" | awk '{if ($1 < $2) print 1; else print 0}')
