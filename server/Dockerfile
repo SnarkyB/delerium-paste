@@ -10,10 +10,16 @@ RUN apt-get update && \
         git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Bazelisk
-RUN curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64" && \
-    chmod +x bazelisk-linux-amd64 && \
-    mv bazelisk-linux-amd64 /usr/local/bin/bazel
+# Install Bazelisk with architecture detection
+RUN ARCH=$(uname -m) && \
+    case $ARCH in \
+        x86_64) BAZELISK_ARCH="amd64" ;; \
+        aarch64|arm64) BAZELISK_ARCH="arm64" ;; \
+        *) echo "Unsupported architecture: $ARCH"; exit 1 ;; \
+    esac && \
+    curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-${BAZELISK_ARCH}" && \
+    chmod +x "bazelisk-linux-${BAZELISK_ARCH}" && \
+    mv "bazelisk-linux-${BAZELISK_ARCH}" /usr/local/bin/bazel
 
 WORKDIR /build
 
@@ -26,11 +32,9 @@ COPY server/ ./server/
 # Build with Bazel using CI configuration
 RUN bazel build //server:delerium_server_deploy --config=ci
 
-# Extract the binary JAR and create deployment structure
-RUN mkdir -p /app/bin /app/lib && \
-    cp bazel-bin/server/delerium_server_deploy.jar /app/lib/ && \
-    cp bazel-bin/server/delerium_server_deploy_deploy.jar /app/lib/delerium-paste.jar || \
-    cp bazel-bin/server/delerium_server_deploy.jar /app/lib/delerium-paste.jar
+# Extract the deploy JAR (uber jar with all dependencies)
+RUN mkdir -p /app/lib && \
+    cp bazel-bin/server/delerium_server_deploy_deploy.jar /app/lib/delerium-paste.jar
 
 # ---- runner ----
 FROM eclipse-temurin:21-jre-jammy

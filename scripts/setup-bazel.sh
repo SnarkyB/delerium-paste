@@ -26,21 +26,44 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "🐧 Linux detected - installing Bazelisk binary..."
     
+    # Detect architecture
+    ARCH=$(uname -m)
+    case $ARCH in
+        x86_64)
+            BAZELISK_ARCH="amd64"
+            ;;
+        aarch64|arm64)
+            BAZELISK_ARCH="arm64"
+            ;;
+        *)
+            echo "❌ Unsupported architecture: $ARCH"
+            echo "Supported: x86_64 (amd64), aarch64/arm64"
+            echo "Please install manually from: https://github.com/bazelbuild/bazelisk/releases"
+            exit 1
+            ;;
+    esac
+    
     # Download Bazelisk
     BAZELISK_VERSION="v1.19.0"
-    BAZELISK_URL="https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64"
+    BAZELISK_BINARY="bazelisk-linux-${BAZELISK_ARCH}"
+    BAZELISK_URL="https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/${BAZELISK_BINARY}"
     
-    echo "📥 Downloading Bazelisk ${BAZELISK_VERSION}..."
-    curl -LO "$BAZELISK_URL"
-    chmod +x bazelisk-linux-amd64
+    echo "📥 Downloading Bazelisk ${BAZELISK_VERSION} for ${ARCH} (${BAZELISK_ARCH})..."
+    if ! curl -LO "$BAZELISK_URL"; then
+        echo "❌ Failed to download Bazelisk"
+        echo "URL: $BAZELISK_URL"
+        exit 1
+    fi
+    
+    chmod +x "$BAZELISK_BINARY"
     
     # Install to user's local bin if no sudo, otherwise system-wide
     if [ -w /usr/local/bin ]; then
-        sudo mv bazelisk-linux-amd64 /usr/local/bin/bazel
+        sudo mv "$BAZELISK_BINARY" /usr/local/bin/bazel
         echo "✅ Installed to /usr/local/bin/bazel"
     else
         mkdir -p "$HOME/.local/bin"
-        mv bazelisk-linux-amd64 "$HOME/.local/bin/bazel"
+        mv "$BAZELISK_BINARY" "$HOME/.local/bin/bazel"
         echo "✅ Installed to $HOME/.local/bin/bazel"
         echo "⚠️  Make sure $HOME/.local/bin is in your PATH"
         echo "   Add to ~/.bashrc or ~/.zshrc:"
