@@ -1,0 +1,115 @@
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_binary", "kt_jvm_test")
+
+# Main server library
+kt_jvm_library(
+    name = "delerium_server_lib",
+    srcs = glob([
+        "src/main/kotlin/*.kt",
+    ]),
+    resources = glob([
+        "src/main/resources/**/*",
+    ]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "@maven//:io_ktor_ktor_server_core_jvm",
+        "@maven//:io_ktor_ktor_server_netty_jvm",
+        "@maven//:io_ktor_ktor_server_content_negotiation_jvm",
+        "@maven//:io_ktor_ktor_serialization_jackson_jvm",
+        "@maven//:io_ktor_ktor_server_cors_jvm",
+        "@maven//:io_ktor_ktor_server_compression_jvm",
+        "@maven//:io_ktor_ktor_server_call_logging_jvm",
+        "@maven//:io_ktor_ktor_server_rate_limit_jvm",
+        "@maven//:org_apache_logging_log4j_log4j_core",
+        "@maven//:org_apache_logging_log4j_log4j_slf4j2_impl",
+        "@maven//:org_jetbrains_exposed_exposed_core",
+        "@maven//:org_jetbrains_exposed_exposed_dao",
+        "@maven//:org_jetbrains_exposed_exposed_jdbc",
+        "@maven//:com_zaxxer_HikariCP",
+        "@maven//:org_xerial_sqlite_jdbc",
+        "@maven//:org_bouncycastle_bcprov_jdk18on",
+    ],
+)
+
+# Executable binary
+kt_jvm_binary(
+    name = "delerium_server",
+    main_class = "io.ktor.server.netty.EngineMain",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":delerium_server_lib"],
+)
+
+# Deployable JAR (with all dependencies)
+java_binary(
+    name = "delerium_server_deploy",
+    main_class = "io.ktor.server.netty.EngineMain",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":delerium_server_lib"],
+)
+
+# Test utilities library
+kt_jvm_library(
+    name = "test_utils",
+    srcs = ["src/test/kotlin/TestUtils.kt"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":delerium_server_lib",
+        "@maven//:io_ktor_ktor_server_test_host_jvm",
+        "@maven//:com_fasterxml_jackson_module_jackson_module_kotlin",
+    ],
+)
+
+# Route tests
+kt_jvm_test(
+    name = "routes_tests",
+    size = "small",
+    srcs = glob(["src/test/kotlin/routes/*.kt"]),
+    test_class = "routes.HealthRouteTest",
+    deps = [
+        ":delerium_server_lib",
+        ":test_utils",
+        "@maven//:junit_junit",
+        "@maven//:org_jetbrains_kotlin_kotlin_test_junit",
+        "@maven//:io_ktor_ktor_server_test_host_jvm",
+        "@maven//:com_fasterxml_jackson_module_jackson_module_kotlin",
+    ],
+)
+
+# Integration tests
+kt_jvm_test(
+    name = "integration_tests",
+    size = "medium",
+    srcs = glob(["src/test/kotlin/integration/*.kt"]),
+    test_class = "integration.PasteLifecycleIntegrationTest",
+    deps = [
+        ":delerium_server_lib",
+        ":test_utils",
+        "@maven//:junit_junit",
+        "@maven//:org_jetbrains_kotlin_kotlin_test_junit",
+        "@maven//:io_ktor_ktor_server_test_host_jvm",
+        "@maven//:com_fasterxml_jackson_module_jackson_module_kotlin",
+    ],
+)
+
+# Storage tests
+kt_jvm_test(
+    name = "storage_test",
+    size = "small",
+    srcs = ["src/test/kotlin/StorageTest.kt"],
+    test_class = "StorageTest",
+    deps = [
+        ":delerium_server_lib",
+        ":test_utils",
+        "@maven//:junit_junit",
+        "@maven//:org_jetbrains_kotlin_kotlin_test_junit",
+    ],
+)
+
+# Test suite - run all tests
+test_suite(
+    name = "all_tests",
+    tests = [
+        ":routes_tests",
+        ":integration_tests",
+        ":storage_test",
+    ],
+)
