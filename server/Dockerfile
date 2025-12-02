@@ -33,9 +33,16 @@ COPY server/ ./server/
 # Build with Bazel using CI configuration
 RUN bazel build //server:delerium_server_deploy --config=ci
 
-# Extract the deploy JAR (uber jar with all dependencies)
+# Extract all JARs and create a fat JAR
 RUN mkdir -p /app/lib && \
-    cp bazel-bin/server/delerium_server_deploy.jar /app/lib/delerium-paste.jar
+    cd /build && \
+    # Collect all dependency JARs
+    find bazel-bin/server/delerium_server_deploy.runfiles -name "*.jar" -exec cp {} /app/lib/ \; && \
+    # Copy the main application JAR
+    cp bazel-bin/server/delerium_server_lib.jar /app/lib/ && \
+    cp bazel-bin/server/delerium_server_lib-resources.jar /app/lib/ && \
+    # Create a classpath string
+    echo "io.ktor.server.netty.EngineMain" > /app/mainclass.txt
 
 # ---- runner ----
 FROM eclipse-temurin:21-jre-jammy
@@ -75,4 +82,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8080/api/health || exit 1
 
-ENTRYPOINT ["java", "-jar", "/app/lib/delerium-paste.jar"]
+ENTRYPOINT ["sh", "-c", "java -cp '/app/lib/*' io.ktor.server.netty.EngineMain"]
