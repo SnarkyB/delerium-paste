@@ -7,6 +7,9 @@ on:
       - parity
     paths:
       - 'server/**'
+      - 'WORKSPACE'
+      - '.bazelrc'
+      - '.bazelversion'
       - '.github/workflows/server-ci.yml'
     tags:
       - 'v*'
@@ -30,42 +33,45 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-          cache: 'gradle'
 
-      - name: Cache Gradle packages
+      - name: Mount Bazel cache
         uses: actions/cache@v4
         with:
           path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            server/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('server/**/*.gradle*', 'server/**/gradle-wrapper.properties') }}
+            ~/.cache/bazel
+          key: ${{ runner.os }}-bazel-${{ hashFiles('.bazelversion', 'WORKSPACE', '**/*.bzl', 'server/BUILD.bazel') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
+            ${{ runner.os }}-bazel-
 
-      - name: Make gradlew executable
-        working-directory: ./server
-        run: chmod +x gradlew
+      - name: Install Bazelisk
+        run: |
+          ARCH=$(uname -m)
+          case $ARCH in
+            x86_64) BAZELISK_ARCH="amd64" ;;
+            aarch64|arm64) BAZELISK_ARCH="arm64" ;;
+            *) echo "Unsupported arch: $ARCH"; exit 1 ;;
+          esac
+          curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-${BAZELISK_ARCH}"
+          chmod +x "bazelisk-linux-${BAZELISK_ARCH}"
+          sudo mv "bazelisk-linux-${BAZELISK_ARCH}" /usr/local/bin/bazel
+          bazel --version
 
-      - name: Build with Gradle
-        working-directory: ./server
-        run: ./gradlew clean build --no-daemon
+      - name: Build with Bazel
+        run: bazel build //server:delerium_server_deploy --config=ci
 
       - name: Run tests
-        working-directory: ./server
-        run: ./gradlew test --no-daemon
+        run: bazel test //server:all_tests --config=ci --test_output=errors
 
-      - name: Generate test report
+      - name: Generate coverage report
         if: always()
-        working-directory: ./server
-        run: ./gradlew jacocoTestReport --no-daemon
+        run: bazel coverage //server:all_tests --config=ci --combined_report=lcov
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: server/build/test-results/
+          path: bazel-testlogs/
           retention-days: 30
 
       - name: Upload coverage report
@@ -73,7 +79,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: server/build/reports/jacoco/
+          path: bazel-out/_coverage/
           retention-days: 30
 
   security-scan:
@@ -90,24 +96,34 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-          cache: 'gradle'
 
-      - name: Make gradlew executable
-        working-directory: ./server
-        run: chmod +x gradlew
+      - name: Install Bazelisk
+        run: |
+          ARCH=$(uname -m)
+          case $ARCH in
+            x86_64) BAZELISK_ARCH="amd64" ;;
+            aarch64|arm64) BAZELISK_ARCH="arm64" ;;
+            *) echo "Unsupported arch: $ARCH"; exit 1 ;;
+          esac
+          curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-${BAZELISK_ARCH}"
+          chmod +x "bazelisk-linux-${BAZELISK_ARCH}"
+          sudo mv "bazelisk-linux-${BAZELISK_ARCH}" /usr/local/bin/bazel
 
-      - name: Run OWASP Dependency Check
-        working-directory: ./server
-        run: ./gradlew dependencyCheckAnalyze --no-daemon
+      - name: Query dependencies
+        run: |
+          bazel query 'deps(//server:delerium_server_lib)' --output=build > bazel-deps.txt
         continue-on-error: true
 
-      - name: Upload security report
+      - name: Upload dependency info
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-report
-          path: server/build/reports/dependency-check-report.html
+          name: bazel-dependencies
+          path: bazel-deps.txt
           retention-days: 30
+
+      # TODO: Integrate OWASP dependency-check for Bazel
+      # For now, relying on GitHub Dependabot for Maven artifacts
 
   docker-test:
     name: Docker Build Test
@@ -125,7 +141,7 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./server
+          context: .
           file: ./server/Dockerfile
           push: false
           load: true
@@ -278,7 +294,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: ./server
+          context: .
           file: ./server/Dockerfile
           platforms: ${{ matrix.platform }}
           push: true
