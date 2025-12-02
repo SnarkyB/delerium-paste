@@ -4,7 +4,7 @@
  * Handles the complete paste viewing workflow including:
  * - URL parsing
  * - Paste retrieval
- * - Decryption (regular or password-based)
+ * - Decryption with user-supplied password/PIN
  * - Content display
  * - Delete button management
  */
@@ -17,13 +17,11 @@ import {
 } from '../security.js';
 
 import { decodeBase64Url } from '../core/crypto/encoding.js';
-import { AesGcmCryptoProvider } from '../core/crypto/aes-gcm.js';
 import { HttpApiClient } from '../infrastructure/api/http-client.js';
 import { getDeleteToken } from '../utils/storage.js';
 import { WindowWithUI } from '../ui/ui-manager.js';
 
 const apiClient = new HttpApiClient();
-const cryptoProvider = new AesGcmCryptoProvider();
 
 /**
  * View a paste
@@ -51,65 +49,44 @@ export async function viewPaste(): Promise<void> {
   }
   
   const [keyB64, ivB64] = frag.split(":");
-  
+
   try {
     if (updateStatus) updateStatus(true, 'Fetching paste...');
     const response = await apiClient.retrievePaste(id);
     const { ct, iv, meta, viewsLeft } = response;
 
-    // Check if this is password-protected (by checking if we can decrypt with regular method)
-    let text: string;
-    try {
-      // Try regular decryption first
-      if (updateStatus) updateStatus(true, 'Decrypting content...');
-      text = await cryptoProvider.decrypt({
-        key: keyB64,
-        iv: ivB64 || iv,
-        ciphertext: ct
-      });
-    } catch {
-      // If regular decryption fails, it might be password-protected
-      // Allow up to 5 password attempts without invalidating the paste
-      const MAX_PASSWORD_ATTEMPTS = 5;
-      let attempts = 0;
-      let decryptionSuccess = false;
-      
-      while (attempts < MAX_PASSWORD_ATTEMPTS && !decryptionSuccess) {
-        attempts++;
-        const attemptsRemaining = MAX_PASSWORD_ATTEMPTS - attempts;
-        const promptMessage = attempts === 1 
-          ? "This paste is password-protected. Enter the password:"
-          : `Incorrect password. ${attemptsRemaining} attempt${attemptsRemaining !== 1 ? 's' : ''} remaining:`;
-        
-        const password = prompt(promptMessage);
-        if (!password) {
-          throw new Error("Password required to decrypt this content.");
-        }
-        
-        try {
-          // Try password-based decryption
-          if (updateStatus) updateStatus(true, 'Verifying password...');
-          const salt = decodeBase64Url(keyB64);
-          const ivBuffer = decodeBase64Url(ivB64 || iv);
-          const ctBuffer = decodeBase64Url(ct);
-          
-          text = await decryptWithPassword(ctBuffer, password, salt, ivBuffer);
-          secureClear(password);
-          decryptionSuccess = true;
-        } catch {
-          secureClear(password);
-          if (attempts >= MAX_PASSWORD_ATTEMPTS) {
-            throw new Error("Maximum password attempts exceeded. Incorrect password.");
-          }
-          // Continue loop for another attempt
-        }
+    const salt = decodeBase64Url(keyB64);
+    const ivBuffer = decodeBase64Url(ivB64 || iv);
+    const ctBuffer = decodeBase64Url(ct);
+
+    const MAX_PASSWORD_ATTEMPTS = 5;
+    let attempts = 0;
+    let text = '';
+
+    while (attempts < MAX_PASSWORD_ATTEMPTS && !text) {
+      const attemptsRemaining = MAX_PASSWORD_ATTEMPTS - attempts;
+      const promptMessage = attempts === 0
+        ? 'This paste is protected. Enter the password or PIN:'
+        : `Incorrect password or PIN. ${attemptsRemaining} attempt${attemptsRemaining !== 1 ? 's' : ''} remaining:`;
+
+      const password = prompt(promptMessage);
+      if (!password) {
+        throw new Error('A password or PIN is required to decrypt this content.');
       }
-      
-      if (!decryptionSuccess) {
-        throw new Error("Failed to decrypt content with provided password.");
+
+      try {
+        if (updateStatus) updateStatus(true, 'Verifying password...');
+        text = await decryptWithPassword(ctBuffer, password, salt, ivBuffer);
+        secureClear(password);
+      } catch {
+        secureClear(password);
+        attempts++;
+        if (attempts >= MAX_PASSWORD_ATTEMPTS) {
+          throw new Error('Maximum password attempts exceeded. Incorrect password or PIN.');
+        }
       }
     }
-    
+
     // Safely display content without XSS risk
     if (content) {
       content.classList.remove('loading');
@@ -151,4 +128,5 @@ export async function viewPaste(): Promise<void> {
  */
 export function setupPasteViewing(): void {
   if (typeof document === 'undefined' || typeof location === 'undefined') return;
-  void viewPaste();}
+  void viewPaste();
+}

@@ -94,29 +94,6 @@ export function setupUrlInputSelection(): void {
 }
 
 /**
- * Setup password field toggle
- */
-export function setupPasswordToggle(): void {
-  if (typeof document === 'undefined') return;
-  const usePasswordCheckbox = document.getElementById('usePassword') as HTMLInputElement;
-  const passwordGroup = document.getElementById('passwordGroup') as HTMLElement;
-  const passwordField = document.getElementById('password') as HTMLInputElement;
-  
-  if (usePasswordCheckbox && passwordGroup && passwordField) {
-    usePasswordCheckbox.addEventListener('change', function() {
-      if (this.checked) {
-        passwordGroup.style.display = 'block';
-        passwordField.required = true;
-      } else {
-        passwordGroup.style.display = 'none';
-        passwordField.required = false;
-        passwordField.value = '';
-      }
-    });
-  }
-}
-
-/**
  * Setup single-view toggle to disable max views input
  */
 export function setupSingleViewToggle(): void {

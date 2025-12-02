@@ -47,6 +47,16 @@ export const MIN_PASSWORD_LENGTH = 8;
 export const MAX_PASSWORD_LENGTH = 128;
 
 /**
+ * Minimum PIN length (numeric)
+ */
+export const MIN_PIN_LENGTH = 4;
+
+/**
+ * Maximum PIN length (numeric)
+ */
+export const MAX_PIN_LENGTH = 12;
+
+/**
  * Validate content size without reading content
  * 
  * @param content The content to validate
@@ -126,15 +136,27 @@ export function validateViewCount(views: number): ValidationResult {
  */
 export function validatePassword(password: string): ValidationResult {
   const errors: string[] = [];
-  
-  if (!password || password.length < 8) {
-    errors.push("Password must be at least 8 characters long");
+
+  if (!password) {
+    errors.push('A password or PIN is required');
+    return { isValid: false, errors };
   }
-  
-  if (password.length > 128) {
-    errors.push("Password cannot exceed 128 characters");
+
+  const pinPattern = new RegExp(`^\\d{${MIN_PIN_LENGTH},${MAX_PIN_LENGTH}}$`);
+  const isPin = pinPattern.test(password);
+
+  if (isPin) {
+    return { isValid: true, errors };
   }
-  
+
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    errors.push(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long or use a ${MIN_PIN_LENGTH}-${MAX_PIN_LENGTH} digit PIN`);
+  }
+
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    errors.push(`Password cannot exceed ${MAX_PASSWORD_LENGTH} characters`);
+  }
+
   // Check for common weak passwords (without storing them)
   const commonPatterns = [
     /^password$/i,
@@ -143,11 +165,11 @@ export function validatePassword(password: string): ValidationResult {
     /^admin$/i,
     /^letmein$/i
   ];
-  
+
   if (commonPatterns.some(pattern => pattern.test(password))) {
-    errors.push("Password is too common. Please choose a stronger password.");
+    errors.push('Password is too common. Please choose a stronger password.');
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors

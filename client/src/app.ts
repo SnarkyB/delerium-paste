@@ -20,7 +20,6 @@ import {
   setupCharCounter,
   setupViewCopyButton,
   setupUrlInputSelection,
-  setupPasswordToggle,
   setupSingleViewToggle,
   setupNewPasteButton
 } from './ui/dom-helpers.js';
@@ -55,7 +54,6 @@ function initializeApp(): void {
     setupCharCounter(MAX_CONTENT_CHARACTERS);
     setupViewCopyButton();
     setupUrlInputSelection();
-    setupPasswordToggle();
     setupSingleViewToggle();
     setupNewPasteButton();
   });

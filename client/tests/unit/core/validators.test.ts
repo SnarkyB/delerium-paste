@@ -208,16 +208,28 @@ describe('validatePassword', () => {
     expect(result.errors).toHaveLength(0);
   });
 
+  it('should accept numeric pins', () => {
+    const result = validatePassword('1234');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
   it('should reject short passwords', () => {
     const result = validatePassword('Short1!');
     expect(result.isValid).toBe(false);
-    expect(result.errors.some(err => err.includes('at least 8 characters'))).toBe(true);
+    expect(result.errors.some(err => err.includes('at least'))).toBe(true);
+  });
+
+  it('should reject short numeric pins', () => {
+    const result = validatePassword('123');
+    expect(result.isValid).toBe(false);
+    expect(result.errors.some(err => err.includes('at least'))).toBe(true);
   });
 
   it('should reject empty password', () => {
     const result = validatePassword('');
     expect(result.isValid).toBe(false);
-    expect(result.errors.some(err => err.includes('at least 8 characters'))).toBe(true);
+    expect(result.errors.some(err => err.includes('required'))).toBe(true);
   });
 
   it('should reject long passwords', () => {

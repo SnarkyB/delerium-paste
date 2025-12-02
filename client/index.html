@@ -670,21 +670,13 @@
                   <span class="tooltip" data-tooltip="Delete immediately after first view">ℹ️</span>
                 </label>
               </div>
-
-              <div class="checkbox-group">
-                <input type="checkbox" id="usePassword" name="usePassword">
-                <label for="usePassword" class="checkbox-label">
-                  🔐 Password protect
-                  <span class="tooltip" data-tooltip="Add an extra layer of encryption">ℹ️</span>
-                </label>
-              </div>
             </div>
           </div>
 
-          <div id="passwordGroup" style="display: none;">
+          <div id="passwordGroup">
             <div class="option-group">
-              <label for="password">Password (min 8 characters)</label>
-              <input type="password" id="password" name="password" placeholder="Enter a strong password" autocomplete="new-password">
+              <label for="password">Password or PIN (required)</label>
+              <input type="password" id="password" name="password" placeholder="Enter a password or 4-12 digit PIN" autocomplete="new-password" required>
             </div>
           </div>
         </div>
