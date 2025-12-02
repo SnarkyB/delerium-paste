@@ -142,6 +142,20 @@ export function validatePassword(password: string): ValidationResult {
     return { isValid: false, errors };
   }
 
+  // Check for common weak passwords FIRST (before PIN check)
+  const commonPatterns = [
+    /^password$/i,
+    /^12345678$/,
+    /^qwerty$/i,
+    /^admin$/i,
+    /^letmein$/i
+  ];
+
+  if (commonPatterns.some(pattern => pattern.test(password))) {
+    errors.push('Password is too common. Please choose a stronger password.');
+    return { isValid: false, errors };
+  }
+
   const pinPattern = new RegExp(`^\\d{${MIN_PIN_LENGTH},${MAX_PIN_LENGTH}}$`);
   const isPin = pinPattern.test(password);
 
@@ -155,19 +169,6 @@ export function validatePassword(password: string): ValidationResult {
 
   if (password.length > MAX_PASSWORD_LENGTH) {
     errors.push(`Password cannot exceed ${MAX_PASSWORD_LENGTH} characters`);
-  }
-
-  // Check for common weak passwords (without storing them)
-  const commonPatterns = [
-    /^password$/i,
-    /^12345678$/,
-    /^qwerty$/i,
-    /^admin$/i,
-    /^letmein$/i
-  ];
-
-  if (commonPatterns.some(pattern => pattern.test(password))) {
-    errors.push('Password is too common. Please choose a stronger password.');
   }
 
   return {
