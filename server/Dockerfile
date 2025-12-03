@@ -25,7 +25,7 @@ RUN ARCH=$(uname -m) && \
 WORKDIR /build
 
 # Copy Bazel configuration files
-COPY WORKSPACE .bazelrc .bazelversion .bazelignore ./
+COPY MODULE.bazel MODULE.bazel.lock WORKSPACE .bazelrc .bazelversion .bazelignore ./
 
 # Copy server source and BUILD files
 COPY server/ ./server/

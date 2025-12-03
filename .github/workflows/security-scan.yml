@@ -8,7 +8,8 @@ on:
     paths:
       - 'client/package*.json'
       - 'server/BUILD.bazel'
-      - 'WORKSPACE'
+      - 'MODULE.bazel'
+      - 'MODULE.bazel.lock'
       - '.github/workflows/security-scan.yml'
   
   # Scheduled scans: daily at 2 AM UTC
@@ -130,7 +131,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/bazel
-          key: ${{ runner.os }}-bazel-${{ hashFiles('.bazelversion', 'WORKSPACE', '**/*.bzl', 'server/BUILD.bazel') }}
+          key: ${{ runner.os }}-bazel-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', '**/*.bzl', 'server/BUILD.bazel') }}
           restore-keys: |
             ${{ runner.os }}-bazel-
 
