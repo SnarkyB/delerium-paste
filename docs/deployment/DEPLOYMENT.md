@@ -60,9 +60,18 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker $USER
 
-# Install Node.js for building client
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
+# Install Node.js for building client using signed repository
+NODE_MAJOR=20
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | \
+    sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/nodesource.gpg
+sudo chmod go+r /etc/apt/keyrings/nodesource.gpg
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | \
+    sudo tee /etc/apt/sources.list.d/nodesource.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y nodejs
 
 # Install Certbot for SSL
 sudo apt install certbot -y
