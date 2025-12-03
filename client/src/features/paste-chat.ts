@@ -97,8 +97,9 @@ async function handleRefreshMessages(context: { pasteId: string; salt: Uint8Arra
       try {
         const text = await decryptMessage(msg, password, context.salt);
         decryptedMessages.push({ text, timestamp: msg.timestamp });
-      } catch (e) {
-        console.error('Failed to decrypt message:', e);
+      } catch {
+        // Don't log error details - may contain sensitive crypto information
+        console.error('Failed to decrypt message');
         decryptedMessages.push({ text: '[Decryption failed - wrong password?]', timestamp: msg.timestamp });
       }
     }
@@ -108,7 +109,8 @@ async function handleRefreshMessages(context: { pasteId: string; salt: Uint8Arra
     secureClear(password);
 
   } catch (error) {
-    console.error('Error refreshing messages:', error);
+    // Don't log error details - may contain sensitive information
+    console.error('Error refreshing messages');
     showChatError(error instanceof Error ? error.message : 'Failed to load messages');
     secureClear(password);
   }
@@ -175,7 +177,8 @@ async function handleSendMessage(
     secureClear(password);
 
   } catch (error) {
-    console.error('Error sending message:', error);
+    // Don't log error details - may contain sensitive information
+    console.error('Error sending message');
     showChatError(error instanceof Error ? error.message : 'Failed to send message');
     secureClear(password);
   } finally {
