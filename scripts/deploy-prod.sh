@@ -145,8 +145,17 @@ if [ "$SKIP_DEPS" = false ]; then
     # Check for Node.js (needed for client build)
     if ! command -v node &> /dev/null; then
         echo -e "${YELLOW}   Installing Node.js...${NC}"
-        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-        sudo apt install -y nodejs
+        NODE_MAJOR=20
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates curl gnupg
+        sudo install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | \
+            sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/nodesource.gpg
+        sudo chmod go+r /etc/apt/keyrings/nodesource.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | \
+            sudo tee /etc/apt/sources.list.d/nodesource.list > /dev/null
+        sudo apt-get update
+        sudo apt-get install -y nodejs
     fi
     
     # Check for certbot (for SSL)

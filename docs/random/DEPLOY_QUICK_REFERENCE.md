@@ -81,7 +81,7 @@ cd delerium-paste
 | Problem | Solution |
 |---------|----------|
 | Docker not found | `curl -fsSL https://get.docker.com \| sudo sh` |
-| Node.js not found | `curl -fsSL https://deb.nodesource.com/setup_20.x \| sudo -E bash -` |
+| Node.js not found | `NODE_MAJOR=20; sudo apt-get update; sudo apt-get install -y ca-certificates curl gnupg; sudo install -m 0755 -d /etc/apt/keyrings; curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \| sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/nodesource.gpg; sudo chmod go+r /etc/apt/keyrings/nodesource.gpg; echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" \| sudo tee /etc/apt/sources.list.d/nodesource.list > /dev/null; sudo apt-get update; sudo apt-get install -y nodejs` |
 | Services unhealthy | `./deploy.sh logs` then `./deploy.sh stop && ./deploy.sh production` |
 | SSL failed | Check DNS: `dig +short your-domain.com` should show VPS IP |
 | Port conflict | `sudo ss -tlnp \| grep -E ":(80\|443\|8080)"` |
