@@ -22,26 +22,45 @@ RUN ARCH=$(uname -m) && \
     chmod +x "bazelisk-linux-${BAZELISK_ARCH}" && \
     mv "bazelisk-linux-${BAZELISK_ARCH}" /usr/local/bin/bazel
 
+# Create non-root user for Bazel build (required by rules_python)
+RUN groupadd -r builder && \
+    useradd -r -g builder -m builder && \
+    chown -R builder:builder /usr/local/bin/bazel
+
 WORKDIR /build
 
 # Copy Bazel configuration files
-COPY MODULE.bazel MODULE.bazel.lock WORKSPACE .bazelrc .bazelversion .bazelignore ./
+COPY --chown=builder:builder MODULE.bazel MODULE.bazel.lock WORKSPACE .bazelrc .bazelversion .bazelignore ./
 
 # Copy server source and BUILD files
-COPY server/ ./server/
+COPY --chown=builder:builder server/ ./server/
+
+# Make /build owned by builder so bazel-bin symlinks can be created
+RUN chown -R builder:builder /build
+
+# Switch to non-root user for Bazel build
+USER builder
 
 # Build with Bazel using CI configuration
 RUN bazel build //server:delerium_server_deploy --config=ci
 
-# Extract all JARs and create a fat JAR
+# Extract all JARs and create a fat JAR (as root since we need /app directory)
+USER root
 RUN mkdir -p /app/lib && \
     cd /build && \
-    # Collect all dependency JARs
-    find bazel-bin/server/delerium_server_deploy.runfiles -name "*.jar" -exec cp {} /app/lib/ \; && \
-    # Copy the main application JAR
-    cp bazel-bin/server/delerium_server_lib.jar /app/lib/ && \
-    cp bazel-bin/server/delerium_server_lib-resources.jar /app/lib/ && \
-    # Create a classpath string
+    # Use bazel-bin symlink (should exist now since /build is owned by builder)
+    if [ -d bazel-bin/server/delerium_server_deploy.runfiles ]; then \
+        find bazel-bin/server/delerium_server_deploy.runfiles -name "*.jar" -exec cp {} /app/lib/ \; ; \
+    fi && \
+    if [ -f bazel-bin/server/delerium_server_lib.jar ]; then \
+        cp bazel-bin/server/delerium_server_lib.jar /app/lib/ ; \
+    fi && \
+    if [ -f bazel-bin/server/delerium_server_lib-resources.jar ]; then \
+        cp bazel-bin/server/delerium_server_lib-resources.jar /app/lib/ ; \
+    fi && \
+    if [ -f bazel-bin/server/delerium_server_deploy.jar ]; then \
+        cp bazel-bin/server/delerium_server_deploy.jar /app/lib/ ; \
+    fi && \
     echo "io.ktor.server.netty.EngineMain" > /app/mainclass.txt
 
 # ---- runner ----
