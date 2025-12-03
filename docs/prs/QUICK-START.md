@@ -1,12 +1,14 @@
 # Quick Start - Reviewing PR #1
 
 ## ?? Goal
+
 Review the crypto module extraction (PR #1) - should take ~15 minutes.
 
 ## ?? What Changed?
 
 ### New Files (7 files, ~300 lines)
-```
+
+```text
 client/src/core/
 ??? crypto/
 ?   ??? interfaces.ts      # 69 lines - ICryptoProvider interface
@@ -22,17 +24,20 @@ docs/prs/
 ```
 
 ### Modified Files
+
 **None** - This PR only adds new files. No breaking changes!
 
 ## ?? Quick Review Checklist
 
 ### 1. Architecture (2 minutes)
+
 - [ ] Interface `ICryptoProvider` is well-defined
 - [ ] Implementation `AesGcmCryptoProvider` follows interface
 - [ ] Clear separation: interfaces ? implementation ? public API
 - [ ] No circular dependencies
 
 ### 2. Security (3 minutes)
+
 - [ ] AES-GCM 256-bit (same as before) ?
 - [ ] PBKDF2 with 100k iterations (same as before) ?
 - [ ] Proper IV generation (12 bytes) ?
@@ -40,6 +45,7 @@ docs/prs/
 - [ ] No security regressions
 
 ### 3. Code Quality (5 minutes)
+
 - [ ] All functions have JSDoc comments
 - [ ] Error handling is clear (Result<T, E> type)
 - [ ] Type safety (TypeScript interfaces)
@@ -47,11 +53,13 @@ docs/prs/
 - [ ] Consistent naming
 
 ### 4. Extension Points (2 minutes)
+
 - [ ] Easy to implement custom crypto (just implement interface)
 - [ ] Clear what each method does
 - [ ] No tight coupling to specific implementation
 
 ### 5. Testing (3 minutes)
+
 - [ ] Pure functions (easy to test)
 - [ ] No side effects
 - [ ] Mockable interfaces
@@ -60,12 +68,14 @@ docs/prs/
 ## ?? Try It Out
 
 ### 1. Checkout Branch
+
 ```bash
 cd /path/to/delerium-paste
 git checkout feature/pr-001-crypto-module
 ```
 
 ### 2. Examine Files
+
 ```bash
 # Look at the interface
 cat client/src/core/crypto/interfaces.ts
@@ -78,6 +88,7 @@ cat client/src/core/crypto/index.ts
 ```
 
 ### 3. Test in Browser Console
+
 ```typescript
 // If you want to test it manually, you could:
 // 1. Build the client
@@ -106,6 +117,7 @@ console.log('PW Decrypted:', pwDecrypted); // Should be "Secret Message"
 ## ? Key Questions to Ask
 
 ### Architecture
+
 - **Q**: Is the interface complete?
   - **A**: Yes - covers all crypto operations (encrypt, decrypt, password-based, key/IV generation)
 
@@ -113,6 +125,7 @@ console.log('PW Decrypted:', pwDecrypted); // Should be "Secret Message"
   - **A**: Yes - just implement `ICryptoProvider` and pass to DI container
 
 ### Security
+
 - **Q**: Are there security regressions?
   - **A**: No - same algorithms, same parameters, same Web Crypto API
 
@@ -120,6 +133,7 @@ console.log('PW Decrypted:', pwDecrypted); // Should be "Secret Message"
   - **A**: Yes - PBKDF2 with 100k iterations (OWASP recommended)
 
 ### Backward Compatibility
+
 - **Q**: Does this break existing code?
   - **A**: No - old code in `app.ts` still works, new module is additive
 
@@ -129,6 +143,7 @@ console.log('PW Decrypted:', pwDecrypted); // Should be "Secret Message"
 ## ? Approval Criteria
 
 Before approving, verify:
+
 - [x] No breaking changes
 - [x] Security properties maintained
 - [x] Clear interfaces
@@ -139,6 +154,7 @@ Before approving, verify:
 ## ?? What's Next?
 
 After merging PR #1:
+
 - **PR #2**: Extract validators & domain models
 - **PR #3**: Extract API client module
 - **PR #4**: Extract PoW solver module
@@ -161,19 +177,24 @@ After merging PR #1:
 ## ?? Common Review Feedback
 
 ### "Where are the tests?"
+
 Tests will be added in next commit. This PR focuses on architecture.
 
 ### "Should we use a library instead?"
+
 We're using Web Crypto API (built-in). No external crypto dependencies needed.
 
 ### "This seems like a lot for just crypto"
+
 Yes! But now crypto is:
+
 - Testable in isolation
 - Swappable (implement interface)
 - Well-documented
 - Single responsibility
 
 ### "Why Result<T, E> type?"
+
 Type-safe error handling. Forces caller to handle errors explicitly.
 
 ## ?? Time Budget

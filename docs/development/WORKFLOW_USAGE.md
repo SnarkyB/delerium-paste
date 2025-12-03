@@ -24,6 +24,7 @@ make deploy-full
 ```
 
 This will:
+
 1. Clean everything
 2. Build client and server **in parallel** ⚡
 3. Run client and server tests **in parallel** ⚡
@@ -34,10 +35,13 @@ This will:
 ### Local Development Scripts
 
 #### Full CI Verification (Recommended)
+
 ```bash
 ./scripts/ci-verify-all.sh
 ```
+
 **What it does:**
+
 - Runs frontend checks (lint, typecheck, tests, coverage, security audit)
 - Runs backend checks (build, test, dependency check)
 - Runs both **in parallel** for faster execution
@@ -47,10 +51,13 @@ This will:
 **When to use:** Before pushing code, before creating a PR
 
 #### Frontend Checks Only
+
 ```bash
 ./scripts/ci-verify-frontend.sh
 ```
+
 **What it does:**
+
 - Installs dependencies (uses cache if available)
 - Lints TypeScript code
 - Type checks
@@ -62,10 +69,13 @@ This will:
 **When to use:** When working on frontend code only
 
 #### Backend Checks Only
+
 ```bash
 ./scripts/ci-verify-backend.sh
 ```
+
 **What it does:**
+
 - Builds Kotlin/Ktor backend with Bazel
 - Runs tests with Bazel
 - Queries dependencies for security analysis
@@ -75,21 +85,27 @@ This will:
 ### Makefile Commands
 
 #### CI Verification
+
 ```bash
 make ci-check       # Run full CI checks locally (parallel execution)
 make ci-quick        # Run quick CI checks (lint, type, tests)
 ```
+
 **What it does:**
+
 - `ci-check`: Runs frontend and backend checks in parallel, validates Docker config
 - `ci-quick`: Fast checks for lint, type checking, and unit tests
 
 **When to use:** Before pushing code, before creating a PR
 
 #### Full Deployment Pipeline
+
 ```bash
 make deploy-full
 ```
+
 **What it does:**
+
 1. Cleans everything
 2. Builds client and server **in parallel** ⚡
 3. Runs client and server tests **in parallel** ⚡
@@ -98,6 +114,7 @@ make deploy-full
 **When to use:** Before deploying to production/staging
 
 #### Other Useful Commands
+
 ```bash
 make start          # Start services (builds client first)
 make stop           # Stop all containers
@@ -111,9 +128,11 @@ make health-check   # Check if services are running
 ### GitHub Actions (Automatic)
 
 #### PR Checks Workflow (`pr-checks.yml`)
+
 **Triggers:** Automatically on every pull request
 
 **What it does:**
+
 - Runs frontend checks (lint, typecheck, unit tests, coverage)
 - Runs backend checks (Bazel build and tests)
 - Runs Docker checks (config validation, build, health checks)
@@ -121,6 +140,7 @@ make health-check   # Check if services are running
 - Shows summary of all checks
 
 **How to view:**
+
 1. Open your PR on GitHub
 2. Scroll to "Checks" section
 3. Click on "PR Parallel Quality Gates" to see details
@@ -129,9 +149,11 @@ make health-check   # Check if services are running
 **Note:** Integration and E2E tests are temporarily disabled (see TODOs in workflow)
 
 #### Server CI Workflow (`server-ci.yml`)
+
 **Triggers:** Automatically on push to `main` or `parity` branches
 
 **What it does:**
+
 - Builds server with Bazel
 - Runs all server tests
 - Generates coverage reports
@@ -139,34 +161,42 @@ make health-check   # Check if services are running
 - All jobs run **in parallel** where possible
 
 **How to view:**
+
 1. Go to Actions tab in GitHub
 2. Find "Server CI/CD" workflow run
 3. Click to see individual job results
 
 #### Docker Publish Workflow (`docker-publish.yml`)
+
 **Triggers:**
+
 - Push to tags (v*) → publish to both GHCR and Docker Hub
 - Workflow dispatch with tag input → publish to both registries
 - Push to main → publish "latest" to GHCR only (for internal use)
 
 **What it does:**
+
 - Builds multi-architecture images (linux/amd64, linux/arm64)
 - Publishes to GitHub Container Registry (GHCR)
 - Publishes to Docker Hub (on tags/workflow_dispatch)
 - Creates and merges manifest lists
 
 **How to view:**
+
 1. Go to Actions tab
 2. Find "Docker Image Publishing" workflow
 3. Check published image tags and digests
 
 #### Security Scan Workflow (`security-scan.yml`)
+
 **Triggers:**
+
 - Daily at 2 AM UTC (scheduled)
 - Manual workflow dispatch
 - Push to main branch (for dependency changes)
 
 **What it does:**
+
 - Scans frontend dependencies (npm audit with severity-based failures)
 - Scans backend dependencies (Bazel dependency query + Dependabot)
 - Critical/High vulnerabilities → FAIL build
@@ -174,6 +204,7 @@ make health-check   # Check if services are running
 - Both run **in parallel**
 
 **How to view:**
+
 1. Go to Actions tab
 2. Find "Security Scan" workflow
 3. Check the summary for vulnerability counts
@@ -243,7 +274,8 @@ bazel test //server:all_tests --test_output=errors
 ### Local Scripts Output
 
 When running `ci-verify-all.sh`, you'll see:
-```
+
+```text
 🚀 Running Full CI Verification (Parallel)
 🚀 Starting frontend checks in background...
 🚀 Starting backend checks in background...
@@ -265,6 +297,7 @@ BACKEND CHECKS OUTPUT
 ### GitHub Actions Output
 
 In GitHub, you'll see:
+
 - **Green checkmark** ✅ = Job passed
 - **Red X** ❌ = Job failed
 - **Yellow circle** ⏳ = Job running
@@ -273,6 +306,7 @@ In GitHub, you'll see:
 ### Cache Indicators
 
 Look for these in logs:
+
 - `Cache restored from key: ...` = Cache hit (faster!)
 - `Cache not found for input keys: ...` = Cache miss (will create new cache)
 

@@ -25,10 +25,12 @@ Automated security scanning runs vulnerability checks on both frontend (npm) and
 ### 3. GitHub Actions Workflows
 
 #### PR Checks Workflow (`.github/workflows/pr-checks.yml`)
+
 - Runs security scans as part of PR quality gates
 - Blocks PRs with Critical or High vulnerabilities
 
 #### Security Scan Workflow (`.github/workflows/security-scan.yml`)
+
 - Dedicated security scanning workflow
 - Runs on:
   - Push to main (when dependencies change)
@@ -119,6 +121,7 @@ To suppress false positives or accepted risks, edit `server/dependency-check-sup
 ### GitHub Actions Artifacts
 
 Reports are uploaded as artifacts in GitHub Actions:
+
 - `npm-audit-report` - Frontend scan results
 - `owasp-dependency-check-report` - Backend scan results
 - Retained for 30 days
@@ -126,6 +129,7 @@ Reports are uploaded as artifacts in GitHub Actions:
 ## Scheduled Scans
 
 Security scans run automatically:
+
 - **Daily:** 2 AM UTC (via scheduled workflow)
 - **On PRs:** Every pull request
 - **On Releases:** When tags are created
@@ -198,6 +202,7 @@ npm audit
 ## Integration with CI/CD
 
 Security scans are integrated into:
+
 - ✅ PR quality gates (blocks PRs with Critical/High vulnerabilities)
 - ✅ Release process (scans on tag creation)
 - ✅ Daily automated scans

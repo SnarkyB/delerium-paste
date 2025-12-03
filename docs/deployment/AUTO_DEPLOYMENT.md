@@ -5,6 +5,7 @@ This guide explains how to set up automatic deployments to your VPS using GitHub
 ## Overview
 
 Every time you push to the `main` branch, GitHub Actions will:
+
 1. ? Run linter, type checks, and unit tests
 2. ?? Build the client
 3. ?? Deploy to your VPS automatically
@@ -21,6 +22,7 @@ ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/github_actions_deploy
 ```
 
 This creates two files:
+
 - `~/.ssh/github_actions_deploy` (private key)
 - `~/.ssh/github_actions_deploy.pub` (public key)
 
@@ -45,6 +47,7 @@ chmod 600 ~/.ssh/authorized_keys
 ### 3. Add Secrets to GitHub
 
 Go to your GitHub repository:
+
 1. Navigate to **Settings** ? **Secrets and variables** ? **Actions**
 2. Click **New repository secret**
 3. Add these three secrets:
@@ -56,6 +59,7 @@ Go to your GitHub repository:
 | `VPS_SSH_KEY` | Contents of `~/.ssh/github_actions_deploy` | The **private** SSH key |
 
 To get the private key contents:
+
 ```bash
 cat ~/.ssh/github_actions_deploy
 ```
@@ -65,11 +69,13 @@ Copy the **entire output** including the `-----BEGIN` and `-----END` lines.
 ### 4. Test the Deployment
 
 #### Option A: Manual Trigger
+
 1. Go to **Actions** tab in GitHub
 2. Select **Deploy to VPS** workflow
 3. Click **Run workflow** ? **Run workflow**
 
 #### Option B: Push to Main
+
 ```bash
 git checkout main
 git merge ux  # or whatever branch you want to deploy
@@ -87,6 +93,7 @@ The workflow will automatically trigger!
 ## Workflow Steps
 
 ### Test Job
+
 - Installs dependencies
 - Runs ESLint
 - Runs TypeScript type checking
@@ -94,6 +101,7 @@ The workflow will automatically trigger!
 - Builds the client
 
 ### Deploy Job (only runs if tests pass)
+
 - SSHs into your VPS
 - Pulls latest code from GitHub
 - Builds the client on VPS
@@ -105,11 +113,14 @@ The workflow will automatically trigger!
 ## Troubleshooting
 
 ### Deployment Fails with "Permission denied"
+
 - Make sure the SSH key is added to `~/.ssh/authorized_keys` on the VPS
 - Check that the private key is correctly added to GitHub secrets
 
 ### Deployment Fails with "Port already allocated"
+
 SSH into your VPS and clean up:
+
 ```bash
 docker stop $(docker ps -aq)
 docker rm $(docker ps -aq)
@@ -117,12 +128,15 @@ docker system prune -af
 ```
 
 ### Tests Fail
+
 Check the Actions tab to see which test failed:
+
 - Linter errors: Run `npm run lint:fix` locally
 - Type errors: Run `npm run typecheck` locally
 - Unit tests: Run `npm run test:unit` locally
 
 ### View VPS Logs
+
 ```bash
 ssh noob@your-vps-ip
 cd ~/delerium-paste
@@ -132,6 +146,7 @@ docker compose -f docker-compose.prod.yml logs -f
 ## Manual Deployment (Fallback)
 
 If you need to deploy manually, you can still use:
+
 ```bash
 ./scripts/vps-deploy.sh your-domain.com your@email.com your-github-username
 ```
@@ -147,10 +162,12 @@ If you need to deploy manually, you can still use:
 ## Disabling Auto-Deployment
 
 To temporarily disable auto-deployment:
+
 1. Go to **Settings** ? **Actions** ? **General**
 2. Under **Actions permissions**, select **Disable actions**
 
 Or delete/rename the workflow file:
+
 ```bash
 git mv .github/workflows/deploy.yml .github/workflows/deploy.yml.disabled
 ```

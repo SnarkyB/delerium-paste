@@ -22,6 +22,7 @@ curl -fsSL https://raw.githubusercontent.com/your-username/delerium-paste/main/s
 ```
 
 This automatically:
+
 - Installs Docker and dependencies
 - Clones the repository
 - Configures SSL certificates (Let's Encrypt)
@@ -168,6 +169,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 Set up automatic deployments using GitHub Actions. See [Automated Deployment Guide](./AUTO_DEPLOYMENT.md) for complete setup instructions.
 
 Quick setup:
+
 1. Generate SSH key for GitHub Actions
 2. Add public key to VPS `~/.ssh/authorized_keys`
 3. Add GitHub secrets: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`

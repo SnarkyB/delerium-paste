@@ -42,6 +42,7 @@ make quick-start
 ```
 
 This will:
+
 - Check all prerequisites
 - Auto-generate secure secrets
 - Install dependencies
@@ -52,21 +53,25 @@ This will:
 ### Option 3: Manual Configuration
 
 1. **Copy the example file:**
+
    ```bash
    cp .env.example .env
    ```
 
 2. **Generate a secure secret:**
+
    ```bash
    openssl rand -hex 32
    ```
 
 3. **Edit `.env` and paste your secret:**
+
    ```bash
    DELETION_TOKEN_PEPPER=your_generated_secret_here
    ```
 
 4. **Start services:**
+
    ```bash
    make start
    ```
@@ -75,7 +80,7 @@ This will:
 
 **All secrets go in `.env` file in the project root:**
 
-```
+```text
 delerium-paste/
 ├─ .env          🔒 Your secrets go here (never committed to git)
 ├─ .env.example  📄 Template (safe to commit)
@@ -95,6 +100,7 @@ delerium-paste/
 **Why it matters:** This prevents attackers from using stolen database dumps to delete pastes.
 
 **Security requirements:**
+
 - ✅ **At least 64 characters** (recommended)
 - ✅ **Cryptographically random** (use `openssl rand -hex 32`)
 - ✅ **Unique per environment** (different for dev/staging/production)
@@ -102,6 +108,7 @@ delerium-paste/
 - ✅ **Rotate periodically** (every 3-6 months)
 
 **Example:**
+
 ```bash
 DELETION_TOKEN_PEPPER=8d2eaa7238c33056796c0b6f516c3961cceea56f9d41bbc8a8bb7dfc0fa8281d
 ```
@@ -120,6 +127,7 @@ DELETION_TOKEN_PEPPER=8d2eaa7238c33056796c0b6f516c3961cceea56f9d41bbc8a8bb7dfc0f
 **When to use:** Only needed for production deployments with a custom domain.
 
 **Example:**
+
 ```bash
 DOMAIN=paste.example.com
 ```
@@ -131,6 +139,7 @@ DOMAIN=paste.example.com
 **When to use:** Only needed if you're using automatic SSL with Let's Encrypt.
 
 **Example:**
+
 ```bash
 LETSENCRYPT_EMAIL=admin@example.com
 ```
@@ -159,7 +168,8 @@ Use the full 64-character pepper and configure your domain for SSL.
 
 ## Security Best Practices
 
-### ✅ DO:
+### ✅ DO
+
 - Use the interactive setup wizard for first-time setup
 - Generate secrets using `openssl rand -hex 32`
 - Use different secrets for each environment (dev, staging, prod)
@@ -167,7 +177,8 @@ Use the full 64-character pepper and configure your domain for SSL.
 - Rotate secrets periodically (every 3-6 months)
 - Check `.gitignore` includes `.env`
 
-### ❌ DON'T:
+### ❌ DON'T
+
 - Never commit `.env` to version control
 - Never use weak passwords or predictable patterns
 - Never reuse secrets across environments
@@ -190,6 +201,7 @@ Use the full 64-character pepper and configure your domain for SSL.
 **Problem:** Docker container can't find the environment variable.
 
 **Solution:**
+
 ```bash
 # 1. Check .env file exists
 ls -la .env
@@ -207,6 +219,7 @@ docker-compose up -d
 **Problem:** Your pepper is less than 32 characters.
 
 **Solution:**
+
 ```bash
 # Generate a proper 64-character secret
 echo "DELETION_TOKEN_PEPPER=$(openssl rand -hex 32)" > .env
@@ -220,16 +233,18 @@ echo "DOMAIN=your.domain.com" >> .env
 **Problem:** Script is not executable.
 
 **Solution:**
+
 ```bash
 chmod +x scripts/setup.sh
 ./scripts/setup.sh
 ```
 
-### I lost my pepper!
+### I lost my pepper
 
 **Problem:** You can't find your DELETION_TOKEN_PEPPER.
 
 **Solution:**
+
 ```bash
 # Generate a new one (note: users will need new deletion tokens)
 echo "DELETION_TOKEN_PEPPER=$(openssl rand -hex 32)" > .env
@@ -302,6 +317,7 @@ A: YES! Always use different secrets per environment.
 
 **Q: How do I rotate my pepper?**  
 A:
+
 ```bash
 # 1. Generate new pepper
 NEW_PEPPER=$(openssl rand -hex 32)

@@ -28,6 +28,7 @@
 ## 📋 Common Workflows
 
 ### First Time Local Setup
+
 ```bash
 git clone https://github.com/marcusb333/delerium-paste.git
 cd delerium-paste
@@ -36,6 +37,7 @@ cd delerium-paste
 ```
 
 ### First Time VPS Setup
+
 ```bash
 ssh user@your-vps
 git clone https://github.com/marcusb333/delerium-paste.git
@@ -45,6 +47,7 @@ cd delerium-paste
 ```
 
 ### Update Production
+
 ```bash
 ssh user@your-vps
 cd delerium-paste
@@ -52,6 +55,7 @@ cd delerium-paste
 ```
 
 ### Troubleshooting
+
 ```bash
 ./deploy.sh status            # Check what's running
 ./deploy.sh logs              # See what's happening
@@ -62,10 +66,12 @@ cd delerium-paste
 ## 🔧 Requirements
 
 ### Local Development
+
 - Docker & Docker Compose
 - Node.js 18+ (optional)
 
 ### VPS Production
+
 - Ubuntu 22.04+ or Debian 11+
 - Domain pointed to server IP
 - 1GB RAM, 1 CPU, 10GB disk

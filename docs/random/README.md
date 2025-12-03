@@ -8,7 +8,6 @@ HACK THE PLANET!
 
 📖 **[Docker hub images](https://hub.docker.com/r/marcusb333/delerium-server)**
 
-
 ## 🚀 Quick Deploy
 
 ### One-Command Deployment
@@ -32,14 +31,17 @@ Delirium includes a unified deployment script that handles all scenarios:
 ### Quick Start Guide
 
 **For Local Development:**
+
 ```bash
 git clone https://github.com/marcusb333/delerium-paste.git
 cd delerium-paste
 ./deploy.sh local
 ```
+
 Access at `http://localhost:8080`
 
 **For VPS Production:**
+
 ```bash
 # SSH into your VPS
 ssh user@your-vps-ip
@@ -51,6 +53,7 @@ cd delerium-paste
 # Run VPS setup (installs Docker, SSL, etc.)
 ./deploy.sh vps-setup your-domain.com your@email.com
 ```
+
 Access at `https://your-domain.com`
 
 ### Available Commands
@@ -70,12 +73,14 @@ Access at `https://your-domain.com`
 ### What the Script Does
 
 **Local Deployment:**
+
 - ✅ Creates secure `.env` file
 - ✅ Builds frontend client
 - ✅ Starts Docker containers
 - ✅ Runs on `http://localhost:8080`
 
 **VPS Setup:**
+
 - ✅ Installs Docker and dependencies
 - ✅ Configures firewall (ports 22, 80, 443)
 - ✅ Obtains SSL certificate from Let's Encrypt
@@ -84,6 +89,7 @@ Access at `https://your-domain.com`
 - ✅ Runs on `https://your-domain.com`
 
 **Requirements:**
+
 - **Local:** Docker, Docker Compose, Node.js 18+
 - **VPS:** Ubuntu 22.04+/Debian 11+, Domain pointed to server IP, 1GB RAM, 1 CPU, 10GB disk
 
@@ -149,6 +155,7 @@ graph TB
 ```
 
 **Key Principles:**
+
 - **Zero-knowledge**: Server never sees unencrypted content
 - **Client-side encryption**: All encryption happens in browser using Web Crypto API
 - **Privacy-first**: No accounts, no tracking, no analytics
@@ -183,6 +190,7 @@ graph TB
 ```
 
 **Tech Stack:**
+
 - **Frontend**: TypeScript SPA with Web Crypto API
 - **Reverse Proxy**: Nginx for static files and API routing
 - **Backend**: Ktor (Kotlin/JVM) REST API
@@ -194,11 +202,13 @@ graph TB
 We're migrating from a monolithic to a modular architecture through **13 incremental PRs**.
 
 #### Current State (Monolithic)
+
 - `app.ts` (505 lines) - Does everything: crypto, PoW, API, UI, routing
 - Hard to test, extend, or customize
 - Tight coupling between layers
 
 #### Target State (Modular - After 13 PRs)
+
 - **Clean Architecture** with clear layer separation:
   - **Presentation Layer**: UI components, pages, routing
   - **Application Layer**: Use cases, services
@@ -206,6 +216,7 @@ We're migrating from a monolithic to a modular architecture through **13 increme
   - **Infrastructure Layer**: API clients, crypto providers, PoW solvers
 
 **See Full Architecture**:
+
 - [`docs/architecture/C4-DIAGRAMS.md`](../architecture/C4-DIAGRAMS.md) - Complete C4 model with all levels
 - [`REFACTORING-PLAN.md`](../development/REFACTORING-PLAN.md) - Migration strategy (13 PRs)
 - [`docs/prs/README.md`](../prs/README.md) - PR series overview
@@ -233,7 +244,7 @@ graph TB
 
 ## 📁 Project Structure
 
-```
+```text
 zkpaste-full-docker/
 ├── client/                     # Frontend TypeScript application
 │   ├── src/                   # TypeScript source code
@@ -263,6 +274,7 @@ zkpaste-full-docker/
 ## 🔧 Technology Stack
 
 ### Frontend
+
 - **TypeScript**: Type-safe JavaScript development
 - **Web Crypto API**: Client-side encryption/decryption
 - **ESLint**: Code quality and style enforcement with TypeScript support
@@ -271,6 +283,7 @@ zkpaste-full-docker/
 - **Supertest**: API testing
 
 ### Backend
+
 - **Kotlin**: Server implementation language
 - **Ktor**: Async web framework
 - **Exposed**: Type-safe SQL framework
@@ -278,6 +291,7 @@ zkpaste-full-docker/
 - **Docker**: Containerization
 
 ### Infrastructure
+
 - **Nginx**: Reverse proxy and static file serving
 - **Docker Compose**: Multi-container orchestration
 - **GitHub Actions**: CI/CD pipeline
@@ -285,7 +299,8 @@ zkpaste-full-docker/
 ## 🧪 Testing Strategy
 
 ### Test Pyramid
-```
+
+```text
     /\
    /  \     E2E Tests (Playwright)
   /____\    - Full user workflows
@@ -306,6 +321,7 @@ zkpaste-full-docker/
 ```
 
 ### Test Coverage
+
 - **Unit Tests**: 35+ tests covering utility functions, encryption, PoW, DOM
 - **Integration Tests**: 17+ tests covering API endpoints and workflows
 - **E2E Tests**: 8+ tests covering complete user journeys
@@ -322,6 +338,7 @@ For a guided setup experience with secret configuration:
 ```
 
 The wizard will:
+
 - 🔐 Guide you through secrets configuration
 - 📝 Create your .env file with explanations
 - ✅ Check prerequisites
@@ -341,9 +358,10 @@ make dev
 ```
 
 This starts:
+
 - Backend API and Nginx Web Proxy in Docker
 - TypeScript in watch mode for instant recompilation
-- Full stack accessible at http://localhost:8080
+- Full stack accessible at <http://localhost:8080>
 - Combined logging for easy debugging
 
 ### Deployment Script Details
@@ -365,6 +383,7 @@ The `deploy.sh` script consolidates all deployment workflows:
 ```
 
 **Script Features:**
+
 - 🎯 Single entry point for all deployments
 - 🔍 Auto-detects environment (local vs production)
 - ✅ Validates prerequisites before running
@@ -394,6 +413,7 @@ Using the unified deployment script:
 ```
 
 Or using Make:
+
 ```bash
 make start          # Start services
 make stop           # Stop services
@@ -406,18 +426,21 @@ make clean          # Clean everything
 ## 🔐 Security Features
 
 ### Zero-Knowledge Architecture
+
 - **Client-Side Encryption**: All data encrypted before leaving browser
 - **Server Blindness**: Server never sees unencrypted content
 - **Key Management**: Encryption keys never stored on server
 - **Perfect Forward Secrecy**: Each paste uses unique encryption parameters
 
 ### Encryption Details
+
 - **Algorithm**: AES-256-GCM (Galois/Counter Mode)
 - **Key Generation**: Cryptographically secure random keys
 - **IV Generation**: Random 12-byte initialization vectors
 - **Authentication**: Built-in authentication via GCM mode
 
 ### Proof of Work
+
 - **Spam Protection**: Computational challenges prevent abuse
 - **Difficulty Scaling**: Adjustable based on system load (default: 10 bits)
 - **Client-Side**: PoW computation happens in browser
@@ -429,23 +452,31 @@ make clean          # Clean everything
 ### Endpoints
 
 #### GET /api/pow
+
 Retrieve proof-of-work challenge
+
 - **Response 200**: `{ challenge: string, difficulty: number }`
 - **Response 204**: No PoW required
 
 #### POST /api/pastes
+
 Create a new paste
+
 - **Body**: `{ ct: string, iv: string, meta: object, pow?: object }`
 - **Response 200**: `{ id: string, deleteToken: string }`
 
 #### GET /api/pastes/:id
+
 Retrieve paste data
+
 - **Response 200**: `{ ct: string, iv: string, meta: object }`
 - **Response 404**: Paste not found
 - **Response 410**: Paste expired
 
 #### DELETE /api/pastes/:id
+
 Delete a paste
+
 - **Query**: `?token=deleteToken`
 - **Response 204**: Successfully deleted
 - **Response 401**: Invalid or missing token
@@ -475,6 +506,7 @@ npm run test:coverage
 ```
 
 ### Test Structure
+
 - **Unit Tests**: Test individual functions in isolation
 - **Integration Tests**: Test API interactions and workflows
 - **E2E Tests**: Test complete user journeys in real browsers
@@ -492,6 +524,7 @@ bazel test //server:integration_tests
 ```
 
 These tests verify that:
+
 - ✅ Requests with `Origin` headers don't get `403 Forbidden` errors
 - ✅ CORS is properly handled at the Nginx level
 - ✅ All HTTP methods work with cross-origin requests
@@ -521,6 +554,7 @@ Before pushing your changes, you can run the same checks that CI will run to cat
 If using VSCode, you can set up task runner integration:
 
 1. Copy the example VSCode configuration:
+
    ```bash
    cp -r .vscode.example .vscode
    ```
@@ -547,6 +581,7 @@ npx playwright install --with-deps
 ### What Gets Checked
 
 #### Frontend Checks
+
 - ✅ **ESLint** - Code style and quality
 - ✅ **TypeScript** - Type checking with `tsc --noEmit`
 - ✅ **Unit Tests** - Jest test suite
@@ -555,11 +590,13 @@ npx playwright install --with-deps
 - ✅ **Security Audit** - npm vulnerability scanning
 
 #### Backend Checks
+
 - ✅ **Bazel Build** - Kotlin compilation and build
 - ✅ **Unit Tests** - Kotlin/Ktor test suite
 - ✅ **Dependency Check** - OWASP security scanning
 
 #### Infrastructure Checks
+
 - ✅ **Docker Compose** - Configuration validation
 
 ### Benefits
@@ -580,6 +617,7 @@ npx playwright install --with-deps
 ## 🐳 Docker Deployment
 
 ### Development Deployment
+
 ```bash
 # Build and start all services (port 8080)
 docker compose up --build -d
@@ -599,6 +637,7 @@ This runs the HTTP-only stack aimed at local development, so no SSL material is 
 ### Production Deployment with HTTPS
 
 **Quick Setup:**
+
 ```bash
 # Run the automated SSL setup script
 ./scripts/setup-ssl.sh
@@ -611,7 +650,9 @@ docker compose -f docker-compose.prod.yml up --build -d
 See the comprehensive guide: [docs/deployment/SSL_SETUP.md](../deployment/SSL_SETUP.md)
 
 ### Architecture
+
 The Docker setup includes:
+
 - **Ktor Server** (Kotlin/JVM): API server running on Java 21
 - **Nginx**: Reverse proxy serving static frontend and proxying API requests
 - **Persistent Storage**: SQLite database in a Docker volume
@@ -621,16 +662,19 @@ The Docker setup includes:
 The server Docker image includes several production-ready enhancements:
 
 **🔒 Security**
+
 - **Non-root user**: Container runs as `delirium:delirium` (uid/gid 999) for enhanced security
 - **OCI compliant**: Standard container metadata labels for better tooling support
 - **Minimal attack surface**: JRE-only runtime image (no build tools)
 
 **🏥 Health Monitoring**
+
 - **Built-in health checks**: Automatic monitoring via `/api/health` endpoint
 - **Orchestrator integration**: Works with Docker Compose, Kubernetes, and other orchestrators
 - **Health intervals**: 30s checks with 40s startup period
 
 **🌍 Multi-Architecture Support**
+
 - **amd64**: Traditional x86_64 servers
 - **arm64**: Apple Silicon (M1/M2/M3), AWS Graviton, Oracle Cloud ARM, Raspberry Pi 4+
 - **Automatic platform detection**: Docker automatically selects the correct image for your architecture
@@ -638,16 +682,19 @@ The server Docker image includes several production-ready enhancements:
 - **Push to registry**: `make push-multiarch REGISTRY=ghcr.io/username TAG=v1.0.0`
 
 **📦 Image Details**
+
 - **Base**: Bazel 7.4.0 + JDK 21 (builder), Eclipse Temurin 21 JRE (runtime)
 - **Size**: Optimized multi-stage build (< 300MB)
 - **Registry**: Available on GitHub Container Registry (GHCR)
 
 For detailed documentation, see:
+
 - [Multi-Architecture Deployment Guide](../deployment/multi-architecture.md) - Complete guide for multi-arch builds
 - [Server API Documentation](../../server/docs/API.md)
 - [Container Publishing Guide](../../server/docs/CONTAINER_PUBLISHING.md)
 
 ### Environment Variables
+
 - `DELETION_TOKEN_PEPPER`: Secret pepper for hashing deletion tokens (defaults to "change-me" - change this in production!)
 
 ## 🔧 Troubleshooting
@@ -655,6 +702,7 @@ For detailed documentation, see:
 ### Common Issues
 
 **Port 8080 already in use**
+
 ```bash
 # Find what's using the port
 lsof -i :8080
@@ -663,6 +711,7 @@ lsof -i :8080
 ```
 
 **Container fails to start**
+
 ```bash
 # Check logs for specific errors
 docker-compose logs server
@@ -674,10 +723,12 @@ docker-compose up --build
 ```
 
 **Java version mismatch**
+
 - Ensure Docker is using the correct base image (eclipse-temurin:21-jre-jammy)
 - The Kotlin code is compiled for Java 21 (class file version 65.0)
 
 **Database issues**
+
 ```bash
 # Remove the volume and restart
 docker-compose down -v
@@ -687,9 +738,11 @@ docker-compose up -d
 ## 🔄 CI/CD Pipeline
 
 ### GitHub Actions Workflow
+
 The project includes a comprehensive PR quality gates workflow (`.github/workflows/pr-checks.yml`) that runs automatically on all pull requests.
 
 #### Frontend Quality Gates
+
 - **ESLint Linting**: Code style and quality checks
 - **TypeScript Type Checking**: Static type validation with `tsc --noEmit`
 - **Unit Tests**: Jest-based unit tests for individual functions
@@ -699,15 +752,18 @@ The project includes a comprehensive PR quality gates workflow (`.github/workflo
 - **Security Audit**: npm dependency vulnerability scanning
 
 #### Backend Quality Gates
+
 - **Bazel Build**: Kotlin compilation and build validation
 - **Unit Tests**: Kotlin/Ktor test suite execution
 - **OWASP Dependency Check**: Security vulnerability scanning (optional)
 
 #### Infrastructure Validation
+
 - **Docker Compose**: Configuration validation
 - **Container Builds**: Optional Docker image building
 
 ### Quality Standards
+
 - ✅ All tests must pass
 - ✅ TypeScript compilation must succeed with no errors
 - ✅ ESLint checks must pass
@@ -718,6 +774,7 @@ The project includes a comprehensive PR quality gates workflow (`.github/workflo
 ## 🤝 Contributing
 
 ### Development Workflow
+
 1. Fork the repository
 2. Create a feature branch (`draft/*` or `feature/*`)
 3. Write tests for new functionality
@@ -728,6 +785,7 @@ The project includes a comprehensive PR quality gates workflow (`.github/workflo
 For a concise contributor playbook, see [`AGENTS.md`](../../AGENTS.md).
 
 ### Code Standards
+
 - **TypeScript** for frontend code with strict ESLint rules
 - **Kotlin** for backend code following Kotlin conventions
 - **Comprehensive test coverage** (85% minimum)
@@ -736,14 +794,17 @@ For a concise contributor playbook, see [`AGENTS.md`](../../AGENTS.md).
 - **All CI/CD checks must pass** before merging
 
 ### AI Collaboration
+
 If working with AI assistants (Cursor AI, Copilot, etc.):
+
 - Keep PRs small and focused on a single concern
 - Use contextual commit messages that align with your branch purpose
 - Manual review required - AI should not auto-commit or auto-push
 - See [`.cursorrules`](../../.cursorrules) for detailed guidelines
 
 ### Commit Message Format
-```
+
+```text
 <type>: <description>
 
 [optional body]
@@ -756,12 +817,14 @@ Example: `feat: add rate limiting to paste creation endpoint`
 ## 📈 Performance Considerations
 
 ### Client-Side
+
 - **Lazy Loading**: Load components on demand
 - **Caching**: Browser caching for static assets
 - **Compression**: Gzip compression for text assets
 - **Minification**: Minified JavaScript and CSS
 
 ### Server-Side
+
 - **Connection Pooling**: Efficient database connections
 - **Caching**: Redis for frequently accessed data
 - **Compression**: Response compression
@@ -770,12 +833,14 @@ Example: `feat: add rate limiting to paste creation endpoint`
 ## 🔍 Monitoring and Observability
 
 ### Metrics
+
 - Request/response times
 - Error rates
 - Throughput
 - Resource utilization
 
 ### Logging
+
 - Structured logging with correlation IDs
 - Error tracking and alerting
 - Performance monitoring

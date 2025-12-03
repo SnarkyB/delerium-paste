@@ -5,6 +5,7 @@ This guide explains how to build and deploy Delirium Paste Mono for multiple CPU
 ## Overview
 
 Delirium Paste Mono supports multi-architecture Docker deployments, allowing you to run the application on:
+
 - **AMD64/x86_64**: Traditional Intel/AMD processors (most cloud providers, desktops)
 - **ARM64/aarch64**: ARM-based processors (Apple Silicon, Raspberry Pi 4/5, AWS Graviton, etc.)
 
@@ -51,6 +52,7 @@ make build-multiarch
 ```
 
 This creates images for both amd64 and arm64 architectures tagged as:
+
 - `delerium-paste-server:latest`
 - `delerium-paste-server:multi-arch`
 
@@ -142,6 +144,7 @@ The repository includes GitHub Actions workflows that automatically build multi-
 #### Workflow: `docker-publish.yml`
 
 Triggers on:
+
 - Push to `main` branch
 - Git tags starting with `v*`
 - Pull requests (build only, no push)
@@ -149,6 +152,7 @@ Triggers on:
 Builds for: `linux/amd64`, `linux/arm64`
 
 Publishes to:
+
 - GitHub Container Registry (ghcr.io)
 - Docker Hub (if configured)
 
@@ -206,6 +210,7 @@ docker buildx imagetools inspect ghcr.io/yourusername/delerium-paste-server:late
 **Cause**: Running an image built for a different architecture without QEMU.
 
 **Solution**:
+
 ```bash
 # Install QEMU for cross-platform support
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
@@ -219,6 +224,7 @@ docker pull --platform linux/amd64 delerium-paste-server:latest
 **Cause**: Docker Buildx not installed or enabled.
 
 **Solution**:
+
 ```bash
 # On Linux, install buildx
 mkdir -p ~/.docker/cli-plugins
@@ -235,6 +241,7 @@ docker buildx version
 **Cause**: Cross-compilation using QEMU emulation is inherently slower.
 
 **Solutions**:
+
 1. Use GitHub Actions (provides native runners)
 2. Build only for your target architecture during development
 3. Use a multi-arch build server with native support for both architectures
@@ -244,6 +251,7 @@ docker buildx version
 **Cause**: Using the default docker driver instead of docker-container driver.
 
 **Solution**:
+
 ```bash
 # Create a new builder with docker-container driver
 docker buildx create --name multiarch-builder --driver docker-container --use

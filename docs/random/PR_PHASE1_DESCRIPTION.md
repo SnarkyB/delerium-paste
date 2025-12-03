@@ -17,12 +17,14 @@ This is the **first phase** of migrating from Gradle to Bazel build system. This
 ### New Files
 
 **Bazel Configuration:**
+
 - `WORKSPACE` - Defines Kotlin rules and Maven dependencies (matching build.gradle.kts)
 - `.bazelrc` - Build configurations for CI, local, debug, and release modes
 - `.bazelversion` - Pins Bazel version to 7.4.0 (managed by Bazelisk)
 - `.bazelignore` - Excludes non-Bazel directories (node_modules, docs, etc.)
 
 **Server Build:**
+
 - `server/BUILD.bazel` - Build rules for:
   - Server library with all dependencies
   - Executable binary (`delerium_server`)
@@ -31,6 +33,7 @@ This is the **first phase** of migrating from Gradle to Bazel build system. This
   - Test utilities library
 
 **Setup & Documentation:**
+
 - `scripts/setup-bazel.sh` - Automated Bazelisk installation with multi-arch support
 - `docs/development/BAZEL_QUICKSTART.md` - Developer quick start guide
 - `.gitignore` - Updated to exclude Bazel artifacts (`bazel-*`, `.bazel`, etc.)
@@ -38,6 +41,7 @@ This is the **first phase** of migrating from Gradle to Bazel build system. This
 ### Dependencies
 
 All Maven dependencies from `build.gradle.kts` mapped to Bazel:
+
 - Ktor 3.0.2 (server-core, netty, content-negotiation, etc.)
 - Logging (log4j-core, log4j-slf4j2-impl)
 - Database (Exposed, HikariCP, sqlite-jdbc)
@@ -47,12 +51,14 @@ All Maven dependencies from `build.gradle.kts` mapped to Bazel:
 ## Architecture Support
 
 The setup script automatically detects and supports:
+
 - **x86_64** (amd64) - Intel/AMD processors
 - **aarch64/arm64** - Apple Silicon M1/M2/M3, AWS Graviton, Raspberry Pi
 
 ## Testing
 
 ### Prerequisites
+
 ```bash
 # Install Bazelisk (one-time setup)
 make bazel-setup
@@ -62,6 +68,7 @@ brew install bazelisk  # macOS
 ```
 
 ### Build and Test
+
 ```bash
 # Build server
 bazel build //server:delerium_server
@@ -82,6 +89,7 @@ bazel run //server:delerium_server
 ```
 
 ### Using Make Targets
+
 ```bash
 make build-server-bazel
 make test-server-bazel
@@ -91,11 +99,13 @@ make run-server-bazel
 ## Backward Compatibility
 
 ✅ **Gradle still works** - This PR adds Bazel without removing Gradle
+
 - Existing `./gradlew` commands continue to work
 - CI/CD still uses Gradle (will migrate in Phase 3)
 - Docker builds still use Gradle (will migrate in Phase 2)
 
 This allows teams to:
+
 1. Test Bazel locally without disruption
 2. Verify builds work correctly
 3. Gradually adopt the new workflow
@@ -130,6 +140,7 @@ bazel build //server:delerium_server --config=release
 ## Migration Phases
 
 This is **Phase 1 of 4**:
+
 - ✅ **Phase 1** (this PR): Core Bazel setup
 - 🔄 **Phase 2**: Update Dockerfile and scripts  
 - 🔄 **Phase 3**: Migrate CI/CD workflows
@@ -138,6 +149,7 @@ This is **Phase 1 of 4**:
 ## Performance
 
 Initial build downloads dependencies (like Gradle), but subsequent builds are significantly faster:
+
 - **Incremental builds**: Only changed files rebuild
 - **Aggressive caching**: Build artifacts cached by content hash
 - **Parallel execution**: Automatic parallelization of independent tasks
@@ -167,6 +179,7 @@ Example: Changing one Kotlin file rebuilds only that file + tests, not entire pr
 ## Next Steps
 
 After this PR merges:
+
 1. **Phase 2 PR**: Update Dockerfile and local scripts to use Bazel
 2. Team can test Bazel locally while Gradle continues working
 3. Gather feedback before migrating CI/CD

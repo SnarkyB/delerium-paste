@@ -13,22 +13,26 @@
 ## Cursor Commands
 
 **General Review:**
-```
+
+```text
 @Codebase review the changes in this PR
 ```
 
 **Security:**
-```
+
+```text
 @Codebase check for security vulnerabilities
 ```
 
 **Architecture:**
-```
+
+```text
 @Codebase does this follow SOLID principles?
 ```
 
 **Tests:**
-```
+
+```text
 @Codebase are there adequate tests?
 ```
 
@@ -58,4 +62,3 @@
 2. Ask specific questions
 3. Review in layers (architecture ? code ? tests)
 4. Use Composer for suggested fixes
-

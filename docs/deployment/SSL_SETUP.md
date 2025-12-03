@@ -107,6 +107,7 @@ cat docker-compose.prod.yml | grep -A 5 "ports:"
 ```
 
 Should show:
+
 ```yaml
 ports:
   - "80:80"
@@ -153,6 +154,7 @@ docker compose -f docker-compose.prod.yml logs -f
 ## Step 9: Test HTTPS
 
 Visit your site:
+
 - `https://YOUR_DOMAIN.com` - should work with valid SSL!
 - `http://YOUR_DOMAIN.com` - should redirect to HTTPS
 
@@ -260,13 +262,14 @@ tail -f logs/nginx/error.log
 
 ## Need Help?
 
-- Let's Encrypt documentation: https://letsencrypt.org/docs/
-- Certbot documentation: https://certbot.eff.org/
-- Nginx SSL configuration: https://ssl-config.mozilla.org/
+- Let's Encrypt documentation: <https://letsencrypt.org/docs/>
+- Certbot documentation: <https://certbot.eff.org/>
+- Nginx SSL configuration: <https://ssl-config.mozilla.org/>
 
 ---
 
 **After setup is complete**, your Delirium instance will be:
+
 - ✅ Accessible via HTTPS
 - ✅ Auto-redirecting HTTP to HTTPS
 - ✅ Using modern TLS 1.2/1.3

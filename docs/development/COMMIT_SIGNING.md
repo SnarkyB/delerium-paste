@@ -27,6 +27,7 @@ gpg --full-generate-key
 ```
 
 Follow the prompts:
+
 1. **Kind of key**: Select `(1) RSA and RSA` (default)
 2. **Key size**: `4096` bits (recommended)
 3. **Expiration**: Choose an expiration date (e.g., `1y` for 1 year, or `0` for no expiration)
@@ -44,7 +45,8 @@ gpg --list-secret-keys --keyid-format=long
 ```
 
 Look for a line like:
-```
+
+```text
 sec   rsa4096/3AA5C34371567BD2 2023-01-01 [SC]
 ```
 
@@ -77,6 +79,7 @@ gpg --armor --export YOUR_KEY_ID
 ```
 
 This will output your public key. Copy the entire output, including:
+
 - `-----BEGIN PGP PUBLIC KEY BLOCK-----`
 - The key content
 - `-----END PGP PUBLIC KEY BLOCK-----`
@@ -84,7 +87,7 @@ This will output your public key. Copy the entire output, including:
 ### 5b. Add Key to GitHub
 
 1. Go to GitHub → Settings → SSH and GPG keys
-   - Direct link: https://github.com/settings/keys
+   - Direct link: <https://github.com/settings/keys>
 2. Click "New GPG key"
 3. Paste your public key
 4. Click "Add GPG key"
@@ -104,6 +107,7 @@ git log --show-signature -1
 ```
 
 You should see:
+
 - `gpg: Good signature from "Your Name <your.email@example.com>"`
 - `gpg: Signature made...`
 
@@ -135,6 +139,7 @@ export GPG_TTY=$(tty)
 ```
 
 Then reload your shell:
+
 ```bash
 source ~/.zshrc
 ```
@@ -142,6 +147,7 @@ source ~/.zshrc
 ### "gpg: signing failed: No secret key"
 
 Make sure you've:
+
 1. Set the correct key ID: `git config --global user.signingkey YOUR_KEY_ID`
 2. Used the correct email that matches your GitHub account
 

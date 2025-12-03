@@ -58,15 +58,17 @@ curl -X POST http://localhost:8080/api/pastes \
 
 ### 5. Test Browser Flow
 
-1. Open http://localhost:8080 in your browser
+1. Open <http://localhost:8080> in your browser
 2. Open DevTools Console (F12 → Console tab)
 3. Create a paste
 4. Watch for PoW-related logs:
-   ```
+
+   ```text
    Fetching PoW challenge...
    Solving PoW (difficulty 10)...
    PoW solved in XXXms (nonce: XXXXX)
    ```
+
 5. Paste should be created successfully
 
 ## Automated Test Suite
@@ -89,11 +91,13 @@ npm run test:all
 ### Expected Results
 
 #### Unit Tests
+
 - ✅ 14 tests for PoW solver
 - ✅ Difficulty 1, 4, 10, 15, 20 all tested
 - ✅ Cancellation and edge cases covered
 
 #### E2E Tests
+
 - ✅ Paste creation with PoW (difficulty 1 for speed)
 - ✅ Paste creation without PoW (when disabled)
 - ✅ Error handling for invalid PoW
@@ -137,6 +141,7 @@ benchmarkPoW();
 **Symptoms**: Pastes created without solving PoW
 
 **Check**:
+
 ```bash
 # 1. Verify config
 cat server/src/main/resources/application.conf | grep "pow {"
@@ -153,6 +158,7 @@ make restart
 **Symptoms**: >5 seconds to create paste
 
 **Solutions**:
+
 1. Lower difficulty in config (try 8 bits)
 2. Check browser throttling (background tabs)
 3. Test on newer device
@@ -160,11 +166,13 @@ make restart
 ### "pow_invalid" Errors
 
 **Causes**:
+
 - Challenge expired (>180 seconds)
 - Wrong nonce calculation
 - Server restarted (challenge cache cleared)
 
 **Solutions**:
+
 1. Fetch fresh challenge
 2. Verify algorithm matches server (SHA-256, leading zero bits)
 3. Check system clock sync
@@ -240,6 +248,7 @@ echo "=== All checks passed ==="
 ```
 
 Make it executable and run:
+
 ```bash
 chmod +x scripts/verify-pow.sh
 ./scripts/verify-pow.sh

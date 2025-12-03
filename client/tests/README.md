@@ -4,7 +4,7 @@ This directory contains comprehensive tests for the zkpaste client application.
 
 ## Test Structure
 
-```
+```text
 tests/
 ├── e2e/                    # End-to-end tests (Playwright)
 │   └── paste-flow.spec.ts
@@ -26,24 +26,28 @@ tests/
 ## Test Types
 
 ### Unit Tests
+
 - **Purpose**: Test individual functions in isolation
 - **Framework**: Jest with TypeScript support
 - **Coverage**: Utility functions, encryption/decryption, PoW, DOM interactions
 - **Run**: `npm run test:unit`
 
 ### Integration Tests
+
 - **Purpose**: Test complete workflows and API interactions
 - **Framework**: Jest with Supertest for API testing
 - **Coverage**: Full encryption/decryption flow, API endpoints, error handling
 - **Run**: `npm run test:integration`
 
 ### End-to-End Tests
+
 - **Purpose**: Test complete user workflows in real browser
 - **Framework**: Playwright
 - **Coverage**: Full paste creation and viewing flow, UI responsiveness
 - **Run**: `npm run test:e2e`
 
 ### Load Tests
+
 - **Purpose**: Test Proof-of-Work functionality under concurrent load conditions
 - **Framework**: Jest with fetch API
 - **Coverage**: Concurrent challenge generation, concurrent verification, cache behavior, performance metrics
@@ -53,11 +57,13 @@ tests/
 ## Running Tests
 
 ### Run All Tests
+
 ```bash
 ./tests/run-tests.sh
 ```
 
 ### Run Specific Test Types
+
 ```bash
 # Unit tests only
 npm run test:unit
@@ -76,6 +82,7 @@ npm run test:all
 ```
 
 ### Run Tests in Watch Mode
+
 ```bash
 # Unit tests in watch mode
 npm run test:watch
@@ -85,6 +92,7 @@ npm run test:e2e:ui
 ```
 
 ### Generate Coverage Report
+
 ```bash
 npm run test:coverage
 ```
@@ -92,25 +100,30 @@ npm run test:coverage
 ## Test Configuration
 
 ### Jest Configuration
+
 - **Unit tests**: `jest.config.js`
 - **Integration tests**: `jest.integration.config.js`
 
 ### Playwright Configuration
+
 - **E2E tests**: `playwright.config.ts`
 
 ## Writing Tests
 
 ### Unit Tests
+
 - Test individual functions with mocked dependencies
 - Use descriptive test names and group related tests
 - Mock external dependencies (crypto, DOM, fetch)
 
 ### Integration Tests
+
 - Test complete workflows without mocking internal functions
 - Mock only external services (APIs, crypto)
 - Test error handling and edge cases
 
 ### End-to-End Tests
+
 - Test complete user workflows
 - Use realistic test data
 - Test on multiple browsers and devices
@@ -118,16 +131,19 @@ npm run test:coverage
 ## Mocking Strategy
 
 ### Crypto API
+
 - Mock `crypto.subtle` methods for consistent testing
 - Use predictable values for IVs and keys in tests
 - Test both success and error scenarios
 
 ### DOM API
+
 - Use jsdom environment for unit tests
 - Mock specific DOM methods when needed
 - Test event handlers and user interactions
 
 ### Fetch API
+
 - Mock fetch calls for API testing
 - Test different response scenarios (success, error, network issues)
 - Verify request parameters and headers
@@ -144,6 +160,7 @@ npm run test:coverage
 ## Debugging Tests
 
 ### Unit Tests
+
 ```bash
 # Run specific test file
 npm test -- utils.test.ts
@@ -156,12 +173,14 @@ npm test -- --testNamePattern="encryption"
 ```
 
 ### Integration Tests
+
 ```bash
 # Run with debug output
 npm run test:integration -- --verbose
 ```
 
 ### End-to-End Tests
+
 ```bash
 # Run with headed browser
 npx playwright test --headed
@@ -174,6 +193,7 @@ npx playwright test --debug
 ```
 
 ### Load Tests
+
 ```bash
 # Run load tests (requires server running on localhost:8080)
 npm run test:load
@@ -190,21 +210,25 @@ SKIP_LOAD_TESTS=true npm test
 Load tests verify Proof-of-Work functionality under various concurrent load conditions:
 
 ### Prerequisites
+
 - Server must be running (use `make dev` or `make start`)
 - Server should have PoW enabled (default configuration)
 
 ### Test Scenarios
+
 1. **Concurrent Challenge Generation**: Tests 10, 50, and 100 simultaneous challenge requests
 2. **Concurrent Verification**: Tests concurrent paste creation with valid PoW solutions
 3. **Cache Behavior**: Verifies challenge reuse prevention and expiration handling
 4. **Performance Benchmarks**: Measures latency, throughput, and error rates
 
 ### Performance Targets
+
 - Challenge generation: Average < 100ms, P95 < 200ms
 - Verification: Average < 500ms, P95 < 1s
 - Success rate: > 95% under load
 
 ### Configuration
+
 - Set `API_BASE_URL` environment variable to test against different servers
 - Set `SKIP_LOAD_TESTS=true` to exclude from regular test runs (default behavior)
 - Tests use difficulty 4 for faster execution (can be adjusted in test file)
@@ -212,6 +236,7 @@ Load tests verify Proof-of-Work functionality under various concurrent load cond
 ## Continuous Integration
 
 The test suite is designed to run in CI environments:
+
 - All tests run in headless mode
 - Load tests are excluded by default (set `SKIP_LOAD_TESTS=false` to enable)
 - No external dependencies required for unit/integration tests

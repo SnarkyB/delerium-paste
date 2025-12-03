@@ -1,6 +1,6 @@
 # Bazel Migration Status
 
-## ✅ COMPLETE - All PRs Created!
+## ✅ COMPLETE - All PRs Created
 
 ### Current Status
 
@@ -28,9 +28,9 @@
 
 ## Links
 
-- PR #141 (Merged): https://github.com/marcusb333/delerium-paste/pull/141
-- PR #142 (Open): https://github.com/marcusb333/delerium-paste/pull/142
-- PR #143 (Open): https://github.com/marcusb333/delerium-paste/pull/143
+- PR #141 (Merged): <https://github.com/marcusb333/delerium-paste/pull/141>
+- PR #142 (Open): <https://github.com/marcusb333/delerium-paste/pull/142>
+- PR #143 (Open): <https://github.com/marcusb333/delerium-paste/pull/143>
 
 ## Timeline
 

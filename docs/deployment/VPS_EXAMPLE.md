@@ -36,6 +36,7 @@ curl -fsSL https://raw.githubusercontent.com/your-username/delerium-paste/main/s
 ```
 
 This automatically:
+
 - Installs Docker and dependencies
 - Clones the repository
 - Gets SSL certificates from Let's Encrypt
@@ -135,6 +136,7 @@ docker compose -f docker-compose.prod.yml restart server
 ## More Information
 
 For complete deployment documentation including:
+
 - Security configuration
 - Monitoring setup
 - Advanced SSL options

@@ -19,16 +19,19 @@ Delirium Paste is migrating from Gradle to Bazel for improved build performance,
 Install Bazelisk (Bazel version manager):
 
 **macOS:**
+
 ```bash
 brew install bazelisk
 ```
 
 **Linux:**
+
 ```bash
 ./scripts/setup-bazel.sh
 ```
 
 **Windows:**
+
 ```bash
 choco install bazelisk
 ```
@@ -201,6 +204,7 @@ bazel clean --expunge
 ## Support
 
 For questions or issues with Bazel setup, see:
+
 - Project README
 - `docs/development/BAZEL_MIGRATION.md` (coming in PR 4)
 - Create an issue on GitHub
