@@ -209,6 +209,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
+      - name: Create .env file for CI
+        run: |
+          echo "DELETION_TOKEN_PEPPER=test-pepper-for-ci-$(date +%s)" > .env
+          echo ".env file created for CI"
+
       - name: Docker Compose config validation
         run: docker compose -f docker-compose.yml config
 
@@ -216,8 +221,6 @@ jobs:
         run: docker compose -f docker-compose.yml build --parallel
 
       - name: Start Docker services
-        env:
-          DELETION_TOKEN_PEPPER: test-pepper-for-ci-$(date +%s)
         run: docker compose -f docker-compose.yml up -d
 
       - name: Wait for services to be healthy
