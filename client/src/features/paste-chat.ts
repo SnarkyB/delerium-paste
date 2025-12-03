@@ -11,6 +11,12 @@
 import { deriveKeyFromPassword, secureClear } from '../security.js';
 import { encodeBase64Url } from '../core/crypto/encoding.js';
 
+/**
+ * Debug flag for verbose error logging
+ * Set to false in production builds to prevent information disclosure
+ */
+const DEBUG_MODE = typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production';
+
 interface ChatMessage {
   ct: string;
   iv: string;
@@ -25,6 +31,10 @@ interface DecryptedMessage {
 /**
  * Initialize chat functionality on view page
  * Shows chat section after paste is successfully decrypted
+ * 
+ * NOTE: This function should only be called once per page load.
+ * For static HTML pages (like view.html), this is safe. If integrating
+ * into an SPA, ensure this is only called once or implement cleanup.
  */
 export function setupPasteChat(pasteId: string, salt: Uint8Array): void {
   const chatSection = document.getElementById('chatSection');
@@ -34,6 +44,12 @@ export function setupPasteChat(pasteId: string, salt: Uint8Array): void {
 
   if (!chatSection || !refreshBtn || !sendBtn || !chatInput) {
     console.warn('Chat UI elements not found');
+    return;
+  }
+
+  // Guard against duplicate initialization (prevents memory leaks in SPA contexts)
+  if (refreshBtn.dataset.chatInitialized === 'true') {
+    console.warn('Chat already initialized, skipping duplicate setup');
     return;
   }
 
@@ -55,20 +71,32 @@ export function setupPasteChat(pasteId: string, salt: Uint8Array): void {
       void handleSendMessage(chatContext, chatInput);
     }
   });
+
+  // Mark as initialized to prevent duplicate listeners
+  refreshBtn.dataset.chatInitialized = 'true';
 }
 
 /**
  * Handle refreshing chat messages (requires password re-entry)
+ * 
+ * @param context Chat context with paste ID and salt
+ * @param password Optional password to reuse (for UX improvement after sending)
  */
-async function handleRefreshMessages(context: { pasteId: string; salt: Uint8Array }): Promise<void> {
+async function handleRefreshMessages(
+  context: { pasteId: string; salt: Uint8Array },
+  password?: string
+): Promise<void> {
   const messagesDiv = document.getElementById('chatMessages');
   if (!messagesDiv) return;
 
-  // Prompt for password
-  const password = prompt('Enter the paste password to decrypt messages:');
-  if (!password) {
-    showChatError('Password is required to decrypt messages');
-    return;
+  // Use provided password or prompt for it
+  let pwd = password;
+  if (!pwd) {
+    pwd = prompt('Enter the paste password to decrypt messages:');
+    if (!pwd) {
+      showChatError('Password is required to decrypt messages');
+      return;
+    }
   }
 
   try {
@@ -88,6 +116,10 @@ async function handleRefreshMessages(context: { pasteId: string; salt: Uint8Arra
 
     if (!data.messages || data.messages.length === 0) {
       messagesDiv.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-light);">No messages yet. Be the first to chat!</div>';
+      // Clear password before returning
+      if (!password) {
+        secureClear(pwd);
+      }
       return;
     }
 
@@ -95,24 +127,39 @@ async function handleRefreshMessages(context: { pasteId: string; salt: Uint8Arra
     const decryptedMessages: DecryptedMessage[] = [];
     for (const msg of data.messages) {
       try {
-        const text = await decryptMessage(msg, password, context.salt);
+        const text = await decryptMessage(msg, pwd, context.salt);
         decryptedMessages.push({ text, timestamp: msg.timestamp });
-      } catch {
-        // Don't log error details - may contain sensitive crypto information
-        console.error('Failed to decrypt message');
+      } catch (e) {
+        // Don't log error details in production - may contain sensitive crypto information
+        if (DEBUG_MODE) {
+          console.error('Failed to decrypt message:', e);
+        } else {
+          console.error('Failed to decrypt message');
+        }
         decryptedMessages.push({ text: '[Decryption failed - wrong password?]', timestamp: msg.timestamp });
       }
     }
 
     // Display messages
     displayMessages(decryptedMessages);
-    secureClear(password);
+    // Clear password after use (always clear local copy for security)
+    // Note: When password is passed in, the caller is responsible for clearing it
+    if (!password) {
+      secureClear(pwd);
+    }
 
   } catch (error) {
-    // Don't log error details - may contain sensitive information
-    console.error('Error refreshing messages');
+    // Don't log error details in production - may contain sensitive information
+    if (DEBUG_MODE) {
+      console.error('Error refreshing messages:', error);
+    } else {
+      console.error('Error refreshing messages');
+    }
     showChatError(error instanceof Error ? error.message : 'Failed to load messages');
-    secureClear(password);
+    // Only clear password if we prompted for it (not passed in)
+    if (!password) {
+      secureClear(pwd);
+    }
   }
 }
 
@@ -129,6 +176,9 @@ async function handleSendMessage(
     return;
   }
 
+  // Client-side validation: 1000 character limit (more restrictive than server's 10KB)
+  // Server validates encrypted message size (10KB max), but we limit plaintext to prevent
+  // users from hitting server limits after encryption overhead (base64 encoding, IV, etc.)
   if (message.length > 1000) {
     showChatError('Message too long (max 1000 characters)');
     return;
@@ -171,14 +221,20 @@ async function handleSendMessage(
     }
 
     // Clear input and refresh messages
+    // Pass password to avoid double prompt (privacy-first: password cleared after refresh)
     input.value = '';
-    await handleRefreshMessages(context);
-
+    await handleRefreshMessages(context, password);
+    
+    // Clear password after use (handleRefreshMessages doesn't clear passed passwords)
     secureClear(password);
 
   } catch (error) {
-    // Don't log error details - may contain sensitive information
-    console.error('Error sending message');
+    // Don't log error details in production - may contain sensitive information
+    if (DEBUG_MODE) {
+      console.error('Error sending message:', error);
+    } else {
+      console.error('Error sending message');
+    }
     showChatError(error instanceof Error ? error.message : 'Failed to send message');
     secureClear(password);
   } finally {
@@ -302,9 +358,21 @@ function showChatError(message: string): void {
 }
 
 /**
- * Escape HTML to prevent XSS
+ * Escape HTML to prevent XSS attacks
+ * 
+ * Uses browser's native textContent to safely escape all HTML entities including:
+ * - < > & quotes
+ * - Unicode characters
+ * - Script injection attempts
+ * 
+ * @param text Text to escape (handles null/undefined by converting to empty string)
+ * @returns HTML-safe string
  */
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
+  // Handle null/undefined edge cases
+  if (text == null) {
+    return '';
+  }
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;

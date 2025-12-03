@@ -22,6 +22,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
@@ -226,7 +227,7 @@ class PasteRepo(private val db: Database, private val pepper: String) {
             it[ChatMessages.pasteId] = pasteId
             it[ChatMessages.ct] = ct
             it[ChatMessages.iv] = iv
-            it[timestamp] = now
+            it[ChatMessages.timestamp] = now
         }
 
         // Count messages for this paste
@@ -235,7 +236,8 @@ class PasteRepo(private val db: Database, private val pepper: String) {
             .count()
             .toInt()
 
-        // If over 50 messages, delete oldest ones
+        // If over 50 messages, delete oldest ones (FIFO)
+        // Uses batch delete with Op.in() for better performance than individual deletes
         if (count > 50) {
             val oldest = ChatMessages.selectAll()
                 .where { ChatMessages.pasteId eq pasteId }
@@ -243,8 +245,14 @@ class PasteRepo(private val db: Database, private val pepper: String) {
                 .limit(count - 50)
                 .map { it[ChatMessages.id] }
 
-            oldest.forEach { msgId ->
-                ChatMessages.deleteWhere { ChatMessages.id eq msgId }
+            // Batch delete all oldest messages in a single query
+            // Build OR condition for batch deletion (more efficient than individual deletes)
+            if (oldest.isNotEmpty()) {
+                // Delete all messages whose IDs are in the oldest list
+                // Build OR condition: id = oldest[0] OR id = oldest[1] OR ...
+                val conditions = oldest.map { id -> ChatMessages.id eq id }
+                val combinedCondition = conditions.reduce { acc, cond -> acc or cond }
+                ChatMessages.deleteWhere { combinedCondition }
             }
         }
 
