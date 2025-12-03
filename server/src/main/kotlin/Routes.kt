@@ -150,7 +150,7 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
         /**
          * DELETE /api/pastes/{id}?token=...
          * Delete a paste using its deletion token
-         * 
+         *
          * Returns 403 Forbidden if the token doesn't match.
          * Returns 204 No Content on successful deletion.
          */
@@ -161,6 +161,75 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             val ok = repo.deleteIfTokenMatches(id, token)
             if (!ok) call.respond(HttpStatusCode.Forbidden, ErrorResponse("invalid_token"))
             else call.respond(HttpStatusCode.NoContent)
+        }
+        /**
+         * POST /api/pastes/{id}/messages
+         * Post an encrypted chat message to a paste
+         *
+         * All messages are encrypted client-side before being sent to the server.
+         * The server only stores encrypted ciphertext and never sees plaintext.
+         *
+         * Rate limiting applies to prevent message spam.
+         * Maximum 50 messages per paste (FIFO deletion).
+         *
+         * Returns 201 with message count on success.
+         */
+        post("/pastes/{id}/messages") {
+            val id = call.parameters["id"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+
+            // Check if paste exists and is not expired
+            repo.getIfAvailable(id) ?: return@post call.respond(
+                HttpStatusCode.NotFound, ErrorResponse("paste_not_found"))
+
+            // Rate limiting
+            if (rl != null) {
+                val ip = clientIp(call)
+                if (!rl.allow("POST_MSG:$ip")) {
+                    call.respond(HttpStatusCode.TooManyRequests, ErrorResponse("rate_limited")); return@post
+                }
+            }
+
+            // Parse request body
+            val body = try { call.receive<PostChatMessageRequest>() } catch (_: Exception) {
+                call.respond(HttpStatusCode.BadRequest, ErrorResponse("invalid_json")); return@post
+            }
+
+            // Validate message size (prevent huge encrypted messages)
+            val ctSize = base64UrlSize(body.ct)
+            val ivSize = base64UrlSize(body.iv)
+            if (ctSize <= 0 || ivSize !in 12..64 || ctSize > 10000) { // 10KB max per message
+                call.respond(HttpStatusCode.BadRequest, ErrorResponse("message_size_invalid")); return@post
+            }
+
+            try {
+                val count = repo.addChatMessage(id, body.ct, body.iv)
+                call.respond(HttpStatusCode.Created, PostChatMessageResponse(count))
+            } catch (_: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, ErrorResponse("db_error"))
+            }
+        }
+        /**
+         * GET /api/pastes/{id}/messages
+         * Retrieve all encrypted chat messages for a paste
+         *
+         * Returns messages ordered by timestamp (oldest first).
+         * All messages are encrypted - decryption happens client-side.
+         *
+         * Returns 404 if the paste doesn't exist or has expired.
+         */
+        get("/pastes/{id}/messages") {
+            val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+
+            // Check if paste exists and is not expired
+            repo.getIfAvailable(id) ?: return@get call.respond(
+                HttpStatusCode.NotFound, ErrorResponse("paste_not_found"))
+
+            try {
+                val messages = repo.getChatMessages(id)
+                call.respond(GetChatMessagesResponse(messages))
+            } catch (_: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, ErrorResponse("db_error"))
+            }
         }
 	}
 }

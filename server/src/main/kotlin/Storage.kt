@@ -13,11 +13,13 @@
  */
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greater
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -30,7 +32,7 @@ import java.time.Instant
 
 /**
  * Database table definition for pastes
- * 
+ *
  * All paste content (ct, iv) is stored encrypted. The decryption key never
  * touches the server - it's only present in the URL fragment on the client side.
  */
@@ -48,6 +50,21 @@ object Pastes : Table("pastes") {
 }
 
 /**
+ * Database table definition for chat messages
+ *
+ * All messages are encrypted client-side with the paste password.
+ * Messages are automatically deleted when the parent paste is deleted.
+ */
+object ChatMessages : Table("chat_messages") {
+    val id = integer("id").autoIncrement()
+    val pasteId = varchar("paste_id", 32).references(Pastes.id, onDelete = ReferenceOption.CASCADE)
+    val ct = text("ct")
+    val iv = text("iv")
+    val timestamp = long("timestamp")
+    override val primaryKey = PrimaryKey(id)
+}
+
+/**
  * Repository for paste storage operations
  * 
  * Provides a high-level API for creating, retrieving, and deleting pastes.
@@ -57,7 +74,7 @@ object Pastes : Table("pastes") {
  * @property pepper Secret value mixed into deletion token hashes
  */
 class PasteRepo(private val db: Database, private val pepper: String) {
-    init { transaction(db) { SchemaUtils.createMissingTablesAndColumns(Pastes) } }
+    init { transaction(db) { SchemaUtils.createMissingTablesAndColumns(Pastes, ChatMessages) } }
 
     /**
      * Hash a deletion token with SHA-256
@@ -171,7 +188,7 @@ class PasteRepo(private val db: Database, private val pepper: String) {
 
     /**
      * Convert a database row to an API response payload
-     * 
+     *
      * @param row Database row
      * @return PastePayload for API response
      */
@@ -190,5 +207,66 @@ class PasteRepo(private val db: Database, private val pepper: String) {
             ),
             viewsLeft = left
         )
+    }
+
+    /**
+     * Add a chat message to a paste
+     * Maintains maximum of 50 messages per paste (FIFO deletion)
+     *
+     * @param pasteId Paste identifier
+     * @param ct Encrypted message ciphertext
+     * @param iv Initialization vector for decryption
+     * @return Number of messages after insertion
+     */
+    fun addChatMessage(pasteId: String, ct: String, iv: String): Int = transaction(db) {
+        val now = Instant.now().epochSecond
+
+        // Insert new message
+        ChatMessages.insert {
+            it[ChatMessages.pasteId] = pasteId
+            it[ChatMessages.ct] = ct
+            it[ChatMessages.iv] = iv
+            it[timestamp] = now
+        }
+
+        // Count messages for this paste
+        val count = ChatMessages.selectAll()
+            .where { ChatMessages.pasteId eq pasteId }
+            .count()
+            .toInt()
+
+        // If over 50 messages, delete oldest ones
+        if (count > 50) {
+            val oldest = ChatMessages.selectAll()
+                .where { ChatMessages.pasteId eq pasteId }
+                .orderBy(ChatMessages.timestamp to SortOrder.ASC)
+                .limit(count - 50)
+                .map { it[ChatMessages.id] }
+
+            oldest.forEach { msgId ->
+                ChatMessages.deleteWhere { ChatMessages.id eq msgId }
+            }
+        }
+
+        count.coerceAtMost(50)
+    }
+
+    /**
+     * Get all chat messages for a paste
+     *
+     * @param pasteId Paste identifier
+     * @return List of chat messages ordered by timestamp (oldest first)
+     */
+    fun getChatMessages(pasteId: String): List<ChatMessage> = transaction(db) {
+        ChatMessages.selectAll()
+            .where { ChatMessages.pasteId eq pasteId }
+            .orderBy(ChatMessages.timestamp to SortOrder.ASC)
+            .map { row ->
+                ChatMessage(
+                    ct = row[ChatMessages.ct],
+                    iv = row[ChatMessages.iv],
+                    timestamp = row[ChatMessages.timestamp]
+                )
+            }
     }
 }
