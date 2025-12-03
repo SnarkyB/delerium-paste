@@ -16,16 +16,19 @@ We created an **interactive setup wizard** (`scripts/setup.sh`) that:
 ## How to Run It
 
 ### Method 1: Direct Script
+
 ```bash
 ./scripts/setup.sh
 ```
 
 ### Method 2: Make Target
+
 ```bash
 make setup
 ```
 
 ### Method 3: Help Command
+
 ```bash
 make help
 # Shows: make setup - ?? Interactive setup wizard (configure secrets)
@@ -33,7 +36,7 @@ make help
 
 ## Example Session 1: Local Development (Full Interactive)
 
-```
+```text
 $ ./scripts/setup.sh
 
 ??????????????????????????????????????????????????
@@ -146,7 +149,7 @@ Happy pasting! ??
 
 ## Example Session 2: Production with Domain
 
-```
+```text
 $ ./scripts/setup.sh
 
 [... initial banner ...]
@@ -177,7 +180,7 @@ Email for Let's Encrypt: admin@example.com
 
 ## Example Session 3: Existing .env Detection
 
-```
+```text
 $ ./scripts/setup.sh
 
 [... initial banner ...]
@@ -200,7 +203,7 @@ Do you want to overwrite it? (yes/no) [no]: no
 
 ## Example Session 4: Headless Mode
 
-```
+```text
 $ HEADLESS=1 ./scripts/setup.sh
 
 [... same prompts as regular mode ...]
@@ -215,24 +218,28 @@ $ HEADLESS=1 ./scripts/setup.sh
 ## Features Demonstrated
 
 ### ?? User-Friendly Interface
+
 - ? Colorful output with emojis
 - ? Clear section separators (?????)
 - ? Default values shown in [brackets]
 - ? Progress indicators at each step
 
 ### ?? Security-First
+
 - ? Auto-generates cryptographically random secrets
 - ? Hides secrets in output (shows as `**********`)
 - ? Validates secret length (warns if too short)
 - ? Explains why each secret is needed
 
 ### ??? Protection Features
+
 - ? Detects existing .env files
 - ? Confirms before overwriting
 - ? Validates prerequisites before proceeding
 - ? Never commits secrets to git
 
 ### ?? Convenience
+
 - ? One command to complete setup
 - ? Optionally starts services immediately
 - ? Opens browser automatically (unless headless)
@@ -255,6 +262,7 @@ The new setup wizard complements existing scripts:
 - **`scripts/install-headless.sh`** - Headless environment setup
 
 Each serves a different use case:
+
 - Use `quick-start.sh` when you trust defaults
 - Use `setup.sh` when you want to understand & configure
 - Use `security-setup.sh` for production hardening
@@ -299,6 +307,7 @@ graph TD
 ## Testing the Script
 
 ### Manual Testing
+
 ```bash
 # Test with different inputs
 ./scripts/setup.sh
@@ -312,6 +321,7 @@ touch .env
 ```
 
 ### Automated Testing (for CI)
+
 ```bash
 # Simulate user input
 echo -e "1\nyes\nyes" | ./scripts/setup.sh

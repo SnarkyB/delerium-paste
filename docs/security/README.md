@@ -5,7 +5,9 @@ This directory contains all security-related documentation for Delirium Paste.
 ## Documents
 
 ### [CHECKLIST.md](CHECKLIST.md)
+
 Security checklist for production deployments, covering:
+
 - Server hardening
 - Secrets management
 - Network security
@@ -13,7 +15,9 @@ Security checklist for production deployments, covering:
 - Monitoring and logging
 
 ### [SCANNING.md](SCANNING.md)
+
 Guide for security scanning and vulnerability assessment:
+
 - Automated security scanning tools
 - Dependency vulnerability checking
 - How to interpret scan results
@@ -63,6 +67,7 @@ Guide for security scanning and vulnerability assessment:
 If you discover a security vulnerability, please **DO NOT** open a public issue.
 
 Instead:
+
 1. Email the maintainers directly
 2. Include detailed information about the vulnerability
 3. Allow time for the issue to be patched before public disclosure

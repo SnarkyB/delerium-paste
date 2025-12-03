@@ -7,17 +7,20 @@
 ## Installation Details
 
 ### Package Installed
+
 ```bash
 docker-buildx-plugin (0.30.1-1~ubuntu.24.04~noble)
 ```
 
 ### Builder Configuration
+
 - **Builder Name:** delirium-builder (active)
 - **Driver:** docker-container
 - **Status:** Running
 - **Endpoint:** unix:///var/run/docker.sock
 
 ### Supported Platforms
+
 - linux/amd64
 - linux/amd64/v2
 - linux/amd64/v3
@@ -26,21 +29,25 @@ docker-buildx-plugin (0.30.1-1~ubuntu.24.04~noble)
 ## Usage
 
 ### Basic Build
+
 ```bash
 docker buildx build -t myimage:latest .
 ```
 
 ### Multi-Platform Build
+
 ```bash
 docker buildx build --platform linux/amd64,linux/arm64 -t myimage:latest .
 ```
 
 ### Build and Push
+
 ```bash
 docker buildx build --platform linux/amd64,linux/arm64 -t myimage:latest --push .
 ```
 
 ### Build and Load (single platform)
+
 ```bash
 docker buildx build --platform linux/amd64 -t myimage:latest --load .
 ```
@@ -48,33 +55,38 @@ docker buildx build --platform linux/amd64 -t myimage:latest --load .
 ## Builder Management
 
 ### List Builders
+
 ```bash
 docker buildx ls
 ```
 
 ### Inspect Current Builder
+
 ```bash
 docker buildx inspect
 ```
 
 ### Switch Builder
+
 ```bash
 docker buildx use delirium-builder
 ```
 
 ### Create New Builder
+
 ```bash
 docker buildx create --name mybuilder --use
 ```
 
 ### Remove Builder
+
 ```bash
 docker buildx rm delirium-builder
 ```
 
 ## Current Builders
 
-```
+```text
 NAME/NODE               DRIVER/ENDPOINT                   STATUS     BUILDKIT   PLATFORMS
 delirium-builder*       docker-container                                        
  \_ delirium-builder0    \_ unix:///var/run/docker.sock   running    v0.26.2    linux/amd64, linux/386
@@ -85,7 +97,8 @@ default                 docker
 ## BuildKit Container
 
 The buildx builder runs as a Docker container:
-```
+
+```text
 CONTAINER ID   IMAGE                           STATUS
 0ca6691f8dc2   moby/buildkit:buildx-stable-1   Up
 ```
@@ -139,16 +152,19 @@ make push-multiarch REGISTRY=ghcr.io/marcusb333 TAG=v1.0.4
 ## Cache Management
 
 ### View Cache
+
 ```bash
 docker buildx du
 ```
 
 ### Prune Cache
+
 ```bash
 docker buildx prune
 ```
 
 ### Prune All Cache
+
 ```bash
 docker buildx prune --all
 ```
@@ -156,6 +172,7 @@ docker buildx prune --all
 ## Advanced Features
 
 ### Build with Secrets
+
 ```bash
 docker buildx build \
   --secret id=mysecret,src=/path/to/secret \
@@ -164,6 +181,7 @@ docker buildx build \
 ```
 
 ### Build with SSH Agent
+
 ```bash
 docker buildx build \
   --ssh default \
@@ -172,6 +190,7 @@ docker buildx build \
 ```
 
 ### Export Build Cache
+
 ```bash
 docker buildx build \
   --cache-to type=local,dest=/tmp/cache \
@@ -180,6 +199,7 @@ docker buildx build \
 ```
 
 ### Import Build Cache
+
 ```bash
 docker buildx build \
   --cache-from type=local,src=/tmp/cache \
@@ -190,6 +210,7 @@ docker buildx build \
 ## Troubleshooting
 
 ### Builder Not Starting
+
 ```bash
 # Remove and recreate builder
 docker buildx rm delirium-builder
@@ -198,6 +219,7 @@ docker buildx inspect --bootstrap
 ```
 
 ### Container Issues
+
 ```bash
 # Check buildkit container logs
 docker logs buildx_buildkit_delirium-builder0
@@ -207,6 +229,7 @@ docker restart buildx_buildkit_delirium-builder0
 ```
 
 ### Platform Not Supported
+
 ```bash
 # Install QEMU for cross-platform builds
 docker run --privileged --rm tonistiigi/binfmt --install all
@@ -223,9 +246,11 @@ docker run --privileged --rm tonistiigi/binfmt --install all
 ## Docker Compose Integration
 
 Docker Compose will now use buildx automatically when available. The warning message:
-```
+
+```text
 level=warning msg="Docker Compose is configured to build using Bake, but buildx isn't installed"
 ```
+
 will no longer appear.
 
 ## Verification

@@ -11,12 +11,14 @@ This is the **second phase** of migrating from Gradle to Bazel. This PR updates 
 ### Dockerfile Updates
 
 **Before (Gradle):**
+
 ```dockerfile
 FROM gradle:8.11.1-jdk21 AS builder
 RUN gradle --no-daemon clean installDist
 ```
 
 **After (Bazel):**
+
 ```dockerfile
 FROM ubuntu:22.04 AS builder
 # Install Bazelisk with multi-arch support
@@ -26,6 +28,7 @@ RUN bazel build //server:delerium_server_deploy --config=ci
 ```
 
 Key improvements:
+
 - ✅ Multi-architecture detection (amd64/arm64)
 - ✅ Smaller base image (Ubuntu instead of full Gradle image)
 - ✅ Uses CI-optimized Bazel config
@@ -35,16 +38,19 @@ Key improvements:
 ### Script Updates
 
 **server/run-local.sh:**
+
 - Check for Bazelisk installation with helpful prompts
 - Run with `bazel run //server:delerium_server`
 - Maintain environment variable compatibility
 
 **server/bazel-build.sh** (NEW):
+
 - Helper script for building with Bazel
 - Shows build artifacts locations
 - Simplifies local development workflow
 
 **Makefile:**
+
 - Added `make bazel-setup` - Install Bazelisk
 - Added `make build-server-bazel` - Build server with Bazel
 - Added `make test-server-bazel` - Run tests with Bazel  
@@ -56,6 +62,7 @@ Key improvements:
 Docker build context changed from `./server` to `.` (project root) because Bazel needs access to WORKSPACE file at repository root.
 
 **CI/CD workflows must update:**
+
 ```yaml
 # OLD
 context: ./server
@@ -67,6 +74,7 @@ context: .
 ## Testing
 
 ### Local Docker Build
+
 ```bash
 # Build Docker image
 cd server
@@ -82,6 +90,7 @@ curl http://localhost:8080/api/health
 ```
 
 ### Local Bazel Build
+
 ```bash
 # Build server
 make build-server-bazel
@@ -100,6 +109,7 @@ bazel run //server:delerium_server
 ```
 
 ### Makefile Targets
+
 ```bash
 # Setup Bazel (one-time)
 make bazel-setup
@@ -121,6 +131,7 @@ Both build systems coexist until Phase 4.
 ## Architecture Support
 
 Dockerfile now supports:
+
 - **x86_64** (amd64) - Intel/AMD processors
 - **aarch64/arm64** - Apple Silicon, AWS Graviton, Raspberry Pi
 
@@ -129,6 +140,7 @@ Architecture automatically detected at build time.
 ## Docker Image Details
 
 **Build process:**
+
 1. Install Bazelisk based on detected architecture
 2. Copy WORKSPACE and Bazel config files
 3. Copy server source code
@@ -136,6 +148,7 @@ Architecture automatically detected at build time.
 5. Extract JAR and create slim runtime image
 
 **Runtime image:**
+
 - Base: `eclipse-temurin:21-jre-jammy` (unchanged)
 - Non-root user: `delirium:delirium` (unchanged)
 - Health check: `/api/health` endpoint (unchanged)
@@ -144,10 +157,12 @@ Architecture automatically detected at build time.
 ## Performance
 
 **Docker build time:**
+
 - First build: Similar to Gradle (downloads dependencies)
 - Subsequent builds: Faster with Docker layer caching + Bazel caching
 
 **Local builds:**
+
 - First build: ~30-60 seconds (downloads dependencies)
 - Incremental builds: ~5-10 seconds (only changed files)
 
@@ -160,14 +175,16 @@ Architecture automatically detected at build time.
 
 ## Developer Experience
 
-### Before (Gradle):
+### Before (Gradle)
+
 ```bash
 cd server
 ./gradlew build
 docker build -t app .
 ```
 
-### After (Bazel):
+### After (Bazel)
+
 ```bash
 # Local build
 bazel build //server:delerium_server_deploy
@@ -203,6 +220,7 @@ make build-server-bazel
 ## Next Steps
 
 After this PR merges:
+
 1. **Phase 3 PR**: Update CI/CD workflows to use Bazel
 2. Developers can use Bazel for local development
 3. Docker images build with Bazel
@@ -210,6 +228,7 @@ After this PR merges:
 ## Breaking Changes
 
 ⚠️ **Docker build context change:**
+
 - If building manually: `docker build -f server/Dockerfile .` (from root)
 - CI workflows will need update in Phase 3
 

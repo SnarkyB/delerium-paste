@@ -21,6 +21,7 @@ All error responses follow this format:
 ```
 
 Common error codes:
+
 - `invalid_json` - Request body is not valid JSON
 - `pow_required` - Proof-of-work is required but not provided
 - `pow_invalid` - Proof-of-work solution is invalid
@@ -42,6 +43,7 @@ Lightweight health check endpoint intended for orchestrators and monitoring syst
 **Response**:
 
 - **200 OK**
+
   ```json
   {
     "status": "ok",
@@ -52,6 +54,7 @@ Lightweight health check endpoint intended for orchestrators and monitoring syst
   ```
 
 **Response Fields**:
+
 - `status` (string): `"ok"` when the service is healthy
 - `timestampMs` (integer): Server timestamp in milliseconds when the response was generated
 - `powEnabled` (boolean): Indicates whether proof-of-work is currently enforced
@@ -64,6 +67,7 @@ curl http://localhost:8080/api/health
 ```
 
 **Notes**:
+
 - `HEAD /api/health` is also supported and returns `200 OK` with no body
 - A 200 response confirms the API process is running and configuration loaded; use other endpoints for deeper diagnostics
 
@@ -78,6 +82,7 @@ Request a proof-of-work challenge. This endpoint is used when proof-of-work is e
 **Response**:
 
 - **200 OK** (when PoW is enabled):
+
   ```json
   {
     "challenge": "base64url-encoded-challenge-string",
@@ -89,6 +94,7 @@ Request a proof-of-work challenge. This endpoint is used when proof-of-work is e
 - **204 No Content** (when PoW is disabled)
 
 **Response Fields**:
+
 - `challenge` (string): Base64url-encoded random challenge string
 - `difficulty` (integer): Number of leading zero bits required in the solution hash
 - `expiresAt` (integer): Unix timestamp when this challenge expires
@@ -102,12 +108,15 @@ curl http://localhost:8080/api/pow
 **Proof-of-Work Solving**:
 
 To solve a PoW challenge, find a nonce (integer) such that:
-```
+
+```text
 SHA-256(challenge:nonce)
 ```
+
 produces a hash with at least `difficulty` leading zero bits.
 
 Example algorithm:
+
 1. Start with nonce = 0
 2. Compute hash = SHA-256(challenge + ":" + nonce)
 3. Count leading zero bits in hash
@@ -115,6 +124,7 @@ Example algorithm:
 5. Otherwise, increment nonce and repeat
 
 **Notes**:
+
 - Challenges expire after a configurable TTL (default: 180 seconds)
 - Each challenge can only be used once
 - Lower difficulty values (8-10) are faster to solve but provide less protection
@@ -146,6 +156,7 @@ Create a new encrypted paste.
 ```
 
 **Request Fields**:
+
 - `ct` (string, required): Base64url-encoded ciphertext (encrypted paste content)
 - `iv` (string, required): Base64url-encoded initialization vector (12-64 bytes when decoded)
 - `meta` (object, required): Paste metadata
@@ -160,6 +171,7 @@ Create a new encrypted paste.
 **Response**:
 
 - **201 Created**:
+
   ```json
   {
     "id": "abc123xyz",
@@ -172,10 +184,12 @@ Create a new encrypted paste.
 - **500 Internal Server Error**: Database error
 
 **Response Fields**:
+
 - `id` (string): Unique paste identifier (used in URLs)
 - `deleteToken` (string): Secret token for deleting the paste (keep this private!)
 
 **Validation Rules**:
+
 - `ct` size (decoded) must be > 0 and <= `maxSizeBytes` (default: 1MB)
 - `iv` size (decoded) must be between 12 and 64 bytes
 - `expireTs` must be at least 10 seconds in the future
@@ -225,6 +239,7 @@ curl -X POST http://localhost:8080/api/pastes \
 ```
 
 **Notes**:
+
 - The `deleteToken` should be kept secret and used only for deletion
 - Pastes are automatically deleted when they expire
 - Single-view pastes are deleted immediately after first retrieval
@@ -238,11 +253,13 @@ curl -X POST http://localhost:8080/api/pastes \
 Retrieve an encrypted paste.
 
 **Path Parameters**:
+
 - `id` (string, required): Paste identifier
 
 **Response**:
 
 - **200 OK**:
+
   ```json
   {
     "ct": "base64url-encoded-ciphertext",
@@ -261,6 +278,7 @@ Retrieve an encrypted paste.
 - **404 Not Found**: Paste doesn't exist, has expired, or was deleted
 
 **Response Fields**:
+
 - `ct` (string): Encrypted content (ciphertext)
 - `iv` (string): Initialization vector for decryption
 - `meta` (object): Original metadata from paste creation
@@ -273,12 +291,14 @@ curl http://localhost:8080/api/pastes/abc123xyz
 ```
 
 **Behavior**:
+
 - View count is incremented on each retrieval (if not single-view and limit not reached)
 - Single-view pastes are deleted immediately after first retrieval
 - Pastes with view limits are deleted when the limit is reached
 - Expired pastes return 404
 
 **Notes**:
+
 - The decryption key is never sent to the server (it's in the URL fragment on the client)
 - Decryption happens entirely client-side
 - Each retrieval increments the view count (unless it's the last view)
@@ -290,9 +310,11 @@ curl http://localhost:8080/api/pastes/abc123xyz
 Delete a paste using its deletion token.
 
 **Path Parameters**:
+
 - `id` (string, required): Paste identifier
 
 **Query Parameters**:
+
 - `token` (string, required): Deletion token returned when creating the paste
 
 **Response**:
@@ -308,6 +330,7 @@ curl -X DELETE "http://localhost:8080/api/pastes/abc123xyz?token=secret-deletion
 ```
 
 **Notes**:
+
 - The deletion token is required and must match the token used when creating the paste
 - Invalid tokens return 403 (not 404) to prevent information leakage
 - Once deleted, a paste cannot be retrieved
@@ -402,10 +425,12 @@ curl -X DELETE "http://localhost:8080/api/pastes/abc123xyz?token=secret-deletion
 When rate limiting is enabled, the server uses a token bucket algorithm to limit requests per IP address.
 
 **Default Limits** (configurable):
+
 - Capacity: 30 tokens
 - Refill Rate: 30 tokens per minute
 
 **Behavior**:
+
 - Each POST request to `/api/pastes` consumes one token
 - Tokens are refilled continuously over time
 - When the bucket is empty, requests return `429 Too Many Requests` with error `rate_limited`
@@ -435,6 +460,7 @@ Proof-of-work (PoW) is an optional feature that requires clients to solve a comp
 - **20+ bits**: Very strong (exponentially more expensive)
 
 **Default Configuration**:
+
 - Enabled: `true`
 - Difficulty: `10` bits
 - TTL: `180` seconds
@@ -471,6 +497,7 @@ function countLeadingZeroBits(bytes) {
 ```
 
 **Notes**:
+
 - Challenges expire after the TTL period
 - Each challenge can only be used once
 - PoW can be disabled in server configuration
@@ -518,6 +545,7 @@ function countLeadingZeroBits(bytes) {
 ### Security Headers
 
 The server sets the following security headers on all responses:
+
 - `Referrer-Policy: no-referrer`
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`

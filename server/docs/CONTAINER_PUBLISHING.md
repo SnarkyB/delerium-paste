@@ -5,11 +5,13 @@ This guide explains how to publish the delerium-paste as a reusable container im
 ## Quick Start
 
 **For GitHub Container Registry (GHCR) - Easiest Option:**
+
 - ✅ **No setup required!** Just push to your GitHub repository
 - Images are automatically published to `ghcr.io/<your-username>/delerium-paste`
 - Works immediately - no secrets to configure
 
 **For Docker Hub:**
+
 - Requires setting up secrets in GitHub (see below)
 - Images published to `docker.io/<your-username>/delerium-paste`
 
@@ -26,17 +28,21 @@ This guide explains how to publish the delerium-paste as a reusable container im
 **Zero configuration required!**
 
 1. **Push to your repository:**
+
    ```bash
    git push origin main
    ```
+
    This automatically builds and pushes:
    - `ghcr.io/<your-username>/delerium-paste:latest`
 
 2. **Create a version tag:**
+
    ```bash
    git tag v1.0.0
    git push origin v1.0.0
    ```
+
    This automatically creates multiple tags:
    - `ghcr.io/<your-username>/delerium-paste:1.0.0`
    - `ghcr.io/<your-username>/delerium-paste:1.0`
@@ -48,6 +54,7 @@ This guide explains how to publish the delerium-paste as a reusable container im
    - Or visit: `https://github.com/<your-username>?tab=packages`
 
 **Note:** By default, packages are private. To make them public:
+
 - Go to the package page → Package settings → Change visibility → Make public
 
 ### Docker Hub
@@ -58,23 +65,27 @@ This guide explains how to publish the delerium-paste as a reusable container im
    - Add the following secrets:
      - **Name:** `DOCKERHUB_USERNAME` → **Value:** Your Docker Hub username
      - **Name:** `DOCKERHUB_TOKEN` → **Value:** Your Docker Hub access token
-       - Create token at: https://hub.docker.com/settings/security
+       - Create token at: <https://hub.docker.com/settings/security>
        - Click "New Access Token"
        - Give it a description (e.g., "GitHub Actions")
        - Copy the token immediately (you won't see it again!)
 
 2. **Trigger the workflow:**
    - **Push to `main` branch:**
+
      ```bash
      git push origin main
      ```
+
      Builds and pushes: `your-username/delerium-paste:latest`
-   
+
    - **Create a version tag:**
+
      ```bash
      git tag v1.0.0
      git push origin v1.0.0
      ```
+
      Builds and pushes multiple tags:
      - `your-username/delerium-paste:1.0.0`
      - `your-username/delerium-paste:1.0`
@@ -84,7 +95,7 @@ This guide explains how to publish the delerium-paste as a reusable container im
 3. **Verify the workflow:**
    - Go to your repository → Actions tab
    - You should see "Build and Push Docker Image" workflow running
-   - Once complete, check Docker Hub: https://hub.docker.com/r/your-username/delerium-paste
+   - Once complete, check Docker Hub: <https://hub.docker.com/r/your-username/delerium-paste>
 
 ## Manual Publishing
 
@@ -93,6 +104,7 @@ This guide explains how to publish the delerium-paste as a reusable container im
 The project includes `docker-build.sh` for easy local builds:
 
 **For Docker Hub:**
+
 ```bash
 cd server  # Navigate to server directory in monorepo
 ./docker-build.sh 1.0.0 dockerhub your-dockerhub-username
@@ -102,6 +114,7 @@ docker push your-dockerhub-username/delerium-paste:latest
 ```
 
 **For GHCR:**
+
 ```bash
 cd server  # Navigate to server directory in monorepo
 ./docker-build.sh 1.0.0 ghcr your-github-username
@@ -110,7 +123,7 @@ docker push ghcr.io/your-github-username/delerium-paste:1.0.0
 docker push ghcr.io/your-github-username/delerium-paste:latest
 ```
 
-**Note:** For GHCR, create a GitHub Personal Access Token with `write:packages` permission at https://github.com/settings/tokens
+**Note:** For GHCR, create a GitHub Personal Access Token with `write:packages` permission at <https://github.com/settings/tokens>
 
 ### Multi-Architecture Builds
 
@@ -131,6 +144,7 @@ docker buildx build \
 ### Direct Docker Build
 
 **For Docker Hub:**
+
 ```bash
 cd server  # Navigate to server directory in monorepo
 docker build -t your-username/delerium-paste:1.0.0 .
@@ -141,6 +155,7 @@ docker push your-username/delerium-paste:latest
 ```
 
 **For GHCR:**
+
 ```bash
 cd server  # Navigate to server directory in monorepo
 docker build -t ghcr.io/your-username/delerium-paste:1.0.0 .
@@ -180,6 +195,7 @@ The GitHub Actions workflow (`.github/workflows/server-ci.yml`) automatically:
 ### Customizing the Workflow
 
 To modify the workflow:
+
 1. Edit `.github/workflows/docker-publish.yml`
 2. Adjust triggers, registries, or tags as needed
 3. Update secrets if switching registries
@@ -195,11 +211,13 @@ To modify the workflow:
 ### Multi-Architecture Support
 
 The Docker image supports multiple architectures:
+
 - `linux/amd64` (x86_64)
 - `linux/arm64` (ARM 64-bit, Apple Silicon, AWS Graviton)
 - `linux/arm/v7` (ARM 32-bit, Raspberry Pi)
 
 This allows deployment on a wide range of platforms including:
+
 - Traditional x86_64 servers
 - Apple Silicon Macs (M1/M2/M3)
 - ARM-based cloud instances (AWS Graviton, Oracle Cloud)
@@ -208,6 +226,7 @@ This allows deployment on a wide range of platforms including:
 ### Security Features
 
 The Docker image includes several security enhancements:
+
 - **Non-root user**: Application runs as `delirium:delirium` (uid/gid 999)
 - **Health checks**: Built-in health monitoring via `/api/health` endpoint
 - **OCI labels**: Standard container metadata for better tooling support
@@ -216,29 +235,30 @@ The Docker image includes several security enhancements:
 ### Image Size
 
 The multi-stage build produces a minimal runtime image containing only:
+
 - JRE 21
 - Application binaries
 - Application dependencies
 
 ### Security Considerations
 
-1. **Non-root user**: 
+1. **Non-root user**:
    - The container runs as user `delirium` (uid/gid 999) for enhanced security
    - The `/data` directory is automatically configured with correct permissions
    - If mounting a volume, ensure the host directory is readable/writable by uid 999
 
-2. **Pepper management**: 
+2. **Pepper management**:
    - **Auto-generation**: If `DELETION_TOKEN_PEPPER` is not set, the application automatically generates a cryptographically secure random pepper (32 bytes)
    - **Production best practice**: Set `DELETION_TOKEN_PEPPER` explicitly for consistency across restarts
      - If the pepper changes between restarts, deletion tokens created before the restart will be invalid
      - Generate a secure value: `openssl rand -hex 32`
 
-3. **Volume permissions**: 
+3. **Volume permissions**:
    - With the non-root user, ensure host-mounted volumes are accessible
    - Option 1: `chown -R 999:999 /path/to/data` on the host
    - Option 2: Use Docker-managed volumes (recommended)
 
-4. **Health checks**: 
+4. **Health checks**:
    - Built-in health check monitors the `/api/health` endpoint
    - Interval: 30s, Timeout: 10s, Start period: 40s, Retries: 3
    - Used by orchestrators (Docker Compose, Kubernetes) for automated restarts
@@ -250,16 +270,19 @@ The multi-stage build produces a minimal runtime image containing only:
 ## Troubleshooting
 
 ### Container won't start
+
 - Check logs: `docker logs <container-id>`
 - Verify database path is writable: `docker exec <container-id> ls -la /data`
 - Ensure `DELETION_TOKEN_PEPPER` is set (or allow auto-generation)
 
 ### Database issues
+
 - Ensure `/data` volume is mounted and writable
 - Check file permissions on the host directory
 - Verify SQLite is working: `docker exec <container-id> sqlite3 /data/pastes.db ".tables"`
 
 ### Build failures
+
 - Ensure Docker has enough resources (memory, disk space)
 - Check network connectivity for downloading dependencies
 - Review build logs for specific errors
@@ -269,18 +292,21 @@ The multi-stage build produces a minimal runtime image containing only:
 ### Automated Publishing
 
 **GHCR (Zero Setup):**
+
 ```bash
 git push origin main                    # Pushes latest tag
 git tag v1.0.0 && git push origin v1.0.0  # Pushes versioned tags
 ```
 
 **Docker Hub (Requires Secrets):**
+
 1. Add `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets in GitHub
 2. Same git commands as above
 
 ### Manual Publishing
 
 **GHCR:**
+
 ```bash
 ./docker-build.sh 1.0.0 ghcr your-github-username
 echo $GITHUB_TOKEN | docker login ghcr.io -u your-github-username --password-stdin
@@ -288,6 +314,7 @@ docker push ghcr.io/your-github-username/delerium-paste:1.0.0
 ```
 
 **Docker Hub:**
+
 ```bash
 ./docker-build.sh 1.0.0 dockerhub your-dockerhub-username
 docker login
@@ -297,12 +324,14 @@ docker push your-dockerhub-username/delerium-paste:1.0.0
 ### Pull and Run Published Images
 
 **From GHCR:**
+
 ```bash
 docker pull ghcr.io/your-username/delerium-paste:latest
 docker run -d -p 8080:8080 -v ./data:/data -e DELETION_TOKEN_PEPPER=your-secret ghcr.io/your-username/delerium-paste:latest
 ```
 
 **From Docker Hub:**
+
 ```bash
 docker pull your-username/delerium-paste:latest
 docker run -d -p 8080:8080 -v ./data:/data -e DELETION_TOKEN_PEPPER=your-secret your-username/delerium-paste:latest

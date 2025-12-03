@@ -5,6 +5,7 @@ Collection of utility scripts for deploying and managing Delirium.
 ## 🚀 Production Scripts
 
 ### deploy-prod.sh
+
 Main production deployment script with backup and health checks.
 
 ```bash
@@ -25,6 +26,7 @@ Main production deployment script with backup and health checks.
 ```
 
 **Features:**
+
 - ✅ Environment validation
 - 💾 Automatic database backup
 - 📦 Client build
@@ -34,6 +36,7 @@ Main production deployment script with backup and health checks.
 - 📊 Status reporting
 
 ### prod-status.sh
+
 Check production deployment status.
 
 ```bash
@@ -41,6 +44,7 @@ Check production deployment status.
 ```
 
 **Shows:**
+
 - Container status
 - API health
 - SSL certificate info
@@ -49,6 +53,7 @@ Check production deployment status.
 - Access URLs
 
 ### prod-logs.sh
+
 View production logs.
 
 ```bash
@@ -69,6 +74,7 @@ View production logs.
 ```
 
 ### prod-stop.sh
+
 Safely stop production containers.
 
 ```bash
@@ -80,6 +86,7 @@ Data is preserved in Docker volumes.
 ## 🔧 Development Scripts
 
 ### dev.sh
+
 Start development environment with hot-reload.
 
 ```bash
@@ -87,6 +94,7 @@ Start development environment with hot-reload.
 ```
 
 ### quick-start.sh
+
 First-time setup for local development.
 
 ```bash
@@ -96,6 +104,7 @@ First-time setup for local development.
 ## 🔒 Security Scripts
 
 ### security-setup.sh
+
 Configure security enhancements.
 
 ```bash
@@ -103,6 +112,7 @@ Configure security enhancements.
 ```
 
 ### security-check.sh
+
 Run security verification.
 
 ```bash
@@ -110,6 +120,7 @@ Run security verification.
 ```
 
 ### security-scan.sh
+
 Automated vulnerability scanning.
 
 ```bash
@@ -117,6 +128,7 @@ Automated vulnerability scanning.
 ```
 
 ### setup-ssl.sh
+
 SSL certificate setup wizard.
 
 ```bash
@@ -126,6 +138,7 @@ SSL certificate setup wizard.
 ## 🧪 CI/CD Scripts
 
 ### ci-verify-all.sh
+
 Run all CI checks locally.
 
 ```bash
@@ -133,6 +146,7 @@ Run all CI checks locally.
 ```
 
 ### ci-verify-frontend.sh
+
 Frontend checks only.
 
 ```bash
@@ -140,6 +154,7 @@ Frontend checks only.
 ```
 
 ### ci-verify-backend.sh
+
 Backend checks only.
 
 ```bash
@@ -147,6 +162,7 @@ Backend checks only.
 ```
 
 ### ci-verify-quick.sh
+
 Quick checks (no E2E tests).
 
 ```bash
@@ -156,6 +172,7 @@ Quick checks (no E2E tests).
 ## 📦 Deployment Scripts
 
 ### vps-deploy.sh
+
 One-command VPS deployment.
 
 ```bash
@@ -163,6 +180,7 @@ curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste/main/scri
 ```
 
 ### setup-vps-from-local.sh
+
 Deploy from local machine to VPS.
 
 ```bash
@@ -172,6 +190,7 @@ Deploy from local machine to VPS.
 ## 🔍 Monitoring Scripts
 
 ### health-check.sh
+
 Comprehensive health check.
 
 ```bash
@@ -179,6 +198,7 @@ Comprehensive health check.
 ```
 
 ### monitor.sh
+
 Start service monitoring.
 
 ```bash
@@ -188,6 +208,7 @@ Start service monitoring.
 ## 💾 Backup Scripts
 
 ### backup.sh
+
 Create manual backup.
 
 ```bash
@@ -211,6 +232,7 @@ Create manual backup.
 ## 🎯 Common Workflows
 
 ### Initial Production Deployment
+
 ```bash
 # 1. Setup environment
 ./scripts/setup.sh
@@ -223,6 +245,7 @@ Create manual backup.
 ```
 
 ### Update Production
+
 ```bash
 # 1. Pull changes
 git pull
@@ -235,6 +258,7 @@ git pull
 ```
 
 ### Quick Config Change
+
 ```bash
 # Edit .env or configs
 vim .env
@@ -247,6 +271,7 @@ vim .env
 ```
 
 ### Troubleshooting
+
 ```bash
 # Check status
 ./scripts/prod-status.sh
@@ -265,6 +290,7 @@ vim .env
 ## 📖 Documentation
 
 For detailed documentation, see:
+
 - [Production Deployment Guide](../PRODUCTION_DEPLOYMENT.md)
 - [Main README](../docs/random/README.md)
 - [Deployment Docs](../docs/deployment/)

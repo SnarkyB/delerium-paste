@@ -23,6 +23,7 @@ graph TB
 ```
 
 **Key Points:**
+
 - **Zero-knowledge**: Server never sees unencrypted content
 - **Client-side encryption**: All encryption happens in browser
 - **Privacy-first**: No accounts, no tracking, no analytics
@@ -59,6 +60,7 @@ graph TB
 ```
 
 **Technology Choices:**
+
 - **Frontend**: TypeScript SPA with Web Crypto API
 - **Reverse Proxy**: Nginx for static files and API routing
 - **Backend**: Ktor (Kotlin) REST API on JVM
@@ -98,6 +100,7 @@ graph TB
 ```
 
 **Problems with Current State:**
+
 - ? `app.ts` has too many responsibilities (SRP violation)
 - ? Hard to test components in isolation
 - ? Difficult to extend or customize
@@ -183,6 +186,7 @@ graph TB
 ```
 
 **Benefits of Target Architecture:**
+
 - ? Clear separation of concerns (Presentation, Application, Domain, Infrastructure)
 - ? Dependency inversion (depend on interfaces, not implementations)
 - ? Easy to test (mock interfaces in tests)
@@ -190,13 +194,15 @@ graph TB
 - ? Plugin architecture for customization
 
 **Dependency Flow:**
-```
+
+```text
 Presentation ? Application ? Core Domain ? Infrastructure
                               (no dependencies)    ?
                                               External Systems
 ```
 
 **Extension Points:**
+
 - Implement `ICryptoProvider` for custom encryption
 - Implement `IApiClient` for custom API backends
 - Implement `IPowSolver` for alternative PoW algorithms
@@ -246,6 +252,7 @@ graph TB
 ```
 
 **Problems with Current State:**
+
 - ? No clear layering (domain vs infrastructure)
 - ? Hard to swap implementations (e.g., MongoDB instead of SQLite)
 - ? Routes contain business logic
@@ -332,6 +339,7 @@ graph TB
 ```
 
 **Benefits of Target Architecture:**
+
 - ? Hexagonal/Ports & Adapters architecture
 - ? Easy to swap storage (implement `PasteRepository`)
 - ? Easy to test (mock ports)
@@ -339,6 +347,7 @@ graph TB
 - ? Business logic independent of framework
 
 **Extension Points:**
+
 - Implement `PasteRepository` for different databases (MongoDB, Redis, S3)
 - Implement `RateLimiter` for distributed rate limiting
 - Implement `PowVerifier` for alternative PoW algorithms
@@ -413,6 +422,7 @@ classDiagram
 ```
 
 **Design Patterns:**
+
 - **Strategy Pattern**: `ICryptoProvider` allows swapping algorithms
 - **Factory Pattern**: `createCryptoProvider()` creates instances
 - **Result Type**: Type-safe error handling instead of exceptions
@@ -454,6 +464,7 @@ graph TB
 ```
 
 **Deployment Configuration:**
+
 - **Development**: `docker-compose.yml` (port 8080, HTTP)
 - **Production**: `docker-compose.prod.yml` (ports 80/443, HTTPS)
 - **Secure**: `docker-compose.secure.yml` (HTTPS with Let's Encrypt)
@@ -520,6 +531,7 @@ sequenceDiagram
 ```
 
 **Security Properties:**
+
 1. **Zero-knowledge**: Server never sees plaintext
 2. **Client-side encryption**: All crypto in browser
 3. **Key in fragment**: Encryption key never sent to server
@@ -538,6 +550,7 @@ sequenceDiagram
 | 4 | Code | Developers | Class-level design of specific modules |
 
 **Additional Diagrams:**
+
 - **Deployment**: How system is deployed (Docker)
 - **Data Flow**: Sequence of operations for paste creation
 

@@ -19,6 +19,7 @@ The `deploy.sh` script consolidates all Delirium deployment workflows into a sin
 ```
 
 This will:
+
 1. Create a secure `.env` file (if missing)
 2. Build the frontend client
 3. Start Docker containers
@@ -31,6 +32,7 @@ This will:
 ```
 
 This will:
+
 1. Install Docker and dependencies
 2. Configure firewall (ports 22, 80, 443)
 3. Obtain SSL certificate from Let's Encrypt
@@ -45,6 +47,7 @@ This will:
 ```
 
 This will:
+
 1. Pull latest changes from git
 2. Rebuild the application
 3. Restart services with zero downtime
@@ -58,10 +61,12 @@ Deploy locally for development on port 8080.
 **Use case:** Local development and testing
 
 **Requirements:**
+
 - Docker and Docker Compose
 - Node.js 18+ (optional, for building client)
 
 **What it does:**
+
 - Creates `.env` file with secure random pepper
 - Builds frontend client (if Node.js available)
 - Starts services using `docker-compose.yml`
@@ -74,16 +79,19 @@ Initial VPS setup with SSL certificate.
 **Use case:** First-time production deployment on a fresh VPS
 
 **Requirements:**
+
 - Ubuntu 22.04+ or Debian 11+ VPS
 - Domain name pointed to server IP
 - Email address for Let's Encrypt notifications
 - At least 1GB RAM, 1 CPU core, 10GB disk
 
 **Arguments:**
+
 - `<domain>`: Your domain name (e.g., `example.com`)
 - `<email>`: Email for SSL certificate notifications
 
 **What it does:**
+
 1. Updates system packages
 2. Installs Docker, Docker Compose, Docker Buildx
 3. Installs Certbot for SSL certificates
@@ -96,6 +104,7 @@ Initial VPS setup with SSL certificate.
 10. Sets up automatic SSL renewal (daily at 3 AM)
 
 **Example:**
+
 ```bash
 ./deploy.sh vps-setup delerium.cc admin@delerium.cc
 ```
@@ -107,11 +116,13 @@ Deploy to production using existing setup.
 **Use case:** Deploying updates to an already-configured production server
 
 **Requirements:**
+
 - Existing `.env` file with `DELETION_TOKEN_PEPPER`
 - Docker and Docker Compose installed
 - SSL certificates already configured (for HTTPS)
 
 **What it does:**
+
 1. Validates `.env` file exists
 2. Builds frontend client
 3. Builds Docker images
@@ -126,11 +137,13 @@ Update and redeploy automatically.
 **Use case:** Quick updates from git repository
 
 **What it does:**
+
 1. Pulls latest changes from git (if in a git repo)
 2. Auto-detects deployment type (local or production)
 3. Rebuilds and restarts services
 
 **Smart detection:**
+
 - If production containers are running → runs production deployment
 - Otherwise → runs local deployment
 
@@ -141,13 +154,15 @@ Check deployment status.
 **Use case:** Verify services are running and healthy
 
 **What it shows:**
+
 - Which deployment type is active (local or production)
 - Container status (running, stopped, unhealthy)
 - Health check endpoint response
 - Port bindings
 
 **Example output:**
-```
+
+```text
 Production deployment detected
 
 NAME                IMAGE               STATUS
@@ -164,6 +179,7 @@ View application logs in real-time.
 **Use case:** Debugging, monitoring, troubleshooting
 
 **What it does:**
+
 - Auto-detects deployment type
 - Streams logs from all containers
 - Press `Ctrl+C` to exit
@@ -177,6 +193,7 @@ Stop all services.
 **Use case:** Temporarily stop the application
 
 **What it does:**
+
 - Stops all running containers
 - Preserves volumes (database remains intact)
 - Can be restarted with `./deploy.sh production` or `./deploy.sh local`
@@ -190,6 +207,7 @@ Stop services and remove volumes.
 **⚠️ WARNING:** This will delete your database!
 
 **What it does:**
+
 1. Asks for confirmation
 2. Stops all containers
 3. Removes all volumes (including database)
@@ -206,6 +224,7 @@ Show detailed help message with all commands and examples.
 **Goal:** Run Delirium locally for development and testing
 
 **Steps:**
+
 ```bash
 # Clone repository
 git clone https://github.com/marcusb333/delerium-paste.git
@@ -218,11 +237,13 @@ cd delerium-paste
 ```
 
 **To stop:**
+
 ```bash
 ./deploy.sh stop
 ```
 
 **To update after code changes:**
+
 ```bash
 ./deploy.sh update
 ```
@@ -232,11 +253,13 @@ cd delerium-paste
 **Goal:** Deploy Delirium to a new VPS with SSL
 
 **Prerequisites:**
+
 - Fresh Ubuntu 22.04+ VPS
 - Domain name pointed to VPS IP (A record)
 - SSH access to VPS
 
 **Steps:**
+
 ```bash
 # 1. SSH into VPS
 ssh user@your-vps-ip
@@ -252,6 +275,7 @@ cd delerium-paste
 ```
 
 **What happens:**
+
 - Installs all dependencies (Docker, Node.js, Certbot)
 - Configures firewall
 - Obtains SSL certificate
@@ -265,6 +289,7 @@ cd delerium-paste
 **Goal:** Deploy updates to running production server
 
 **Steps:**
+
 ```bash
 # SSH into VPS
 ssh user@your-vps-ip
@@ -275,6 +300,7 @@ cd delerium-paste
 ```
 
 **Alternative (manual control):**
+
 ```bash
 # Pull changes
 git pull origin main
@@ -288,12 +314,14 @@ git pull origin main
 **Goal:** Switch from old deployment scripts to unified script
 
 **If you were using:**
+
 - `scripts/vps-deploy.sh` → Use `./deploy.sh vps-setup`
 - `scripts/deploy.sh` → Use `./deploy.sh production`
 - `scripts/push-to-vps.sh` → Use `./deploy.sh update`
 - `make quick-start` → Use `./deploy.sh local`
 
 **Migration steps:**
+
 ```bash
 # Stop old deployment
 docker compose down
@@ -303,6 +331,7 @@ docker compose down
 ```
 
 **Benefits of unified script:**
+
 - Single entry point for all deployments
 - Auto-detection of environment
 - Better error messages
@@ -361,6 +390,7 @@ sudo systemctl stop apache2  # example
 #### "Docker not found"
 
 **Solution:**
+
 ```bash
 # Install Docker
 curl -fsSL https://get.docker.com | sudo sh
@@ -377,6 +407,7 @@ ssh user@server
 #### "Node.js not found"
 
 **Solution:**
+
 ```bash
 # Install Node.js 20.x using signed repository
 NODE_MAJOR=20
@@ -399,6 +430,7 @@ npm --version
 #### "DELETION_TOKEN_PEPPER not set"
 
 **Solution:**
+
 ```bash
 # Generate secure pepper
 openssl rand -hex 32
@@ -416,11 +448,13 @@ DELETION_TOKEN_PEPPER=your_generated_pepper_here
 #### "SSL certificate failed"
 
 **Causes:**
+
 - DNS not pointing to server
 - Port 80 blocked by firewall
 - Another service using port 80
 
 **Solution:**
+
 ```bash
 # Check DNS
 dig +short your-domain.com
@@ -444,6 +478,7 @@ sudo certbot certonly --standalone -d your-domain.com
 #### "Services unhealthy"
 
 **Solution:**
+
 ```bash
 # Check logs
 ./deploy.sh logs
@@ -500,6 +535,7 @@ curl http://localhost/api/health
 ### Why Migrate?
 
 **Benefits:**
+
 1. **Single entry point** - One script for all deployments
 2. **Auto-detection** - Detects local vs production automatically
 3. **Better validation** - Checks prerequisites before running
@@ -510,6 +546,7 @@ curl http://localhost/api/health
 ### Migration Steps
 
 1. **Stop old deployment:**
+
    ```bash
    docker compose down
    # or
@@ -517,6 +554,7 @@ curl http://localhost/api/health
    ```
 
 2. **Use new script:**
+
    ```bash
    # For local
    ./deploy.sh local
@@ -530,6 +568,7 @@ curl http://localhost/api/health
    - Update CI/CD pipelines if applicable
 
 4. **Optional: Remove old scripts:**
+
    ```bash
    # Keep for reference, or remove
    rm scripts/vps-deploy.sh
@@ -595,11 +634,13 @@ done
 ## Best Practices
 
 1. **Always check status before deploying:**
+
    ```bash
    ./deploy.sh status
    ```
 
 2. **View logs during deployment:**
+
    ```bash
    ./deploy.sh production
    # In another terminal:
@@ -607,6 +648,7 @@ done
    ```
 
 3. **Test locally before production:**
+
    ```bash
    ./deploy.sh local
    # Test thoroughly
@@ -614,17 +656,20 @@ done
    ```
 
 4. **Keep backups of .env file:**
+
    ```bash
    cp .env .env.backup
    ```
 
 5. **Monitor after deployment:**
+
    ```bash
    ./deploy.sh status
    ./deploy.sh logs
    ```
 
 6. **Use update for routine deployments:**
+
    ```bash
    ./deploy.sh update
    ```

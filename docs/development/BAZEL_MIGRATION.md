@@ -15,12 +15,14 @@ Delirium Paste has migrated from Gradle to Bazel for building the Kotlin/Ktor se
 ## What Changed?
 
 ### Removed Files
+
 - `server/gradlew` and `server/gradlew.bat` - No longer needed
 - `server/build.gradle.kts` - Replaced by `server/BUILD.bazel`
 - `server/settings.gradle.kts` - Replaced by `WORKSPACE`
 - `server/gradle/` directory - No longer needed
 
 ### New Files
+
 - `WORKSPACE` - Defines external dependencies and Kotlin rules
 - `.bazelrc` - Build configuration for different scenarios
 - `.bazelversion` - Pins Bazel version (managed by Bazelisk)
@@ -34,11 +36,13 @@ Delirium Paste has migrated from Gradle to Bazel for building the Kotlin/Ktor se
 Install Bazelisk (Bazel version manager):
 
 **macOS:**
+
 ```bash
 brew install bazelisk
 ```
 
 **Linux:**
+
 ```bash
 ./scripts/setup-bazel.sh
 # Or use Make target
@@ -46,6 +50,7 @@ make bazel-setup
 ```
 
 **Windows:**
+
 ```bash
 choco install bazelisk
 ```
@@ -176,6 +181,7 @@ bazel build //server:delerium_server --config=release
 ### "bazel: command not found"
 
 Install Bazelisk:
+
 ```bash
 make bazel-setup
 # Or manually: brew install bazelisk (macOS)
@@ -184,6 +190,7 @@ make bazel-setup
 ### Build fails with "cannot find symbol"
 
 Clean and rebuild:
+
 ```bash
 bazel clean --expunge
 bazel build //server:delerium_server
@@ -192,6 +199,7 @@ bazel build //server:delerium_server
 ### Tests fail unexpectedly
 
 Run with verbose output:
+
 ```bash
 bazel test //server:all_tests --test_output=all --verbose_failures
 ```
@@ -199,6 +207,7 @@ bazel test //server:all_tests --test_output=all --verbose_failures
 ### Dependency issues
 
 Query what's resolved:
+
 ```bash
 bazel query 'deps(//server:delerium_server_lib)' --output=build
 ```
@@ -211,6 +220,7 @@ Subsequent builds are much faster (only changed files rebuild).
 ### Cache issues
 
 Clear Bazel cache:
+
 ```bash
 rm -rf ~/.cache/bazel
 bazel clean --expunge
@@ -226,18 +236,22 @@ bazel clean --expunge
 ## Key Differences from Gradle
 
 ### Hermetic Builds
+
 Bazel builds are fully hermetic - same inputs always produce same outputs.
 No more "works on my machine" issues.
 
 ### Explicit Dependencies
+
 All dependencies must be declared in WORKSPACE and BUILD files.
 This makes the build graph explicit and cacheable.
 
 ### No Build Lifecycle
+
 Unlike Gradle's lifecycle phases, Bazel has explicit build rules.
 You specify exactly what to build, not a lifecycle to run.
 
 ### External Dependencies
+
 Maven dependencies are still used but resolved via `rules_jvm_external`
 in the WORKSPACE file instead of Gradle's dependency management.
 
@@ -246,6 +260,7 @@ in the WORKSPACE file instead of Gradle's dependency management.
 ✅ **Migration Complete!** All workflows and scripts now use Bazel.
 
 ### Completed
+
 - ✅ Install Bazelisk
 - ✅ Replace `./gradlew` commands with `bazel`
 - ✅ Update CI/CD scripts (pr-checks.yml, server-ci.yml)
@@ -278,6 +293,7 @@ If you're updating existing workflows:
 ## Support
 
 For questions or issues:
+
 1. Check this migration guide
 2. See [BAZEL_QUICKSTART.md](./BAZEL_QUICKSTART.md)
 3. Create an issue on GitHub
@@ -286,6 +302,7 @@ For questions or issues:
 ## Rollback Plan
 
 If needed, previous Gradle setup is preserved in git history:
+
 ```bash
 git log --all --oneline -- server/build.gradle.kts
 ```

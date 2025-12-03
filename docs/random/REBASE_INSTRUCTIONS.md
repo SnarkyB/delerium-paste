@@ -1,13 +1,14 @@
 # Rebasing Branches for Parallel PRs
 
 ## Current Problem
+
 Branches are stacked: Phase 2 includes Phase 1, Phase 3 includes Phase 1+2, etc.
 
 ## Solution: Rebase Each Branch on Main
 
 This will make each branch independent, containing only its own changes.
 
-### Commands:
+### Commands
 
 ```bash
 # Phase 2: Rebase to remove Phase 1 changes
@@ -26,8 +27,10 @@ git rebase --onto main feat/bazel-phase3-ci-workflows
 git push origin feat/bazel-phase4-docs-cleanup --force-with-lease
 ```
 
-### Result:
+### Result
+
 Each branch will only contain its own commits, making them independent PRs.
 
-### Conflicts:
+### Conflicts
+
 You'll need to resolve conflicts during rebase since phases modify the same files.

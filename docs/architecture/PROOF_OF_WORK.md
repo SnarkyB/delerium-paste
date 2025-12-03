@@ -9,6 +9,7 @@ The ZKPaste proof-of-work system provides spam protection by requiring clients t
 ### Challenge-Response Flow
 
 1. **Client requests challenge**: `GET /api/pow`
+
    ```json
    {
      "challenge": "aB3dE...fG9hI",
@@ -20,6 +21,7 @@ The ZKPaste proof-of-work system provides spam protection by requiring clients t
 2. **Client solves puzzle**: Find a nonce where `SHA-256(challenge:nonce)` has at least `difficulty` leading zero bits
 
 3. **Client submits solution**: Include in paste creation request
+
    ```json
    {
      "ct": "encrypted_content",
@@ -98,6 +100,7 @@ storage {
 ### Time-to-Live (TTL)
 
 Challenges expire after 180 seconds (3 minutes) by default. This:
+
 - Prevents challenge reuse attacks
 - Allows time for legitimate users to solve
 - Keeps the challenge cache small
@@ -117,6 +120,7 @@ storage {
 ```
 
 When disabled:
+
 - `GET /api/pow` returns `204 No Content`
 - Paste creation doesn't require PoW solution
 - Rate limiting is still enforced (if enabled)
@@ -133,6 +137,7 @@ npm run test:unit -- pow-solver
 ```
 
 Tests cover:
+
 - Low difficulty (1-4 bits)
 - Medium difficulty (8-10 bits)
 - High difficulty (15-20 bits) with cancellation
@@ -149,6 +154,7 @@ npx playwright test
 ```
 
 Tests verify:
+
 - Paste creation with PoW
 - Paste creation without PoW (when disabled)
 - Error handling for invalid PoW solutions
@@ -156,22 +162,25 @@ Tests verify:
 ### Manual Testing
 
 1. **Start dev environment**:
+
    ```bash
    make dev
    ```
 
 2. **Enable PoW in config**:
+
    ```hocon
    pow { enabled = true, difficulty = 10, ttlSeconds = 180 }
    ```
 
 3. **Test paste creation**:
-   - Open http://localhost:8080
+   - Open <http://localhost:8080>
    - Create a paste
    - Watch browser console for PoW solving
    - Should complete in <1 second
 
 4. **Verify enforcement**:
+
    ```bash
    # Try to create paste without PoW (should fail)
    curl -X POST http://localhost:8080/api/pastes \
@@ -193,6 +202,7 @@ Tests verify:
 ### Defense in Depth
 
 PoW is one layer in a multi-layered defense:
+
 - **Rate limiting**: Limits requests per IP (30/minute default)
 - **PoW**: Makes each request computationally expensive
 - **Size limits**: Prevents large paste abuse (1MB max)
@@ -213,6 +223,7 @@ PoW is one layer in a multi-layered defense:
 ### Server-Side
 
 Verification is extremely fast (~1ms) as it only:
+
 1. Checks if challenge exists in cache
 2. Verifies it hasn't expired
 3. Computes single SHA-256 hash
@@ -226,7 +237,8 @@ Cache memory usage is minimal: ~50 bytes per challenge × active challenges.
 
 **Cause**: PoW is enabled but client didn't include solution
 
-**Fix**: 
+**Fix**:
+
 - Frontend: Fetch challenge from `/api/pow` before creating paste
 - Testing: Include valid PoW solution in request
 - Development: Temporarily disable PoW in config
@@ -234,12 +246,14 @@ Cache memory usage is minimal: ~50 bytes per challenge × active challenges.
 ### "pow_invalid" Error
 
 **Causes**:
+
 - Challenge expired (>180 seconds old)
 - Nonce doesn't satisfy difficulty requirement
 - Challenge doesn't exist (server restarted)
 - Wrong challenge submitted
 
 **Fix**:
+
 - Fetch a fresh challenge and retry
 - Check system clock synchronization
 - Verify difficulty calculation algorithm
@@ -247,11 +261,13 @@ Cache memory usage is minimal: ~50 bytes per challenge × active challenges.
 ### Slow Solving (>5 seconds)
 
 **Causes**:
+
 - Difficulty too high (>12 bits)
 - Old/slow device
 - Browser throttling background tabs
 
 **Fix**:
+
 - Lower difficulty in config
 - Show loading indicator to user
 - Consider adaptive difficulty based on paste size

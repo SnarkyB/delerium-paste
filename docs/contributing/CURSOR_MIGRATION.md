@@ -7,16 +7,18 @@ As of recent Cursor updates, the `.cursorrules` file has been **deprecated** in 
 ## What Changed?
 
 ### Old System (Deprecated)
+
 - **File**: `.cursorrules` in project root
 - **Scope**: Project-specific rules only
 - **Management**: Manual file editing
 - **Limitations**: Single file, no hierarchy
 
 ### New System (Current)
+
 - **Location**: Cursor Settings ? Features ? Rules
 - **Scope**: Global, workspace, and file-specific rules
 - **Management**: UI-based with better organization
-- **Benefits**: 
+- **Benefits**:
   - Multiple rule contexts (global, workspace, file)
   - Better priority and inheritance
   - Easier to manage across projects
@@ -36,11 +38,13 @@ As of recent Cursor updates, the `.cursorrules` file has been **deprecated** in 
 ### 2. Use the Provided Rule Files
 
 This repository includes organized rule files in `.cursor/rules/`:
+
 - `workspace.md` - Project-wide conventions and patterns
 - `typescript.md` - TypeScript-specific guidelines
 - `testing.md` - Testing standards and patterns
 
 To use these in Cursor:
+
 1. Open Cursor Settings ? Features ? Rules
 2. Navigate to **Workspace Rules**
 3. Copy content from the appropriate `.cursor/rules/*.md` files
@@ -51,7 +55,8 @@ To use these in Cursor:
 Consider breaking down your rules into appropriate contexts:
 
 #### Global Rules (Apply everywhere)
-```
+
+```text
 - Always use TypeScript strict mode
 - Prefer functional programming patterns
 - Write comprehensive tests
@@ -59,7 +64,8 @@ Consider breaking down your rules into appropriate contexts:
 ```
 
 #### Workspace Rules (Delirium-specific)
-```
+
+```text
 - Zero-knowledge encryption principles
 - Client-side encryption before server transmission
 - Never log sensitive data
@@ -67,7 +73,8 @@ Consider breaking down your rules into appropriate contexts:
 ```
 
 #### File Rules (Pattern-specific)
-```
+
+```text
 Pattern: **/*.ts
 - Use explicit types over inference
 - Export main functions for testing
@@ -83,12 +90,13 @@ Pattern: **/*.test.ts
 
 The new system also supports `.cursorignore` for excluding files from AI indexing:
 
-```
+```text
 # Already created in this migration
 .cursorignore
 ```
 
 This file tells Cursor which files to **exclude from AI context**, improving:
+
 - Faster indexing
 - More relevant AI suggestions
 - Reduced token usage
@@ -97,21 +105,25 @@ This file tells Cursor which files to **exclude from AI context**, improving:
 ## Benefits of New System
 
 ### 1. Better Context Management
+
 - Cursor can now better understand which rules apply where
 - Reduces confusion in multi-project workspaces
 - Improves AI suggestion quality
 
 ### 2. Performance Improvements
+
 - `.cursorignore` reduces indexing overhead
 - Excludes `node_modules`, build artifacts, logs automatically
 - Faster file search and AI context retrieval
 
 ### 3. Flexibility
+
 - Different rules for different file types
 - Share global rules across all projects
 - Override rules at workspace level
 
 ### 4. Maintenance
+
 - UI-based editing is easier than file editing
 - Visual organization of rules
 - Better validation and error checking
@@ -121,6 +133,7 @@ This file tells Cursor which files to **exclude from AI context**, improving:
 The `.cursorignore` file excludes:
 
 ### Always Exclude
+
 - `node_modules/`, `.gradle/` (dependencies)
 - `build/`, `dist/`, `coverage/` (generated files)
 - `*.log`, `logs/` (log files)
@@ -128,12 +141,14 @@ The `.cursorignore` file excludes:
 - `.DS_Store`, `Thumbs.db` (OS files)
 
 ### Consider Excluding
+
 - Lock files (`package-lock.json`, `yarn.lock`)
 - Minified files (`*.min.js`, `*.min.css`)
 - Source maps (`*.js.map`)
 - Large data files (`*.db`, `*.sqlite`)
 
 ### Never Exclude
+
 - Source code (`*.ts`, `*.kt`, `*.js` sources)
 - Configuration files (`tsconfig.json`, `build.gradle.kts`)
 - Documentation (`*.md`, `docs/`)
@@ -142,16 +157,19 @@ The `.cursorignore` file excludes:
 ## Testing the Migration
 
 ### Verify Rules Work
+
 1. Open a TypeScript file
 2. Start typing code that violates a rule
 3. Check if Cursor's AI suggestions follow the rules
 
 ### Verify Indexing Exclusions
+
 1. Open Cursor's file search (`Cmd+P`)
 2. Search for a file in `node_modules/`
 3. It should be de-prioritized or excluded
 
 ### Check Context Quality
+
 1. Ask Cursor AI a question about your codebase
 2. It should focus on source files, not node_modules
 3. Responses should be faster and more relevant
@@ -159,16 +177,19 @@ The `.cursorignore` file excludes:
 ## Troubleshooting
 
 ### Rules Not Applied
+
 - Check that rules are saved in Cursor Settings
 - Verify you're in the correct workspace
 - Restart Cursor IDE
 
 ### Files Not Excluded
+
 - Verify `.cursorignore` syntax (similar to `.gitignore`)
 - Check file patterns match your structure
 - Reload workspace
 
 ### Performance Issues
+
 - Add more patterns to `.cursorignore`
 - Exclude large generated files
 - Consider excluding test snapshots
@@ -184,12 +205,14 @@ The `.cursorignore` file excludes:
 The workspace rules now include comprehensive guidelines for working with AI assistants:
 
 ### Key Principles
+
 - **Small PRs**: Keep pull requests focused (100-300 lines ideal)
 - **Manual Control**: AI should never auto-commit or auto-push
 - **Contextual Commits**: Commit messages must align with branch purpose
 - **Explicit Confirmation**: Developer must explicitly request git operations
 
 See [`.cursorrules`](../../.cursorrules) for complete guidelines on:
+
 - Pull request philosophy and sizing
 - Commit message conventions
 - Breaking down large tasks
@@ -209,6 +232,7 @@ See [`.cursorrules`](../../.cursorrules) for complete guidelines on:
 ## Delirium-Specific Notes
 
 ### Critical Rules to Migrate
+
 1. **Zero-knowledge principle**: Never send encryption keys to server
 2. **Client-side encryption**: All encryption happens in browser
 3. **Security-first**: No sensitive data in logs or errors
@@ -216,12 +240,14 @@ See [`.cursorrules`](../../.cursorrules) for complete guidelines on:
 5. **Testing**: 85% coverage minimum
 
 ### Files to Keep in Context
+
 - `client/src/*.ts` (TypeScript sources)
 - `server/src/main/kotlin/*.kt` (Kotlin sources)
 - `*.md` (documentation)
 - Configuration files
 
 ### Files to Exclude from Context
+
 - `client/js/*.js` (compiled, prefer TypeScript)
 - `client/node_modules/` (vendor code)
 - `server/build/` (build artifacts)

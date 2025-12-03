@@ -14,6 +14,7 @@ Consolidated multiple deployment scripts into a single, unified `deploy.sh` scri
 **File:** `/home/noob/delirium/deploy.sh` (22KB, 700+ lines)
 
 **Features:**
+
 - ✅ Single entry point for all deployments
 - ✅ Auto-detects environment (local vs production)
 - ✅ Validates prerequisites before running
@@ -23,6 +24,7 @@ Consolidated multiple deployment scripts into a single, unified `deploy.sh` scri
 - ✅ Built-in help system
 
 **Commands:**
+
 - `local` - Deploy locally for development (port 8080)
 - `vps-setup` - Initial VPS setup with SSL
 - `production` - Deploy to production (existing setup)
@@ -36,6 +38,7 @@ Consolidated multiple deployment scripts into a single, unified `deploy.sh` scri
 ### 2. Updated README.md
 
 **Changes:**
+
 - Replaced "Quick Deploy to VPS" section with unified deployment guide
 - Added comprehensive command reference table
 - Updated "Local Development Setup" to reference new script
@@ -43,6 +46,7 @@ Consolidated multiple deployment scripts into a single, unified `deploy.sh` scri
 - Added "Deployment Script Details" section
 
 **New sections:**
+
 - One-Command Deployment
 - Quick Start Guide
 - Available Commands (table format)
@@ -53,6 +57,7 @@ Consolidated multiple deployment scripts into a single, unified `deploy.sh` scri
 **File:** `docs/deployment/UNIFIED_DEPLOYMENT.md` (12KB)
 
 **Contents:**
+
 - Quick Start guide
 - Commands Reference (detailed)
 - Deployment Scenarios (5 real-world scenarios)
@@ -66,6 +71,7 @@ Consolidated multiple deployment scripts into a single, unified `deploy.sh` scri
 **File:** `DEPLOY_QUICK_REFERENCE.md` (2.8KB)
 
 **Contents:**
+
 - Quick command reference
 - Common workflows
 - Requirements checklist
@@ -119,18 +125,21 @@ Consolidated multiple deployment scripts into a single, unified `deploy.sh` scri
 ### Tests Performed
 
 ✅ **Syntax validation:**
+
 ```bash
 bash -n deploy.sh
 # Result: Syntax check passed
 ```
 
 ✅ **Help command:**
+
 ```bash
 ./deploy.sh help
 # Result: Displays comprehensive help with all commands
 ```
 
 ✅ **Status command:**
+
 ```bash
 ./deploy.sh status
 # Result: Correctly detected production deployment
@@ -138,6 +147,7 @@ bash -n deploy.sh
 ```
 
 ✅ **Script permissions:**
+
 ```bash
 ls -lh deploy.sh
 # Result: -rwxr-xr-x (executable)
@@ -156,38 +166,44 @@ ls -lh deploy.sh
 ## Usage Examples
 
 ### Local Development
+
 ```bash
 ./deploy.sh local
 ```
 
 ### VPS Setup
+
 ```bash
 ./deploy.sh vps-setup delerium.cc admin@delerium.cc
 ```
 
 ### Production Deployment
+
 ```bash
 ./deploy.sh production
 ```
 
 ### Update Deployment
+
 ```bash
 ./deploy.sh update
 ```
 
 ### Check Status
+
 ```bash
 ./deploy.sh status
 ```
 
 ### View Logs
+
 ```bash
 ./deploy.sh logs
 ```
 
 ## Documentation Structure
 
-```
+```text
 /home/noob/delirium/
 ├── deploy.sh                                    # Main script (22KB)
 ├── DEPLOY_QUICK_REFERENCE.md                    # Quick reference (2.8KB)
@@ -205,6 +221,7 @@ ls -lh deploy.sh
 ### Old Scripts Preserved
 
 The old scripts in `scripts/` directory are preserved for backwards compatibility:
+
 - `scripts/vps-deploy.sh` - Still works
 - `scripts/deploy.sh` - Still works
 - `scripts/push-to-vps.sh` - Still works
@@ -212,6 +229,7 @@ The old scripts in `scripts/` directory are preserved for backwards compatibilit
 ### Migration Path
 
 Users can migrate gradually:
+
 1. Try new script: `./deploy.sh help`
 2. Test with: `./deploy.sh status`
 3. Use for next deployment: `./deploy.sh update`
@@ -220,6 +238,7 @@ Users can migrate gradually:
 ### Make Commands Still Work
 
 All Make commands continue to work:
+
 - `make quick-start` → Uses docker compose directly
 - `make dev` → Uses docker compose directly
 - `make test` → Unchanged
@@ -258,6 +277,7 @@ Potential improvements for future versions:
 ## Conclusion
 
 The deployment script consolidation successfully:
+
 - ✅ Unified 4+ scripts into 1 comprehensive script
 - ✅ Improved user experience with clear commands
 - ✅ Enhanced safety with validation and checks

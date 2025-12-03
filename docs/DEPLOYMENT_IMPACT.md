@@ -7,58 +7,73 @@ The CORS fixes **automatically apply to ALL deployment methods** with no additio
 ## ✅ What Works Automatically
 
 ### 1. Quick Start (Local Development)
+
 ```bash
 make quick-start
 # OR
 ./scripts/quick-start.sh
 ```
+
 **Status**: ✅ **Works automatically** - Uses `docker-compose.yml` which is already updated
 
 ### 2. Development Mode
+
 ```bash
 make dev
 ```
+
 **Status**: ✅ **Works automatically** - Uses dev configuration
 
 ### 3. Production Deployment
+
 ```bash
 make deploy-prod
 ```
+
 **Status**: ✅ **Works automatically** - Uses `docker-compose.prod.yml` which is now updated
 
 ### 4. VPS One-Command Deploy
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
 ```
+
 **Status**: ✅ **Works automatically** - Clones repo with all fixes included
 
 ### 5. Secure Mode
+
 ```bash
 make start-secure
 ```
+
 **Status**: ✅ **Works automatically** - Inherits base configuration
 
 ## 📋 Files Updated for All Deployments
 
 ### Development (`docker-compose.yml`)
+
 - ✅ Updated with nginx default.conf removal command
 - ✅ Uses `reverse-proxy/nginx-dev.conf` with CORS support
 
 ### Production (`docker-compose.prod.yml`)
+
 - ✅ Updated with nginx default.conf removal command
 - ✅ Uses `reverse-proxy/nginx.conf` with CORS support
 
 ### Nginx Configs
+
 - ✅ `reverse-proxy/nginx-dev.conf` - Dev CORS (permissive, `*`)
 - ✅ `reverse-proxy/nginx.conf` - Prod CORS (restrictive, `$http_origin`)
 
 ### Backend
+
 - ✅ `server/src/main/kotlin/App.kt` - CORS plugin disabled
 - ✅ Incompatible headers removed
 
 ## 🔄 Migration Path for Existing Deployments
 
 ### If You're Already Running (Local Dev)
+
 ```bash
 # Pull latest changes
 git pull origin main
@@ -73,6 +88,7 @@ docker compose up -d
 ```
 
 ### If You're Already Running (Production VPS)
+
 ```bash
 # SSH into your VPS
 ssh user@your-vps
@@ -96,6 +112,7 @@ curl https://your-domain.com/api/health
 ```
 
 ### Fresh Deployment
+
 No special steps needed - just use any deployment method as normal:
 
 ```bash
@@ -146,11 +163,13 @@ curl -X POST http://localhost:8080/api/pastes \
 ## 🔐 Security Considerations
 
 ### Development
+
 - **CORS**: Allows all origins (`*`) for easy testing
 - **Rate Limiting**: Relaxed (100 req/min)
 - **Good for**: Local development, testing
 
 ### Production
+
 - **CORS**: Reflects origin (`$http_origin`) - more secure
 - **Rate Limiting**: Strict (10 req/min)
 - **SSL**: Required (Let's Encrypt)
@@ -161,6 +180,7 @@ curl -X POST http://localhost:8080/api/pastes \
 ### All Deployments Use These Commands
 
 #### Start/Stop
+
 ```bash
 # Development
 make start        # or docker compose up -d
@@ -172,6 +192,7 @@ make prod-stop    # or docker compose -f docker-compose.prod.yml down
 ```
 
 #### Check Status
+
 ```bash
 # All deployments
 docker compose ps
@@ -180,6 +201,7 @@ curl https://your-domain.com/api/health  # Prod
 ```
 
 #### View Logs
+
 ```bash
 # Development
 make logs
@@ -193,6 +215,7 @@ docker compose -f docker-compose.prod.yml logs -f
 ```
 
 #### Run Tests
+
 ```bash
 # Deployment verification
 ./scripts/test-deployment-cors.sh
@@ -205,7 +228,9 @@ cd client && npm test
 ## 🆘 Troubleshooting
 
 ### Issue: Still getting 403 Forbidden
+
 **Solution**: Make sure you pulled latest changes and rebuilt:
+
 ```bash
 git pull origin main
 docker compose build server
@@ -213,19 +238,25 @@ docker compose down && docker compose up -d
 ```
 
 ### Issue: Nginx won't start
+
 **Check config syntax**:
+
 ```bash
 docker compose exec web nginx -t
 ```
 
 ### Issue: API not responding
+
 **Check backend logs**:
+
 ```bash
 docker compose logs server
 ```
 
 ### Issue: CORS still not working in production
+
 **Verify nginx config loaded**:
+
 ```bash
 docker compose exec web cat /etc/nginx/nginx.conf | grep -A5 "location /api"
 ```
@@ -233,12 +264,14 @@ docker compose exec web cat /etc/nginx/nginx.conf | grep -A5 "location /api"
 ## 📊 What Changed vs What Didn't
 
 ### ✅ Changed
+
 - Nginx CORS handling
 - Backend CORS plugin (disabled)
 - Security headers (removed 3 incompatible ones)
 - Docker compose nginx startup command
 
 ### ❌ No Changes To
+
 - Deployment scripts themselves
 - Make commands
 - Environment variables

@@ -5,11 +5,13 @@ This directory contains tests to verify that the CORS and deployment fixes work 
 ## Tests Created
 
 ### 1. Backend Integration Tests (Kotlin)
+
 **Location**: `server/src/test/kotlin/integration/CorsIntegrationTest.kt`
 
 These tests verify that the backend correctly handles requests with `Origin` headers without rejecting them with `403 Forbidden`.
 
-#### Test Cases:
+#### Test Cases
+
 - ✅ `testPostPastes_WithOriginHeader_Returns400PowRequired` - Verifies POST with Origin header returns proper error (not 403)
 - ✅ `testPostPastes_WithOriginHeader_NoPow_Succeeds` - Verifies POST with Origin header succeeds when PoW is disabled
 - ✅ `testPostPastes_WithDifferentOrigin_Succeeds` - Tests requests from different origins
@@ -23,17 +25,20 @@ These tests verify that the backend correctly handles requests with `Origin` hea
 - ✅ `testPostPastes_ErrorResponsesWorkWithOrigin` - Tests error responses with Origin headers
 
 **Run tests:**
+
 ```bash
 cd server
 ./gradlew test --tests "integration.CorsIntegrationTest"
 ```
 
 ### 2. End-to-End Deployment Tests (Bash)
+
 **Location**: `scripts/test-deployment-cors.sh`
 
 This script tests the deployed application to verify all fixes work in the actual Docker environment.
 
-#### Test Cases:
+#### Test Cases
+
 - ✅ Services are running and healthy
 - ✅ Nginx default.conf is properly removed
 - ✅ Health endpoint returns 200 OK
@@ -47,6 +52,7 @@ This script tests the deployed application to verify all fixes work in the actua
 - ✅ No errors in backend logs
 
 **Run tests:**
+
 ```bash
 ./scripts/test-deployment-cors.sh
 ```
@@ -54,16 +60,19 @@ This script tests the deployed application to verify all fixes work in the actua
 ## What Was Fixed
 
 ### Root Cause
+
 The Ktor CORS plugin with `anyHost()` was incorrectly rejecting requests with `Origin` headers, returning `403 Forbidden` instead of the proper error response.
 
 ### Solution
+
 1. **Disabled Ktor CORS Plugin**: Removed the CORS plugin from the backend (`server/src/main/kotlin/App.kt`)
 2. **Moved CORS to Nginx**: Configured Nginx to handle CORS headers in `reverse-proxy/nginx-dev.conf`
 3. **Removed Incompatible Headers**: Commented out `Cross-Origin-Embedder-Policy`, `Cross-Origin-Opener-Policy`, and `Cross-Origin-Resource-Policy` which conflict with CORS
 4. **Fixed Nginx Config Loading**: Removed the default nginx config file that was conflicting with our custom config
 
 ### Test Results
-```
+
+```text
 Backend Unit/Integration Tests: ✅ ALL PASS (69 tests)
 End-to-End Deployment Tests:    ✅ ALL PASS (16 tests)
 ```
@@ -71,6 +80,7 @@ End-to-End Deployment Tests:    ✅ ALL PASS (16 tests)
 ## Test Coverage
 
 The tests ensure:
+
 1. **No 403 Forbidden errors** when Origin header is present
 2. **Proper error messages** are returned (e.g., `pow_required`, not generic errors)
 3. **CORS headers** are handled at the Nginx level
@@ -99,6 +109,7 @@ curl -v -X POST http://localhost:8080/api/pastes \
 ```
 
 ## See Also
+
 - `docs/DEPLOYMENT_FIXES.md` - Detailed documentation of all fixes
 - `server/src/test/kotlin/integration/` - All integration tests
 - `scripts/test-deployment-cors.sh` - Deployment test script

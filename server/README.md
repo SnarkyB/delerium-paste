@@ -28,6 +28,7 @@ docker run -d \
 The server will be available at `http://localhost:8080`
 
 **Docker Image Features:**
+
 - 🔒 **Non-root user** - Runs as `delirium:delirium` (uid 999) for enhanced security
 - 🏥 **Health checks** - Built-in monitoring via `/api/health` endpoint
 - 🌍 **Multi-architecture** - Supports amd64, arm64, and arm/v7 (Raspberry Pi, Apple Silicon, etc.)
@@ -42,6 +43,7 @@ The server will be available at `http://localhost:8080`
 - Bazelisk (Bazel version manager)
 
 Install Bazelisk:
+
 ```bash
 # macOS
 brew install bazelisk
@@ -68,6 +70,7 @@ bazel run //server:delerium_server
 ```
 
 Or use the convenience scripts:
+
 ```bash
 # From project root
 make build-server-bazel
@@ -132,6 +135,7 @@ storage {
 #### Using Published Images
 
 **From GitHub Container Registry (GHCR):**
+
 ```bash
 docker pull ghcr.io/your-username/delerium-paste:latest
 docker run -d \
@@ -142,6 +146,7 @@ docker run -d \
 ```
 
 **From Docker Hub:**
+
 ```bash
 docker pull your-username/delerium-paste:latest
 docker run -d \
@@ -169,6 +174,7 @@ docker inspect --format='{{json .State.Health}}' <container-id>
 ```
 
 **Multi-Architecture Build:**
+
 ```bash
 # Build for multiple platforms (requires Docker Buildx)
 docker buildx build \
@@ -203,6 +209,7 @@ services:
 ```
 
 Run with:
+
 ```bash
 docker-compose up -d
 ```
@@ -287,7 +294,8 @@ make run-server-bazel
 #### Build Artifacts
 
 After building, artifacts are available at:
-```
+
+```text
 bazel-bin/server/
 ├── delerium_server              # Executable binary
 └── delerium_server_deploy.jar   # Deployable JAR with dependencies
@@ -296,14 +304,17 @@ bazel-bin/server/
 ## API Endpoints
 
 ### `GET /api/pow`
+
 Request a proof-of-work challenge.
 
 **Response:** `204 No Content` (if PoW disabled) or JSON challenge object
 
 ### `POST /api/pastes`
+
 Create a new encrypted paste.
 
 **Request Body:**
+
 ```json
 {
   "ct": "base64url-encoded-ciphertext",
@@ -322,6 +333,7 @@ Create a new encrypted paste.
 ```
 
 **Response:** `201 Created`
+
 ```json
 {
   "id": "paste-id",
@@ -330,9 +342,11 @@ Create a new encrypted paste.
 ```
 
 ### `GET /api/pastes/{id}`
+
 Retrieve an encrypted paste.
 
 **Response:** `200 OK`
+
 ```json
 {
   "ct": "ciphertext",
@@ -343,6 +357,7 @@ Retrieve an encrypted paste.
 ```
 
 ### `DELETE /api/pastes/{id}?token=...`
+
 Delete a paste using deletion token.
 
 **Response:** `204 No Content` (success) or `403 Forbidden` (invalid token)
@@ -354,6 +369,7 @@ The server uses SQLite for storage. The database file is created automatically a
 ### Automatic Cleanup
 
 Expired pastes are automatically deleted by a background task that runs every hour. The cleanup:
+
 - Removes all pastes where `expireTs <= current time`
 - Logs the number of deleted pastes
 - Runs continuously in the background
@@ -361,6 +377,7 @@ Expired pastes are automatically deleted by a background task that runs every ho
 ### Backup
 
 To backup the database:
+
 ```bash
 # Copy the database file
 cp /data/pastes.db /backup/pastes-$(date +%Y%m%d).db
@@ -380,6 +397,7 @@ sqlite3 /data/pastes.db ".backup /backup/pastes-$(date +%Y%m%d).db"
 ```
 
 This script will:
+
 - Create the `data/` directory if needed
 - Set the database path to `./data/pastes.db`
 - Build the distribution if needed
@@ -446,9 +464,11 @@ curl -X POST http://localhost:8080/api/pastes \
 ### Stopping the Server
 
 If running in foreground:
+
 - Press `Ctrl+C`
 
 If running in background:
+
 ```bash
 # Find process
 lsof -ti:8080
@@ -486,7 +506,7 @@ bazel test //server:all_tests --test_output=all
 
 ### Project Structure
 
-```
+```text
 server/
 ├── src/
 │   ├── main/
@@ -513,6 +533,7 @@ server/
 ## Publishing Container Images
 
 See [docs/CONTAINER_PUBLISHING.md](docs/CONTAINER_PUBLISHING.md) for detailed instructions on:
+
 - Publishing to GitHub Container Registry (GHCR)
 - Publishing to Docker Hub
 - Automated CI/CD workflows
