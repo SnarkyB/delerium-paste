@@ -82,3 +82,41 @@ data class HealthStatus(
     val powEnabled: Boolean,
     val rateLimitingEnabled: Boolean
 )
+
+/**
+ * Request body for posting a chat message
+ *
+ * @property ct Ciphertext - the encrypted message (base64url encoded)
+ * @property iv Initialization vector for AES-GCM encryption (base64url encoded)
+ */
+data class PostChatMessageRequest(
+    val ct: String,
+    val iv: String
+)
+
+/**
+ * Response after successfully posting a chat message
+ *
+ * @property count Total number of messages for this paste
+ */
+data class PostChatMessageResponse(val count: Int)
+
+/**
+ * Chat message payload
+ *
+ * @property ct Ciphertext - the encrypted message
+ * @property iv Initialization vector for decryption
+ * @property timestamp Unix timestamp when message was created
+ */
+data class ChatMessage(
+    val ct: String,
+    val iv: String,
+    val timestamp: Long
+)
+
+/**
+ * Response containing list of chat messages
+ *
+ * @property messages List of encrypted chat messages
+ */
+data class GetChatMessagesResponse(val messages: List<ChatMessage>)

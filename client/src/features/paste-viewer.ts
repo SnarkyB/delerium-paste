@@ -20,6 +20,7 @@ import { decodeBase64Url } from '../core/crypto/encoding.js';
 import { HttpApiClient } from '../infrastructure/api/http-client.js';
 import { getDeleteToken } from '../utils/storage.js';
 import { WindowWithUI } from '../ui/ui-manager.js';
+import { setupPasteChat } from './paste-chat.js';
 
 const apiClient = new HttpApiClient();
 
@@ -103,7 +104,10 @@ export async function viewPaste(): Promise<void> {
     if (deleteToken && typeof (window as WindowWithUI).showDestroyButton === 'function') {
       (window as WindowWithUI).showDestroyButton?.(id, deleteToken);
     }
-    
+
+    // Initialize chat functionality
+    setupPasteChat(id, new Uint8Array(salt));
+
     // Securely clear decryption data from memory
     secureClear(keyB64);
     secureClear(ivB64 || iv);

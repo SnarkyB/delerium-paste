@@ -167,6 +167,27 @@ server/
 6. Client derives key from password + salt
 7. Client decrypts with AES-GCM
 8. Client displays plaintext
+9. Client initializes anonymous chat (using same salt from paste)
+
+### Anonymous Chat Flow
+1. User views decrypted paste, sees chat section
+2. User clicks "Refresh Messages"
+3. Client prompts for password
+4. Client fetches: `GET /api/pastes/{ID}/messages`
+5. Server returns encrypted messages (ct, iv, timestamp)
+6. Client derives key from password + paste salt (same as paste)
+7. Client decrypts each message with AES-GCM
+8. Client displays messages with timestamps
+9. User types message and clicks "Send"
+10. Client prompts for password again
+11. Client derives key, encrypts message with new IV
+12. Client submits: `POST /api/pastes/{ID}/messages` with {ct, iv}
+13. Server validates paste exists, checks rate limit, validates size
+14. Server stores encrypted message (maintains 50-message limit)
+15. Server returns message count
+16. Client refreshes messages to show new message
+
+**Note**: All chat messages use the same password and salt as the paste. Messages expire/delete when paste expires/deletes (CASCADE).
 
 ### Anti-Spam Mechanisms
 - **Proof-of-Work**: Client solves SHA-256 puzzle (10-bit difficulty = ~1024 attempts, <1 second)
@@ -332,11 +353,13 @@ try {
 ## API Endpoints
 
 ```
-POST   /api/pastes          # Create paste (requires PoW)
-GET    /api/pastes/:id      # Retrieve paste
-DELETE /api/pastes/:id      # Delete paste (requires token)
-GET    /api/pow             # Get PoW challenge
-GET    /health              # Health check
+POST   /api/pastes              # Create paste (requires PoW)
+GET    /api/pastes/:id          # Retrieve paste
+DELETE /api/pastes/:id          # Delete paste (requires token)
+POST   /api/pastes/:id/messages # Post encrypted chat message
+GET    /api/pastes/:id/messages # Get all encrypted chat messages
+GET    /api/pow                 # Get PoW challenge
+GET    /health                  # Health check
 ```
 
 ### Request/Response Format
@@ -482,6 +505,7 @@ Flexible viewing: unlimited, limited (N views), or one-time (self-destructs afte
 - **Testing**: `client/tests/README.md`
 - **PRs**: `docs/prs/README.md`
 - **Security**: `docs/security/CHECKLIST.md`
+- **Anonymous Chat**: `docs/features/ANONYMOUS-CHAT.md`
 
 ### Documentation Organization
 - **Change docs** (fix summaries, migration notes, etc.): Place in `docs/prs/PR-XXX-<description>/`
