@@ -12,7 +12,6 @@
 import {
   validateContentSize,
   validateExpiration,
-  validateViewCount,
   validatePassword,
   isValidUTF8
 } from '../core/validators/index.js';
@@ -20,7 +19,8 @@ import {
 import {
   secureClear,
   getSafeErrorMessage,
-  encryptWithPassword
+  encryptWithPassword,
+  deriveDeleteAuth
 } from '../security.js';
 
 import { encodeBase64Url } from '../core/crypto/encoding.js';
@@ -39,21 +39,18 @@ export async function createPaste(): Promise<void> {
   // Get form values
   const text = (document.getElementById("paste") as HTMLTextAreaElement).value;
   const mins = parseInt((document.getElementById("mins") as HTMLInputElement).value || "60", 10);
-  const views = parseInt((document.getElementById("views") as HTMLInputElement).value || "10", 10);
-  const singleView = (document.getElementById("single") as HTMLInputElement).checked;
   const password = (document.getElementById("password") as HTMLInputElement).value;
+  const allowKeyCaching = (document.getElementById("allowKeyCaching") as HTMLInputElement)?.checked ?? false;
 
   // Privacy-preserving validation (without reading content)
   const contentValidation = validateContentSize(text);
   const expirationValidation = validateExpiration(mins);
-  const viewValidation = validateViewCount(views);
   const passwordValidation = validatePassword(password);
 
   // Check for validation errors
   const allErrors = [
     ...contentValidation.errors,
     ...expirationValidation.errors,
-    ...viewValidation.errors,
     ...passwordValidation.errors
   ];
 
@@ -79,6 +76,9 @@ export async function createPaste(): Promise<void> {
     const keyB64 = encodeBase64Url(salt); // Use salt as the "key" in the URL
     const ivB64 = encodeBase64Url(iv);
     const ctB64 = encodeBase64Url(encryptedData);
+    
+    // Derive delete authorization from password (allows viewers to delete)
+    const deleteAuth = await deriveDeleteAuth(password, new Uint8Array(salt));
 
     // Solve proof-of-work challenge if enabled
     let pow = null;
@@ -106,11 +106,11 @@ export async function createPaste(): Promise<void> {
       iv: ivB64,
       meta: {
         expireTs,
-        singleView,
-        viewsAllowed: singleView ? 1 : views,
-        mime: "text/plain"
+        mime: "text/plain",
+        allowKeyCaching
       },
-      pow
+      pow,
+      deleteAuth
     });
     const url = `${location.origin}/view.html?p=${encodeURIComponent(data.id)}#${keyB64}:${ivB64}`;
     const deleteUrl = `${location.origin}/delete.html?p=${encodeURIComponent(data.id)}&token=${encodeURIComponent(data.deleteToken)}`;

@@ -306,6 +306,56 @@ export async function decryptWithPassword(
 }
 
 // ============================================================================
+// DELETE AUTHORIZATION
+// ============================================================================
+
+/**
+ * Derive a delete authorization string from password and salt
+ * This allows anyone who knows the password to delete the paste
+ * 
+ * Uses a different derivation than the encryption key (by appending "delete" to salt)
+ * to ensure the delete auth cannot be used for decryption and vice versa.
+ * 
+ * @param password User-provided password
+ * @param salt Salt from the paste (same as encryption salt)
+ * @returns Promise resolving to base64url-encoded delete authorization string
+ */
+export async function deriveDeleteAuth(password: string, salt: Uint8Array): Promise<string> {
+  // Create a distinct salt for delete authorization by appending "delete" marker
+  const deleteMarker = new TextEncoder().encode(':delete');
+  const deleteSalt = new Uint8Array(salt.length + deleteMarker.length);
+  deleteSalt.set(salt);
+  deleteSalt.set(deleteMarker, salt.length);
+  
+  const passwordBuffer = new TextEncoder().encode(password);
+  
+  // Import password as key material
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    passwordBuffer,
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  );
+  
+  // Derive bits using PBKDF2 with the modified salt
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: deleteSalt,
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    256 // 32 bytes
+  );
+  
+  // Convert to base64url
+  const { encodeBase64Url } = await import('./core/crypto/encoding.js');
+  return encodeBase64Url(derivedBits);
+}
+
+// ============================================================================
 // SECURITY HEADERS AND POLICIES
 // ============================================================================
 

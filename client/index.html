@@ -650,26 +650,20 @@
           </div>
         </div>
 
-        <!-- View Limits & Security -->
+        <!-- Security Options -->
         <div class="section">
           <div class="section-title">Security Options</div>
-          <div class="options-grid">
-            <div class="option-group">
-              <label for="views">
-                Maximum views
-                <span class="tooltip" data-tooltip="Paste will be deleted after this many views">??</span>
-              </label>
-              <input type="number" id="views" name="views" value="10" min="1" max="100">
-            </div>
 
-            <div class="option-group">
-              <div class="checkbox-group">
-                <input type="checkbox" id="single" name="single">
-                <label for="single" class="checkbox-label">
-                  🔥 Burn after reading
-                  <span class="tooltip" data-tooltip="Delete immediately after first view">ℹ️</span>
-                </label>
-              </div>
+          <div class="option-group">
+            <div class="checkbox-group">
+              <input type="checkbox" id="allowKeyCaching" name="allowKeyCaching">
+              <label for="allowKeyCaching" class="checkbox-label">
+                💬 Convenient chat mode
+                <span class="tooltip" data-tooltip="Viewers can cache decryption key for easier chat refreshes (less secure)">ℹ️</span>
+              </label>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.25rem; padding-left: 1.5rem;">
+              When enabled, viewers won't need to re-enter password for each chat refresh
             </div>
           </div>
 
@@ -694,9 +688,15 @@
           <div class="output-title" id="outputTitle">Success! Your paste is ready</div>
           <div id="outputMessage"></div>
           <div class="output-url">
+            <label style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">Share URL:</label>
             <input type="text" id="pasteUrl" name="pasteUrl" readonly>
             <button class="btn-copy" id="copyBtn">Copy Link</button>
             <button class="btn-view" id="viewBtn" style="display: none;">View Paste</button>
+          </div>
+          <div class="output-url" id="deleteUrlContainer" style="display: none; margin-top: 0.75rem;">
+            <label style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">🗑️ Delete URL (save this to delete later):</label>
+            <input type="text" id="deleteUrl" name="deleteUrl" readonly style="font-size: 0.85rem;">
+            <button class="btn-copy" id="copyDeleteBtn">Copy</button>
           </div>
         </div>
       </div>

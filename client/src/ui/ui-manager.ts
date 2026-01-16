@@ -11,10 +11,10 @@ import { removeDeleteToken } from '../utils/storage.js';
  */
 export interface WindowWithUI extends Window {
   updateStatus?: (success: boolean, message: string) => void;
-  showInfo?: (viewsLeft: number | null, expireTs: number) => void;
+  showInfo?: (expireTs: number) => void;
   showDestroyButton?: (id: string, token: string) => void;
   setButtonLoading?: (show: boolean, message?: string) => void;
-  showOutput?: (success: boolean, title: string, message: string, url?: string | null) => void;
+  showOutput?: (success: boolean, title: string, message: string, url?: string | null, deleteUrl?: string | null) => void;
 }
 
 /**
@@ -56,18 +56,18 @@ export function showError(message: string): void {
 /**
  * Show success result
  */
-export function showSuccess(shareUrl: string, _deleteUrl: string): void {
+export function showSuccess(shareUrl: string, deleteUrl: string): void {
   const win = window as WindowWithUI;
   if (typeof win.showOutput === 'function') {
     const title = 'Password or PIN required to view';
     const message = 'Share this link and provide the password or PIN separately.';
-    win.showOutput(true, title, message, shareUrl);
+    win.showOutput(true, title, message, shareUrl, deleteUrl);
   } else {
     // Fallback for old UI
     const out = document.getElementById('out');
     if (out) {
       const title = 'Your protected paste is ready!';
-      out.textContent = `${title}\n\nShare URL:\n${shareUrl}\n\nRemember to send the password or PIN separately.`;
+      out.textContent = `${title}\n\nShare URL:\n${shareUrl}\n\nDelete URL:\n${deleteUrl}\n\nRemember to send the password or PIN separately.`;
       out.style.color = '';
     }
   }
@@ -96,13 +96,15 @@ export function initializeWindowUI(): void {
     }
   };
 
-  win.showOutput = (success: boolean, title: string, message: string, url?: string | null) => {
+  win.showOutput = (success: boolean, title: string, message: string, url?: string | null, deleteUrl?: string | null) => {
     if (typeof document === 'undefined') return;
     const output = document.getElementById('output');
     const outputTitle = document.getElementById('outputTitle');
     const outputMessage = document.getElementById('outputMessage');
     const pasteUrl = document.getElementById('pasteUrl') as HTMLInputElement | null;
     const outputUrlContainer = document.querySelector('.output-url') as HTMLElement | null;
+    const deleteUrlContainer = document.getElementById('deleteUrlContainer') as HTMLElement | null;
+    const deleteUrlInput = document.getElementById('deleteUrl') as HTMLInputElement | null;
     let viewBtn = document.getElementById('viewBtn') as HTMLButtonElement | null;
 
     if (!output || !outputTitle || !outputMessage) return;
@@ -157,6 +159,40 @@ export function initializeWindowUI(): void {
       }
     }
 
+    // Show delete URL if provided
+    if (deleteUrl && deleteUrlContainer && deleteUrlInput) {
+      deleteUrlInput.value = deleteUrl;
+      deleteUrlContainer.style.display = 'flex';
+
+      const copyDeleteBtn = document.getElementById('copyDeleteBtn') as HTMLButtonElement | null;
+      if (copyDeleteBtn) {
+        const newCopyDeleteBtn = copyDeleteBtn.cloneNode(true) as HTMLButtonElement;
+        copyDeleteBtn.parentNode?.replaceChild(newCopyDeleteBtn, copyDeleteBtn);
+        newCopyDeleteBtn.addEventListener('click', () => {
+          if (!deleteUrlInput.value) return;
+          const originalText = newCopyDeleteBtn.textContent || 'Copy';
+          const handleComplete = () => {
+            newCopyDeleteBtn.textContent = '✓ Copied!';
+            newCopyDeleteBtn.classList.add('copied');
+            window.setTimeout(() => {
+              newCopyDeleteBtn.textContent = originalText;
+              newCopyDeleteBtn.classList.remove('copied');
+            }, 2000);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(deleteUrlInput.value).then(handleComplete).catch(handleComplete);
+          } else {
+            deleteUrlInput.select();
+            deleteUrlInput.setSelectionRange(0, deleteUrlInput.value.length);
+            document.execCommand('copy');
+            handleComplete();
+          }
+        });
+      }
+    } else if (deleteUrlContainer) {
+      deleteUrlContainer.style.display = 'none';
+    }
+
     output.classList.add('show');
     output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
@@ -169,16 +205,11 @@ export function initializeWindowUI(): void {
     statusBadge.innerHTML = success ? `<span>✓</span><span>${message}</span>` : `<span>✗</span><span>${message}</span>`;
   };
 
-  win.showInfo = (views: number | null, expires: number) => {
+  win.showInfo = (expires: number) => {
     if (typeof document === 'undefined') return;
     const infoBar = document.getElementById('infoBar');
-    const viewsInfo = document.getElementById('viewsInfo');
     const expiresInfo = document.getElementById('expiresInfo');
-    if (!infoBar || !viewsInfo || !expiresInfo) return;
-
-    if (views !== null && viewsInfo) {
-      viewsInfo.textContent = `${views} remaining`;
-    }
+    if (!infoBar || !expiresInfo) return;
 
     if (expires) {
       const date = new Date(expires * 1000);
