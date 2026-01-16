@@ -169,6 +169,33 @@ Quick checks (no E2E tests).
 ./scripts/ci-verify-quick.sh
 ```
 
+## 📦 Version Management Scripts
+
+### bump-version.sh
+
+Automatically bump version numbers across the entire codebase.
+
+```bash
+# Bump to a specific version
+./scripts/bump-version.sh 1.0.7
+
+# Preview changes without modifying files
+./scripts/bump-version.sh 1.0.7 --dry-run
+
+# Or use Make
+make version-bump VERSION=1.0.7
+make version-bump-dry-run VERSION=1.0.7
+```
+
+**Updates:**
+- `client/package.json`
+- `MODULE.bazel`
+- HTML files (index.html, view.html, delete.html)
+- Test files
+- API documentation
+
+See [Version Bumping Guide](../docs/versioning/VERSION_BUMPING.md) for detailed documentation.
+
 ## 📦 Deployment Scripts
 
 ### vps-deploy.sh
@@ -228,6 +255,7 @@ Create manual backup.
 | Health check | `health-check.sh` |
 | Backup | `backup.sh` |
 | CI verification | `ci-verify-all.sh` |
+| Bump version | `bump-version.sh` |
 
 ## 🎯 Common Workflows
 

@@ -1,7 +1,7 @@
 # Delirium - Zero-Knowledge Paste System
 # Makefile for local development and deployment
 
-.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop bazel-setup build-server-bazel test-server-bazel run-server-bazel ci-check ci-quick
+.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop bazel-setup build-server-bazel test-server-bazel run-server-bazel ci-check ci-quick version-bump version-bump-dry-run
 
 # Default target
 help:
@@ -32,6 +32,10 @@ help:
 	@echo "🧪 CI Verification:"
 	@echo "  make ci-check      - Run full CI checks locally (parallel)"
 	@echo "  make ci-quick       - Run quick CI checks (lint, type, tests)"
+	@echo ""
+	@echo "📦 Version Management:"
+	@echo "  make version-bump VERSION=1.0.7 - Bump version across codebase"
+	@echo "  make version-bump-dry-run VERSION=1.0.7 - Preview version changes"
 	@echo ""
 	@echo "🔧 Bazel (Server Build):"
 	@echo "  make bazel-setup   - Install Bazelisk (one-time setup)"
@@ -300,3 +304,22 @@ ci-quick:
 	@echo "⚡ Running quick CI checks..."
 	@chmod +x scripts/ci-verify-quick.sh
 	./scripts/ci-verify-quick.sh
+
+# Version management
+version-bump:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "❌ VERSION variable not set. Usage: make version-bump VERSION=1.0.7"; \
+		exit 1; \
+	fi
+	@echo "🔄 Bumping version to $(VERSION)..."
+	@chmod +x scripts/bump-version.sh
+	./scripts/bump-version.sh $(VERSION)
+
+version-bump-dry-run:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "❌ VERSION variable not set. Usage: make version-bump-dry-run VERSION=1.0.7"; \
+		exit 1; \
+	fi
+	@echo "🔍 Dry run: Previewing version bump to $(VERSION)..."
+	@chmod +x scripts/bump-version.sh
+	./scripts/bump-version.sh $(VERSION) --dry-run
