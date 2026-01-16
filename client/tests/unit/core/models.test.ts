@@ -102,27 +102,11 @@ describe('PasteMetadata', () => {
     const now = Math.floor(Date.now() / 1000);
     const metadata: PasteMetadata = {
       expireTs: now + 3600,
-      singleView: false,
-      viewsAllowed: 10,
       mime: 'text/plain'
     };
 
     expect(metadata.expireTs).toBeGreaterThan(now);
-    expect(metadata.singleView).toBe(false);
-    expect(metadata.viewsAllowed).toBe(10);
     expect(metadata.mime).toBe('text/plain');
-  });
-
-  it('should handle single-view pastes', () => {
-    const metadata: PasteMetadata = {
-      expireTs: Math.floor(Date.now() / 1000) + 3600,
-      singleView: true,
-      viewsAllowed: 1,
-      mime: 'text/plain'
-    };
-
-    expect(metadata.singleView).toBe(true);
-    expect(metadata.viewsAllowed).toBe(1);
   });
 
   it('should accept different MIME types', () => {
@@ -131,8 +115,6 @@ describe('PasteMetadata', () => {
     mimeTypes.forEach(mime => {
       const metadata: PasteMetadata = {
         expireTs: Math.floor(Date.now() / 1000) + 3600,
-        singleView: false,
-        viewsAllowed: 10,
         mime
       };
       expect(metadata.mime).toBe(mime);
@@ -143,8 +125,6 @@ describe('PasteMetadata', () => {
     const futureExpiry = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60); // 7 days
     const metadata: PasteMetadata = {
       expireTs: futureExpiry,
-      singleView: false,
-      viewsAllowed: 100,
       mime: 'text/plain'
     };
 
@@ -159,8 +139,6 @@ describe('CreatePasteRequest', () => {
       iv: 'initialization-vector',
       meta: {
         expireTs: Math.floor(Date.now() / 1000) + 3600,
-        singleView: false,
-        viewsAllowed: 10,
         mime: 'text/plain'
       },
       pow: null
@@ -178,8 +156,6 @@ describe('CreatePasteRequest', () => {
       iv: 'initialization-vector',
       meta: {
         expireTs: Math.floor(Date.now() / 1000) + 3600,
-        singleView: false,
-        viewsAllowed: 10,
         mime: 'text/plain'
       },
       pow: {
@@ -199,8 +175,6 @@ describe('CreatePasteRequest', () => {
       iv: 'initialization-vector',
       meta: {
         expireTs: Math.floor(Date.now() / 1000) + 3600,
-        singleView: false,
-        viewsAllowed: 10,
         mime: 'text/plain'
       }
     };
@@ -241,8 +215,6 @@ describe('GetPasteResponse', () => {
       iv: 'initialization-vector',
       meta: {
         expireTs: Math.floor(Date.now() / 1000) + 3600,
-        singleView: false,
-        viewsAllowed: 10,
         mime: 'text/plain'
       }
     };
@@ -257,37 +229,22 @@ describe('PasteOptions', () => {
   it('should have correct structure', () => {
     const options: PasteOptions = {
       expirationMinutes: 60,
-      maxViews: 10,
-      singleView: false,
       hasPassword: false
     };
 
     expect(options.expirationMinutes).toBe(60);
-    expect(options.maxViews).toBe(10);
-    expect(options.singleView).toBe(false);
     expect(options.hasPassword).toBe(false);
-  });
-
-  it('should allow optional maxViews', () => {
-    const options: PasteOptions = {
-      expirationMinutes: 60,
-      singleView: true,
-      hasPassword: false
-    };
-
-    expect(options.maxViews).toBeUndefined();
   });
 
   it('should handle all combinations', () => {
     const combinations: PasteOptions[] = [
-      { expirationMinutes: 1, singleView: false, hasPassword: false, maxViews: 1 },
-      { expirationMinutes: 60, singleView: true, hasPassword: false },
-      { expirationMinutes: 1440, singleView: false, hasPassword: true, maxViews: 100 }
+      { expirationMinutes: 1, hasPassword: false },
+      { expirationMinutes: 60, hasPassword: false },
+      { expirationMinutes: 1440, hasPassword: true }
     ];
 
     combinations.forEach(opts => {
       expect(opts.expirationMinutes).toBeGreaterThan(0);
-      expect(typeof opts.singleView).toBe('boolean');
       expect(typeof opts.hasPassword).toBe('boolean');
     });
   });
@@ -344,8 +301,6 @@ describe('Type Compatibility', () => {
   it('should allow PasteMetadata in CreatePasteRequest and GetPasteResponse', () => {
     const meta: PasteMetadata = {
       expireTs: Math.floor(Date.now() / 1000) + 3600,
-      singleView: false,
-      viewsAllowed: 10,
       mime: 'text/plain'
     };
 

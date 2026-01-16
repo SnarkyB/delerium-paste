@@ -50,14 +50,6 @@ const mockRoutes = {
         return res.status(400).json({ error: 'Invalid expiration timestamp' });
       }
       
-      if (typeof meta.singleView !== 'boolean') {
-        return res.status(400).json({ error: 'Invalid singleView flag' });
-      }
-      
-      if (meta.singleView && meta.viewsAllowed !== 1) {
-        return res.status(400).json({ error: 'Invalid viewsAllowed for single view' });
-      }
-      
       if (!meta.mime || typeof meta.mime !== 'string') {
         return res.status(400).json({ error: 'Invalid MIME type' });
       }
@@ -151,8 +143,6 @@ describe.skip('API Integration Tests', () => {
         iv: 'test-iv',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
-          singleView: false,
-          viewsAllowed: null,
           mime: 'text/plain'
         },
         pow: {
@@ -172,35 +162,12 @@ describe.skip('API Integration Tests', () => {
       expect(typeof response.body.deleteToken).toBe('string');
     });
 
-    it('should create a single-view paste', async () => {
-      const pasteData = {
-        ct: 'test-ciphertext',
-        iv: 'test-iv',
-        meta: {
-          expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: true,
-          viewsAllowed: 1,
-          mime: 'text/plain'
-        }
-      };
-
-      const response = await request(mockApp)
-        .post('/api/pastes')
-        .send(pasteData)
-        .expect(200);
-
-      expect(response.body).toHaveProperty('id');
-      expect(response.body).toHaveProperty('deleteToken');
-    });
-
     it('should create a paste without PoW', async () => {
       const pasteData = {
         ct: 'test-ciphertext',
         iv: 'test-iv',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: null,
           mime: 'text/plain'
         }
       };
@@ -235,8 +202,6 @@ describe.skip('API Integration Tests', () => {
         iv: 'test-iv',
         meta: {
           expireTs: -1, // Invalid timestamp
-          singleView: false,
-          viewsAllowed: null,
           mime: 'text/plain'
         }
       };
@@ -250,35 +215,12 @@ describe.skip('API Integration Tests', () => {
       expect(response.body.error).toContain('Invalid expiration timestamp');
     });
 
-    it('should reject paste with invalid single view configuration', async () => {
-      const pasteData = {
-        ct: 'test-ciphertext',
-        iv: 'test-iv',
-        meta: {
-          expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: true,
-          viewsAllowed: 5, // Should be 1 for single view
-          mime: 'text/plain'
-        }
-      };
-
-      const response = await request(mockApp)
-        .post('/api/pastes')
-        .send(pasteData)
-        .expect(400);
-
-      expect(response.body).toHaveProperty('error');
-      expect(response.body.error).toContain('Invalid viewsAllowed for single view');
-    });
-
     it('should reject paste with invalid PoW data', async () => {
       const pasteData = {
         ct: 'test-ciphertext',
         iv: 'test-iv',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: null,
           mime: 'text/plain'
         },
         pow: {
@@ -366,8 +308,6 @@ describe.skip('API Integration Tests', () => {
         iv: 'test-iv',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: null,
           mime: 'text/plain'
         }
       };
