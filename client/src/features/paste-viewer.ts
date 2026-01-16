@@ -26,43 +26,65 @@ const apiClient = new HttpApiClient();
 
 /**
  * Setup the destroy button for password-based deletion
+ * Uses pre-derived deleteAuth to avoid requiring password entry again
+ * 
+ * Security: deleteAuth is stored in closure and cleared after use or on page unload
  */
-function setupDestroyButton(pasteId: string, salt: Uint8Array): void {
+function setupDestroyButton(pasteId: string, deleteAuth: string): void {
   const destroyBtn = document.getElementById('destroyBtn') as HTMLButtonElement | null;
   if (!destroyBtn) return;
   
   // Show the button
   destroyBtn.style.display = 'inline-flex';
   
+  // Store deleteAuth in closure - single use, cleared after first use
+  let storedDeleteAuth: string | null = deleteAuth;
+  let isUsed = false;
+  
+  // Clear deleteAuth on page unload for security
+  const cleanup = (): void => {
+    if (storedDeleteAuth) {
+      secureClear(storedDeleteAuth);
+      storedDeleteAuth = null;
+    }
+  };
+  window.addEventListener('beforeunload', cleanup);
+  window.addEventListener('pagehide', cleanup);
+  
   destroyBtn.addEventListener('click', async () => {
-    // Confirm deletion
-    if (!window.confirm('Are you sure you want to permanently delete this paste? This action cannot be undone.')) {
+    // Security: Check if deleteAuth has already been used
+    if (isUsed || !storedDeleteAuth) {
+      window.alert('Delete authorization has expired. Please refresh the page and try again.');
       return;
     }
     
-    // Prompt for password
-    const password = prompt('Enter the password or PIN to delete this paste:');
-    if (!password) {
+    // Confirm deletion
+    if (!window.confirm('Are you sure you want to permanently delete this paste? This action cannot be undone.')) {
       return;
     }
     
     const destroyText = document.getElementById('destroyText');
     const originalText = destroyText?.textContent || 'Destroy Paste';
     
+    // Capture deleteAuth for this request, then clear it immediately (single-use)
+    const authForRequest = storedDeleteAuth;
+    isUsed = true;
+    secureClear(storedDeleteAuth);
+    storedDeleteAuth = null;
+    
     try {
       destroyBtn.disabled = true;
       if (destroyText) destroyText.textContent = 'Deleting...';
       
-      // Derive delete authorization from password
-      const deleteAuth = await deriveDeleteAuth(password, salt);
-      secureClear(password);
-      
-      // Call the delete API
+      // Call the delete API with deleteAuth (already cleared from memory)
       const response = await fetch(`/api/pastes/${encodeURIComponent(pasteId)}/delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deleteAuth })
+        body: JSON.stringify({ deleteAuth: authForRequest })
       });
+      
+      // Clear auth from request body string (best effort)
+      secureClear(authForRequest);
       
       if (response.ok || response.status === 204) {
         // Success - update UI
@@ -79,19 +101,25 @@ function setupDestroyButton(pasteId: string, salt: Uint8Array): void {
         
         const updateStatus = (window as WindowWithUI).updateStatus;
         if (updateStatus) updateStatus(true, 'Paste deleted');
+        
+        // Remove cleanup listeners since deletion succeeded
+        window.removeEventListener('beforeunload', cleanup);
+        window.removeEventListener('pagehide', cleanup);
       } else {
         const err = await response.json().catch(() => ({ error: 'Unknown error' }));
         const errorMsg = err.error === 'invalid_auth' 
-          ? 'Incorrect password or PIN.' 
+          ? 'Delete authorization failed. Please refresh the page and try again.' 
           : `Failed to delete: ${err.error || 'Unknown error'}`;
         window.alert(errorMsg);
         destroyBtn.disabled = false;
         if (destroyText) destroyText.textContent = originalText;
+        // Note: deleteAuth already cleared, user must refresh to delete again
       }
     } catch (error) {
       window.alert(`Failed to delete paste: ${(error as Error).message}`);
       destroyBtn.disabled = false;
       if (destroyText) destroyText.textContent = originalText;
+      // Note: deleteAuth already cleared, user must refresh to delete again
     }
   });
 }
@@ -135,6 +163,7 @@ export async function viewPaste(): Promise<void> {
     const MAX_PASSWORD_ATTEMPTS = 5;
     let attempts = 0;
     let text = '';
+    let deleteAuth: string | null = null;
 
     while (attempts < MAX_PASSWORD_ATTEMPTS && !text) {
       const attemptsRemaining = MAX_PASSWORD_ATTEMPTS - attempts;
@@ -150,6 +179,10 @@ export async function viewPaste(): Promise<void> {
       try {
         if (updateStatus) updateStatus(true, 'Verifying password...');
         text = await decryptWithPassword(ctBuffer, password, salt, ivBuffer);
+        
+        // Derive deleteAuth after successful decryption (before clearing password)
+        // Convert ArrayBuffer to Uint8Array for deriveDeleteAuth
+        deleteAuth = await deriveDeleteAuth(password, new Uint8Array(salt));
         secureClear(password);
       } catch {
         secureClear(password);
@@ -171,8 +204,14 @@ export async function viewPaste(): Promise<void> {
     if (updateStatus) updateStatus(true, 'Decrypted successfully');
     if (showInfo && meta) showInfo(meta.expireTs);
 
-    // Setup destroy button for password-based deletion
-    setupDestroyButton(id, new Uint8Array(salt));
+    // Setup destroy button with pre-derived deleteAuth (no password prompt needed)
+    // Security: deleteAuth is passed to closure and will be cleared after use or on unload
+    if (deleteAuth) {
+      setupDestroyButton(id, deleteAuth);
+      // Clear deleteAuth from this scope - it's now stored in the button's closure
+      secureClear(deleteAuth);
+      deleteAuth = null;
+    }
 
     // Initialize chat functionality with key caching setting from metadata
     setupPasteChat(id, new Uint8Array(salt), meta.allowKeyCaching ?? false);

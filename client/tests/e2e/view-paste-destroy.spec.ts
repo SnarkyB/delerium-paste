@@ -7,15 +7,16 @@ import { test, expect } from '@playwright/test';
  * 
  * There are two ways to delete a paste:
  * 1. Creator-only: Using the delete URL with token (delete.html?p=ID&token=TOKEN)
- * 2. Anyone with password: Using the "Destroy Paste" button on view page
+ * 2. Anyone who can view: Using the "Destroy Paste" button on view page
  * 
- * The password-based deletion derives a delete authorization from the password,
- * which is verified server-side. This allows anyone who knows the password to delete.
+ * The password-based deletion derives a delete authorization from the password
+ * after successful decryption, which is verified server-side. Since the user
+ * already entered the password to view the paste, no additional password prompt
+ * is required for deletion.
  * 
  * Test Coverage:
  * - View page shows destroy button after decryption
- * - Password-based deletion works with correct password
- * - Password-based deletion fails with incorrect password
+ * - Delete button works without password prompt (uses pre-derived auth)
  * - Delete page works with valid token
  */
 test.describe('Delete Paste Functionality', () => {
@@ -38,16 +39,73 @@ test.describe('Delete Paste Functionality', () => {
 
     await page.goto('/view.html?p=test-paste-id#test-key:test-iv');
     
-    // Handle password prompt
+    // Handle password prompt for decryption (only one prompt needed)
     page.once('dialog', dialog => dialog.accept('test-password'));
     
     await page.waitForSelector('#content');
 
-    // After decryption attempt, destroy button should be visible
-    // (even if decryption fails, button is shown for retry with correct password)
+    // After successful decryption, destroy button should be visible
     const destroyBtn = page.locator('#destroyBtn');
-    // Button exists in HTML
     await expect(destroyBtn).toHaveCount(1);
+  });
+
+  test('should delete paste via destroy button without password prompt', async ({ page }) => {
+    // Mock paste retrieval API with valid encrypted data
+    // Note: This is a simplified test - in real scenario, we'd need proper encryption
+    await page.route('**/api/pastes/test-paste-id', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ct: 'test-ciphertext',
+          iv: 'test-iv',
+          meta: {
+            expireTs: Math.floor(Date.now() / 1000) + 3600
+          }
+        })
+      });
+    });
+
+    // Mock successful deletion
+    let deleteRequestCaptured = false;
+    await page.route('**/api/pastes/test-paste-id/delete', async route => {
+      if (route.request().method() === 'POST') {
+        deleteRequestCaptured = true;
+        await route.fulfill({
+          status: 204,
+          body: ''
+        });
+      }
+    });
+
+    await page.goto('/view.html?p=test-paste-id#test-key:test-iv');
+    
+    // Handle password prompt for decryption (only one prompt - no second prompt for delete)
+    page.once('dialog', dialog => dialog.accept('test-password'));
+    
+    await page.waitForSelector('#content');
+    
+    // Wait a bit for decryption to complete
+    await page.waitForTimeout(500);
+
+    // Click destroy button - should NOT prompt for password again
+    const destroyBtn = page.locator('#destroyBtn');
+    await expect(destroyBtn).toBeVisible();
+    
+    // Set up dialog handler for confirmation (not password prompt)
+    page.once('dialog', dialog => {
+      expect(dialog.message()).toContain('permanently delete');
+      expect(dialog.message()).not.toContain('password');
+      dialog.accept();
+    });
+
+    await destroyBtn.click();
+    
+    // Wait for deletion to complete
+    await page.waitForTimeout(500);
+
+    // Verify delete request was made (password prompt was skipped)
+    expect(deleteRequestCaptured).toBe(true);
   });
 
   test('should delete paste via delete.html with valid token', async ({ page }) => {
