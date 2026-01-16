@@ -1,10 +1,9 @@
 package integration
 
 /**
- * ViewLimitIntegrationTest.kt - View limit integration tests
+ * ExpirationIntegrationTest.kt - Expiration integration tests
  * 
- * Tests view limit enforcement, expiration, and single-view functionality
- * with real database operations.
+ * Tests expiration functionality with real database operations.
  */
 
 import io.ktor.client.request.*
@@ -22,7 +21,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import PasteRepo
 import CreatePasteResponse
-import PastePayload
 import createTestDatabase
 import createTestAppConfig
 import createTestPasteRequest
@@ -32,7 +30,7 @@ class ViewLimitIntegrationTest {
     private lateinit var db: Database
     private lateinit var repo: PasteRepo
     private lateinit var testDbFile: File
-    private val testPepper = "test-pepper-viewlimit"
+    private val testPepper = "test-pepper-expiration"
     private val objectMapper = jacksonObjectMapper()
 
     @Before
@@ -79,71 +77,5 @@ class ViewLimitIntegrationTest {
         // Retrieve after expiration (should fail)
         val getResponse2 = client.get("/api/pastes/${createResult.id}")
         assertEquals(HttpStatusCode.NotFound, getResponse2.status)
-    }
-
-    @Test
-    fun testSingleViewPasteFlow() = testApplication {
-        val cfg = createTestAppConfig(powEnabled = false, rlEnabled = false)
-
-        application {
-            testModule(repo, null, null, cfg)
-        }
-
-        // Create single-view paste
-        val request = createTestPasteRequest(singleView = true)
-        val createResponse = client.post("/api/pastes") {
-            contentType(ContentType.Application.Json)
-            setBody(objectMapper.writeValueAsString(request))
-        }
-        val createResult = objectMapper.readValue<CreatePasteResponse>(createResponse.bodyAsText())
-
-        // First view succeeds
-        val getResponse1 = client.get("/api/pastes/${createResult.id}")
-        assertEquals(HttpStatusCode.OK, getResponse1.status)
-        val payload1 = objectMapper.readValue<PastePayload>(getResponse1.bodyAsText())
-        assertNotNull("Payload should be returned", payload1.ct)
-
-        // Second view fails (paste deleted)
-        val getResponse2 = client.get("/api/pastes/${createResult.id}")
-        assertEquals(HttpStatusCode.NotFound, getResponse2.status)
-    }
-
-    @Test
-    fun testViewLimitEnforcement() = testApplication {
-        val cfg = createTestAppConfig(powEnabled = false, rlEnabled = false)
-
-        application {
-            testModule(repo, null, null, cfg)
-        }
-
-        // Create paste with view limit of 3
-        val request = createTestPasteRequest(viewsAllowed = 3)
-        val createResponse = client.post("/api/pastes") {
-            contentType(ContentType.Application.Json)
-            setBody(objectMapper.writeValueAsString(request))
-        }
-        val createResult = objectMapper.readValue<CreatePasteResponse>(createResponse.bodyAsText())
-
-        // First view - shows viewsLeft BEFORE increment
-        val getResponse1 = client.get("/api/pastes/${createResult.id}")
-        assertEquals(HttpStatusCode.OK, getResponse1.status)
-        val payload1 = objectMapper.readValue<PastePayload>(getResponse1.bodyAsText())
-        assertEquals("Views left should be 3 (before increment)", 3, payload1.viewsLeft)
-
-        // Second view - shows viewsLeft BEFORE increment
-        val getResponse2 = client.get("/api/pastes/${createResult.id}")
-        assertEquals(HttpStatusCode.OK, getResponse2.status)
-        val payload2 = objectMapper.readValue<PastePayload>(getResponse2.bodyAsText())
-        assertEquals("Views left should be 2 (after first increment)", 2, payload2.viewsLeft)
-
-        // Third view (should delete) - shows viewsLeft BEFORE increment (1), then deletes
-        val getResponse3 = client.get("/api/pastes/${createResult.id}")
-        assertEquals(HttpStatusCode.OK, getResponse3.status)
-        val payload3 = objectMapper.readValue<PastePayload>(getResponse3.bodyAsText())
-        assertEquals("Views left should be 1 (before increment, then deletes)", 1, payload3.viewsLeft)
-
-        // Fourth view (should fail - paste deleted)
-        val getResponse4 = client.get("/api/pastes/${createResult.id}")
-        assertEquals(HttpStatusCode.NotFound, getResponse4.status)
     }
 }

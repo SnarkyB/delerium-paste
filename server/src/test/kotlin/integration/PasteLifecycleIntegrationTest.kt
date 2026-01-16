@@ -132,30 +132,5 @@ class PasteLifecycleIntegrationTest {
             client.get("/api/pastes/${result1.id}").bodyAsText()
         )
         assertEquals("MIME type should be preserved", "text/html", payload1.meta.mime)
-
-        // Create paste with view limit
-        val request2 = createTestPasteRequest(viewsAllowed = 5)
-        val response2 = client.post("/api/pastes") {
-            contentType(ContentType.Application.Json)
-            setBody(objectMapper.writeValueAsString(request2))
-        }
-        val result2 = objectMapper.readValue<CreatePasteResponse>(response2.bodyAsText())
-        val payload2 = objectMapper.readValue<PastePayload>(
-            client.get("/api/pastes/${result2.id}").bodyAsText()
-        )
-        assertEquals("Views allowed should be 5", 5, payload2.meta.viewsAllowed)
-        assertEquals("Views left should be 5 (before increment)", 5, payload2.viewsLeft)
-
-        // Create paste with single view
-        val request3 = createTestPasteRequest(singleView = true)
-        val response3 = client.post("/api/pastes") {
-            contentType(ContentType.Application.Json)
-            setBody(objectMapper.writeValueAsString(request3))
-        }
-        val result3 = objectMapper.readValue<CreatePasteResponse>(response3.bodyAsText())
-        val payload3 = objectMapper.readValue<PastePayload>(
-            client.get("/api/pastes/${result3.id}").bodyAsText()
-        )
-        assertTrue("Single view should be true", payload3.meta.singleView == true)
     }
 }

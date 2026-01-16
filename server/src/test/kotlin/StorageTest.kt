@@ -29,7 +29,10 @@ class StorageTest {
         // Use a temporary file database for testing (more reliable than in-memory)
         testDbFile = File.createTempFile("test_paste_db", ".sqlite")
         testDbFile.deleteOnExit()
-        db = Database.connect("jdbc:sqlite:${testDbFile.absolutePath}", driver = "org.sqlite.JDBC")
+        // Enable foreign keys via JDBC URL parameter for SQLite
+        // This ensures CASCADE DELETE works correctly for chat messages
+        val jdbcUrl = "jdbc:sqlite:${testDbFile.absolutePath}?foreign_keys=on"
+        db = Database.connect(jdbcUrl, driver = "org.sqlite.JDBC")
         // Create repo - this will create tables in its init block
         repo = PasteRepo(db, testPepper)
     }
@@ -347,5 +350,229 @@ class StorageTest {
                 messages[i].timestamp >= messages[i - 1].timestamp
             )
         }
+    }
+
+    // ========== Security Tests: Delete with Auth ==========
+
+    @Test
+    fun testDeleteIfAuthMatches_Success_WithCorrectAuth() {
+        // SECURITY: Password-based deletion should work with correct auth
+        val pasteId = "test-paste-auth"
+        val futureExpiry = Instant.now().epochSecond + 3600
+        val deleteAuth = "password-derived-auth-key-12345"
+
+        // Create paste with deleteAuth
+        repo.create(
+            id = pasteId,
+            ct = "encrypted-content",
+            iv = "iv12345678901",
+            meta = PasteMeta(expireTs = futureExpiry),
+            rawDeleteToken = "token1",
+            rawDeleteAuth = deleteAuth
+        )
+
+        // Verify paste exists
+        assertNotNull("Paste should exist before deletion", repo.getIfAvailable(pasteId))
+
+        // Delete with correct auth
+        val deleted = repo.deleteIfAuthMatches(pasteId, deleteAuth)
+        assertTrue("Should delete paste with correct auth", deleted)
+
+        // Verify paste is gone
+        assertNull("Paste should not exist after deletion", repo.getIfAvailable(pasteId))
+    }
+
+    @Test
+    fun testDeleteIfAuthMatches_Fails_WithWrongAuth() {
+        // SECURITY: Password-based deletion should fail with wrong auth
+        val pasteId = "test-paste-wrong-auth"
+        val futureExpiry = Instant.now().epochSecond + 3600
+        val deleteAuth = "correct-auth-key"
+        val wrongAuth = "wrong-auth-key"
+
+        repo.create(
+            id = pasteId,
+            ct = "encrypted-content",
+            iv = "iv12345678901",
+            meta = PasteMeta(expireTs = futureExpiry),
+            rawDeleteToken = "token1",
+            rawDeleteAuth = deleteAuth
+        )
+
+        // Try delete with wrong auth
+        val deleted = repo.deleteIfAuthMatches(pasteId, wrongAuth)
+        assertFalse("Should NOT delete paste with wrong auth", deleted)
+
+        // Verify paste still exists
+        assertNotNull("Paste should still exist after failed deletion", repo.getIfAvailable(pasteId))
+    }
+
+    @Test
+    fun testDeleteIfAuthMatches_Fails_WhenNoAuthHashStored() {
+        // SECURITY: Password-based deletion should fail when paste has no auth hash
+        val pasteId = "test-paste-no-auth"
+        val futureExpiry = Instant.now().epochSecond + 3600
+
+        // Create paste WITHOUT deleteAuth (null)
+        repo.create(
+            id = pasteId,
+            ct = "encrypted-content",
+            iv = "iv12345678901",
+            meta = PasteMeta(expireTs = futureExpiry),
+            rawDeleteToken = "token1",
+            rawDeleteAuth = null  // No auth hash stored
+        )
+
+        // Try delete with any auth
+        val deleted = repo.deleteIfAuthMatches(pasteId, "any-auth-value")
+        assertFalse("Should NOT delete paste when no auth hash is stored", deleted)
+
+        // Verify paste still exists
+        assertNotNull("Paste should still exist", repo.getIfAvailable(pasteId))
+    }
+
+    @Test
+    fun testDeleteIfAuthMatches_Fails_ForNonExistentPaste() {
+        // SECURITY: Deletion should fail for non-existent paste
+        val deleted = repo.deleteIfAuthMatches("nonexistent-paste", "any-auth")
+        assertFalse("Should return false for non-existent paste", deleted)
+    }
+
+    @Test
+    fun testDeleteIfAuthMatches_CascadesDeleteToChatMessages() {
+        // SECURITY: Chat messages MUST be deleted when paste is deleted via auth
+        val pasteId = "test-paste-auth-cascade"
+        val futureExpiry = Instant.now().epochSecond + 3600
+        val deleteAuth = "cascade-auth-key"
+
+        repo.create(
+            id = pasteId,
+            ct = "encrypted-content",
+            iv = "iv12345678901",
+            meta = PasteMeta(expireTs = futureExpiry),
+            rawDeleteToken = "token1",
+            rawDeleteAuth = deleteAuth
+        )
+
+        // Add chat messages
+        for (i in 1..3) {
+            repo.addChatMessage(pasteId, "secret-message-$i", "iv$i")
+        }
+
+        // Verify messages exist
+        assertEquals("Should have 3 messages", 3, repo.getChatMessages(pasteId).size)
+
+        // Delete with auth
+        val deleted = repo.deleteIfAuthMatches(pasteId, deleteAuth)
+        assertTrue("Should delete paste", deleted)
+
+        // SECURITY CHECK: Chat messages must also be deleted
+        val messagesAfter = repo.getChatMessages(pasteId)
+        assertTrue("All chat messages must be deleted via CASCADE", messagesAfter.isEmpty())
+    }
+
+    // ========== Security Tests: Cascade Delete ==========
+
+    @Test
+    fun testChatMessages_CascadeDelete_WhenPasteDeleted() {
+        // SECURITY: Chat messages MUST be deleted when paste is deleted
+        // This prevents orphaned sensitive data from remaining in the database
+        val pasteId = "test-paste-cascade"
+        val futureExpiry = Instant.now().epochSecond + 3600
+
+        // Create paste
+        repo.create(
+            id = pasteId,
+            ct = "encrypted-content",
+            iv = "iv12345678901",
+            meta = PasteMeta(expireTs = futureExpiry),
+            rawDeleteToken = "cascade-token"
+        )
+
+        // Add multiple chat messages
+        for (i in 1..5) {
+            repo.addChatMessage(pasteId, "secret-message-$i", "iv$i")
+        }
+
+        // Verify messages exist
+        val messagesBefore = repo.getChatMessages(pasteId)
+        assertEquals("Should have 5 messages before deletion", 5, messagesBefore.size)
+
+        // Delete the paste
+        val deleted = repo.delete(pasteId)
+        assertTrue("Paste should be deleted", deleted)
+
+        // SECURITY CHECK: All chat messages must be deleted via CASCADE
+        val messagesAfter = repo.getChatMessages(pasteId)
+        assertTrue("All chat messages must be deleted when paste is deleted", messagesAfter.isEmpty())
+    }
+
+    @Test
+    fun testChatMessages_CascadeDelete_WhenPasteDeletedWithToken() {
+        // SECURITY: Chat messages MUST be deleted when paste is deleted via token
+        val pasteId = "test-paste-cascade-token"
+        val futureExpiry = Instant.now().epochSecond + 3600
+        val deleteToken = "secure-delete-token-123"
+
+        // Create paste
+        repo.create(
+            id = pasteId,
+            ct = "encrypted-content",
+            iv = "iv12345678901",
+            meta = PasteMeta(expireTs = futureExpiry),
+            rawDeleteToken = deleteToken
+        )
+
+        // Add chat messages
+        for (i in 1..3) {
+            repo.addChatMessage(pasteId, "private-chat-$i", "iv$i")
+        }
+
+        // Verify messages exist
+        val messagesBefore = repo.getChatMessages(pasteId)
+        assertEquals("Should have 3 messages before deletion", 3, messagesBefore.size)
+
+        // Delete with token
+        val deleted = repo.deleteIfTokenMatches(pasteId, deleteToken)
+        assertTrue("Paste should be deleted with valid token", deleted)
+
+        // SECURITY CHECK: All chat messages must be deleted
+        val messagesAfter = repo.getChatMessages(pasteId)
+        assertTrue("All chat messages must be deleted when paste is deleted via token", messagesAfter.isEmpty())
+    }
+
+    @Test
+    fun testChatMessages_CascadeDelete_WhenExpiredPastesCleaned() {
+        // SECURITY: Chat messages MUST be deleted when expired pastes are cleaned up
+        val now = Instant.now().epochSecond
+        val pastExpiry = now - 3600 // 1 hour ago
+
+        val pasteId = "expired-paste-with-chat"
+
+        // Create expired paste
+        repo.create(
+            id = pasteId,
+            ct = "encrypted-content",
+            iv = "iv12345678901",
+            meta = PasteMeta(expireTs = pastExpiry),
+            rawDeleteToken = "token"
+        )
+
+        // Add chat messages to expired paste
+        for (i in 1..3) {
+            repo.addChatMessage(pasteId, "expired-message-$i", "iv$i")
+        }
+
+        // Verify messages exist (directly, since paste is expired)
+        val messagesBefore = repo.getChatMessages(pasteId)
+        assertEquals("Should have 3 messages before cleanup", 3, messagesBefore.size)
+
+        // Run expired cleanup
+        val deletedCount = repo.deleteExpired()
+        assertEquals("Should delete 1 expired paste", 1, deletedCount)
+
+        // SECURITY CHECK: All chat messages must be deleted via CASCADE
+        val messagesAfter = repo.getChatMessages(pasteId)
+        assertTrue("All chat messages must be deleted when expired paste is cleaned up", messagesAfter.isEmpty())
     }
 }
