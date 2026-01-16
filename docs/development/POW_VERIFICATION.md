@@ -46,8 +46,6 @@ curl -X POST http://localhost:8080/api/pastes \
     "iv": "test-iv-value",
     "meta": {
       "expireTs": 9999999999,
-      "singleView": false,
-      "viewsAllowed": null,
       "mime": "text/plain"
     }
   }'
@@ -235,7 +233,7 @@ fi
 echo -n "PoW enforcement: "
 RESPONSE=$(curl -s -X POST https://your-domain.com/api/pastes \
   -H "Content-Type: application/json" \
-  -d '{"ct":"test","iv":"test","meta":{"expireTs":9999999999,"singleView":false,"viewsAllowed":null,"mime":"text/plain"}}')
+  -d '{"ct":"test","iv":"test","meta":{"expireTs":9999999999,"mime":"text/plain"}}')
 
 if echo "$RESPONSE" | grep -q "pow_required"; then
   echo "✓ OK (enforced)"

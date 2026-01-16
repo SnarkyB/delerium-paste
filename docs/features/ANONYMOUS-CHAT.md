@@ -224,8 +224,9 @@ Located below the paste content, visible only after successful paste decryption.
 ### Privacy Protections
 
 - **No Auto-Polling**: User must manually click refresh
-- **Password Required**: Every send/refresh prompts for password
-- **No Stored Credentials**: Password never stored in memory long-term
+- **Password Required**: Every send/refresh prompts for password (unless key caching enabled)
+- **Opt-In Key Caching**: Creator can enable session-based key caching for convenience
+- **No Stored Credentials**: Password never stored in memory long-term (unless caching enabled)
 - **Zero-Knowledge**: Server never sees plaintext messages or passwords
 
 ### Anti-Spam Measures
@@ -267,7 +268,8 @@ Located below the paste content, visible only after successful paste decryption.
 - Use a strong, unique password for sensitive chats
 - Messages expire when paste expires
 - No chat history after paste deletion
-- Use single-view pastes for ephemeral chats
+- Anyone with the password can delete the paste (and all messages) at any time
+- Use short expiration times for ephemeral chats
 
 ## Performance Considerations
 
@@ -346,10 +348,10 @@ docker-compose up
 ### By Design
 
 - **Manual Refresh**: No real-time updates (privacy feature)
-- **Password Required**: Every interaction prompts for password
+- **Password Required**: Every interaction prompts for password (unless key caching is enabled)
 - **50 Message Limit**: Prevents database bloat
 - **No Message Editing**: Messages immutable after sending
-- **No Message Deletion**: Only paste owner can delete all via paste deletion
+- **Paste-Level Deletion Only**: Anyone with the password can delete the paste (and all messages)
 
 ### Technical
 
