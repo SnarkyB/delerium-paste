@@ -1,41 +1,134 @@
-# Repository Guidelines
+# Repository Guidelines for AI Agents
 
-## Project Structure & Module Organization
+## Project Overview
 
-- `client/` hosts the TypeScript SPA (`src/` for UI/features modules, `tests/{unit,integration,e2e}` for Jest/Playwright suites, build output in `js/`).
-- `server/` holds the Kotlin Ktor API (`src/main/kotlin` routes and storage plus `BUILD.bazel` + Dockerfile). Uses Bazel for builds.
-- `reverse-proxy/` contains the Nginx config that serves static assets and proxies `/api`.
-- `docs/`, `scripts/`, and the `docker-compose*.yml` variants capture deployment notes and automation—update both dev and prod files when you add services.
+**Delirium** is a zero-knowledge encrypted paste system. All encryption happens client-side using Web Crypto API (AES-256-GCM). The server NEVER sees plaintext content or encryption keys. Keys are stored in URL fragments (`#salt:iv`) which browsers never send to servers.
+
+## Project Structure
+
+- `client/` - TypeScript SPA (`src/` for modules, `tests/{unit,integration,e2e}` for Jest/Playwright, build output in `js/`)
+- `server/` - Kotlin Ktor API (`src/main/kotlin` for routes/storage, `BUILD.bazel` + Dockerfile). Uses Bazel for builds.
+- `reverse-proxy/` - Nginx config serving static assets and proxying `/api`
+- `docs/`, `scripts/`, `docker-compose*.yml` - Deployment notes and automation
 
 ## Build, Test, and Development Commands
 
-- `make quick-start` handles the full local bootstrap (install, build, compose up).
-- `make dev` pairs Dockerized backend services with the client watch mode for hot reload at `http://localhost:8080`.
-- `make test` targets the TypeScript suites; run `bazel test //server:all_tests` on Kotlin changes.
-- `make ci-check` runs full CI verification locally (parallel execution).
-- `make ci-quick` runs quick CI checks (lint, type, tests).
-- `./scripts/ci-verify-all.sh` (or the frontend/backend variants) reproduces the GitHub Actions pipeline.
-- `make start | stop | logs | clean` wrap Docker Compose for routine use.
+```bash
+# Setup & Development
+make quick-start              # Full local bootstrap
+make dev                      # Backend in Docker + client watch mode at localhost:8080
+make start | stop | logs      # Docker Compose operations
+make clean                    # Remove containers, volumes, artifacts
 
-## Coding Style & Naming Conventions
+# Testing
+make test                     # All client tests
+make ci-check                 # Full CI verification (parallel) - RUN BEFORE PRs
+make ci-quick                 # Quick checks (lint, type, tests)
+./scripts/ci-verify-all.sh    # Reproduces GitHub Actions pipeline
 
-- TypeScript follows the ESLint profile in `eslint.config.mjs` (2-space indent, camelCase symbols, kebab-case filenames). Avoid `any`, prefer typed helpers under `client/src/features` or `client/src/utils`, and keep crypto logic isolated for reuse.
-- Kotlin sticks to JetBrains defaults (4-space indent, UpperCamelCase classes). Routes live in `Routes.kt`, persistence code in `Storage.kt`, and DTOs in their own packages.
-- Run `npm run lint` and the CI typecheck scripts before requesting review. Backend uses Bazel for builds and tests.
+# Server (Bazel)
+make build-server-bazel       # Build server
+make test-server-bazel        # Run server tests
+bazel test //server:all_tests # Direct Bazel command
+```
 
-## Testing Guidelines
+## Critical Code Flows
 
-- Run `npm run test:unit`, `npm run test:integration`, and `npm run test:e2e` (Playwright) to cover the pyramid; shared setup is in `client/tests/setup.ts`.
-- Maintain ≥85% coverage, especially around encryption, PoW, and routing flows, since CI enforces the threshold.
-- Backend work requires `bazel test //server:all_tests`; place suites under `server/src/test/kotlin`.
+### Paste Creation
+1. Client encrypts content with AES-GCM (key derived via PBKDF2 from password)
+2. Client requests PoW challenge: `GET /api/pow`
+3. Client solves PoW, submits: `POST /api/pastes` with {ciphertext, IV, metadata, PoW}
+4. Server returns paste ID + deletion token
+5. Client builds share URL: `domain.com/view?p=ID#salt:iv` (key in fragment!)
+
+### Paste Viewing
+1. Client fetches: `GET /api/pastes/{ID}`
+2. Client derives key from password + salt (from URL fragment)
+3. Client decrypts with AES-GCM
+
+## API Endpoints
+
+```
+POST   /api/pastes              # Create paste (requires PoW)
+GET    /api/pastes/:id          # Retrieve paste
+DELETE /api/pastes/:id          # Delete paste (requires token)
+POST   /api/pastes/:id/messages # Post encrypted chat message
+GET    /api/pastes/:id/messages # Get all encrypted chat messages
+GET    /api/pow                 # Get PoW challenge
+GET    /health                  # Health check
+```
+
+## Coding Style
+
+### TypeScript
+- ESLint profile in `eslint.config.mjs` (2-space indent, camelCase symbols, kebab-case filenames)
+- Strict mode, explicit types, avoid `any`
+- Read source `.ts` files in `client/src/`, NOT compiled `.js` files in `client/js/`
+
+### Kotlin
+- JetBrains defaults (4-space indent, UpperCamelCase classes)
+- Routes in `Routes.kt`, persistence in `Storage.kt`, DTOs in own packages
+
+## Testing Requirements (CRITICAL)
+
+- **Minimum 85% coverage** for CI to pass
+- **100% coverage** for security-critical code (encryption, passwords, validation)
+- **Every PR must include tests** for all new code - no exceptions
+- Run `npm run lint` and typecheck scripts before requesting review
+
+## Security Requirements (Non-Negotiable)
+
+- Keys must ONLY exist in URL fragment - never sent to server
+- No hardcoded secrets or keys in code
+- No sensitive data in logs (keys, plaintext, passwords, tokens)
+- Error messages must not leak internal details
+- All security paths require 100% test coverage
+
+## API Contract Rules
+
+**NEVER break existing API contracts.** When tests fail:
+1. DO NOT change the API signature to match test expectations
+2. DO investigate how the API is actually used in production code
+3. DO fix the test/consumer to match the actual API contract
 
 ## Commit & Pull Request Guidelines
 
-- Follow `<type>: <description>` (feat, fix, docs, test, refactor, chore, perf, style) and keep commits scoped to one concern.
-- Fill out `PR_DESCRIPTION.md` when opening a PR: summary, highlighted changes, risks, and checked tests; attach screenshots for UI tweaks.
-- Aim for ~100–300 line diffs so reviewers can map them to the modularization plan in `docs/prs/`.
+### Commit Format
+`<type>: <description>` where type is: feat, fix, docs, test, refactor, chore, perf, style
 
-## Security & Configuration Tips
+### PR Philosophy
+- **Small PRs**: 100-300 lines, focused changes
+- **One concern per PR**: Single feature, bug fix, or refactor
+- **Run `make ci-check` before pushing**
 
-- Secrets such as `DELETION_TOKEN_PEPPER` stay in untracked `.env` files consumed by Docker; rotate them whenever PoW or deletion logic changes.
-- Use `make start-secure` with `docker-compose.secure.yml` and the steps in `SECURITY_CHECKLIST.md` for hardened runs, and call out crypto/privacy changes in your PR with links to `docs/architecture/`.
+### AI Commit & Push Control
+- **NEVER auto-commit**: AI must NOT automatically commit changes
+- **NEVER auto-push**: AI must NOT automatically push to remote
+- **Explicit confirmation required**: Only commit/push when developer explicitly asks
+
+## Documentation Rules
+
+- **Change documentation** (fix summaries, migration notes) must go in `docs/prs/PR-XXX-<description>/`
+- **NOT in repository root** - keep root clean
+- Fill out `PR_DESCRIPTION.md` when opening a PR
+
+## Common Pitfalls to Avoid
+
+1. Sending keys to server (keys must ONLY exist in URL fragment)
+2. Changing API contracts without investigation
+3. Submitting untested code
+4. Decreasing coverage >5%
+5. Pushing without running `make ci-check`
+6. Auto-committing changes without explicit approval
+7. Large PRs (break into 100-300 line focused PRs)
+8. Logging sensitive data
+9. Using `any` in TypeScript
+10. Reading compiled `.js` files instead of source `.ts`
+
+## Key Files to Read
+
+- `CLAUDE.md` - Comprehensive project guidance
+- `.cursorrules` - Change documentation organization rules
+- `docs/architecture/C4-DIAGRAMS.md` - Architecture diagrams
+- `docs/prs/README.md` - PR workflow guide
+- `Makefile` - All available commands
