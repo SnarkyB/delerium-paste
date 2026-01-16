@@ -13,16 +13,88 @@ import {
   secureClear,
   safeDisplayContent,
   getSafeErrorMessage,
-  decryptWithPassword
+  decryptWithPassword,
+  deriveDeleteAuth
 } from '../security.js';
 
 import { decodeBase64Url } from '../core/crypto/encoding.js';
 import { HttpApiClient } from '../infrastructure/api/http-client.js';
-import { getDeleteToken } from '../utils/storage.js';
 import { WindowWithUI } from '../ui/ui-manager.js';
 import { setupPasteChat } from './paste-chat.js';
 
 const apiClient = new HttpApiClient();
+
+/**
+ * Setup the destroy button for password-based deletion
+ */
+function setupDestroyButton(pasteId: string, salt: Uint8Array): void {
+  const destroyBtn = document.getElementById('destroyBtn') as HTMLButtonElement | null;
+  if (!destroyBtn) return;
+  
+  // Show the button
+  destroyBtn.style.display = 'inline-flex';
+  
+  destroyBtn.addEventListener('click', async () => {
+    // Confirm deletion
+    if (!window.confirm('Are you sure you want to permanently delete this paste? This action cannot be undone.')) {
+      return;
+    }
+    
+    // Prompt for password
+    const password = prompt('Enter the password or PIN to delete this paste:');
+    if (!password) {
+      return;
+    }
+    
+    const destroyText = document.getElementById('destroyText');
+    const originalText = destroyText?.textContent || 'Destroy Paste';
+    
+    try {
+      destroyBtn.disabled = true;
+      if (destroyText) destroyText.textContent = 'Deleting...';
+      
+      // Derive delete authorization from password
+      const deleteAuth = await deriveDeleteAuth(password, salt);
+      secureClear(password);
+      
+      // Call the delete API
+      const response = await fetch(`/api/pastes/${encodeURIComponent(pasteId)}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deleteAuth })
+      });
+      
+      if (response.ok || response.status === 204) {
+        // Success - update UI
+        const content = document.getElementById('content');
+        if (content) {
+          content.textContent = 'Paste has been permanently deleted.';
+          content.classList.add('error');
+        }
+        destroyBtn.style.display = 'none';
+        
+        // Hide chat section
+        const chatSection = document.getElementById('chatSection');
+        if (chatSection) chatSection.style.display = 'none';
+        
+        const updateStatus = (window as WindowWithUI).updateStatus;
+        if (updateStatus) updateStatus(true, 'Paste deleted');
+      } else {
+        const err = await response.json().catch(() => ({ error: 'Unknown error' }));
+        const errorMsg = err.error === 'invalid_auth' 
+          ? 'Incorrect password or PIN.' 
+          : `Failed to delete: ${err.error || 'Unknown error'}`;
+        window.alert(errorMsg);
+        destroyBtn.disabled = false;
+        if (destroyText) destroyText.textContent = originalText;
+      }
+    } catch (error) {
+      window.alert(`Failed to delete paste: ${(error as Error).message}`);
+      destroyBtn.disabled = false;
+      if (destroyText) destroyText.textContent = originalText;
+    }
+  });
+}
 
 /**
  * View a paste
@@ -54,7 +126,7 @@ export async function viewPaste(): Promise<void> {
   try {
     if (updateStatus) updateStatus(true, 'Fetching paste...');
     const response = await apiClient.retrievePaste(id);
-    const { ct, iv, meta, viewsLeft } = response;
+    const { ct, iv, meta } = response;
 
     const salt = decodeBase64Url(keyB64);
     const ivBuffer = decodeBase64Url(ivB64 || iv);
@@ -97,16 +169,13 @@ export async function viewPaste(): Promise<void> {
     
     // Update status and info
     if (updateStatus) updateStatus(true, 'Decrypted successfully');
-    if (showInfo && meta) showInfo(viewsLeft, meta.expireTs);
-    
-    // Check if delete token exists for this paste
-    const deleteToken = getDeleteToken(id);
-    if (deleteToken && typeof (window as WindowWithUI).showDestroyButton === 'function') {
-      (window as WindowWithUI).showDestroyButton?.(id, deleteToken);
-    }
+    if (showInfo && meta) showInfo(meta.expireTs);
 
-    // Initialize chat functionality
-    setupPasteChat(id, new Uint8Array(salt));
+    // Setup destroy button for password-based deletion
+    setupDestroyButton(id, new Uint8Array(salt));
+
+    // Initialize chat functionality with key caching setting from metadata
+    setupPasteChat(id, new Uint8Array(salt), meta.allowKeyCaching ?? false);
 
     // Securely clear decryption data from memory
     secureClear(keyB64);

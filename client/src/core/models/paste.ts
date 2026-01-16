@@ -43,12 +43,10 @@ export interface PowSolution {
 export interface PasteMetadata {
   /** Unix timestamp when paste expires */
   expireTs: number;
-  /** Delete after first view */
-  singleView: boolean;
-  /** Maximum number of views allowed */
-  viewsAllowed: number;
   /** MIME type hint */
   mime: string;
+  /** Allow viewers to cache decryption key for chat convenience */
+  allowKeyCaching?: boolean;
 }
 
 /**
@@ -63,6 +61,8 @@ export interface CreatePasteRequest {
   meta: PasteMetadata;
   /** Proof-of-work solution (optional) */
   pow?: PowSolution | null;
+  /** Password-derived delete authorization (allows viewers to delete) */
+  deleteAuth?: string;
 }
 
 /**
@@ -85,8 +85,6 @@ export interface GetPasteResponse {
   iv: string;
   /** Paste metadata */
   meta: PasteMetadata;
-  /** Number of views remaining (null if unlimited) */
-  viewsLeft?: number | null;
 }
 
 /**
@@ -95,10 +93,6 @@ export interface GetPasteResponse {
 export interface PasteOptions {
   /** Expiration time in minutes */
   expirationMinutes: number;
-  /** Maximum number of views allowed */
-  maxViews?: number;
-  /** Delete after first view */
-  singleView: boolean;
   /** Password protection enabled */
   hasPassword: boolean;
 }

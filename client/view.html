@@ -380,15 +380,11 @@
             </button>
             <button class="btn btn-danger" id="destroyBtn" style="display: none;">
               <span>🗑️</span>
-              <span>Destroy Paste</span>
+              <span id="destroyText">Destroy Paste</span>
             </button>
           </div>
 
         <div class="info-bar" id="infoBar" style="display: none;">
-          <div class="info-item">
-            <span>👁️</span>
-            <span><strong>Views:</strong> <span id="viewsInfo">-</span></span>
-          </div>
           <div class="info-item">
             <span>⏰</span>
             <span><strong>Expires:</strong> <span id="expiresInfo">-</span></span>
@@ -412,6 +408,12 @@
             <span>🔄</span>
             <span>Refresh Messages</span>
           </button>
+          <div id="keyStatus" style="display: none; margin-top: 0.5rem; padding: 0.5rem; background: var(--bg); border-radius: var(--radius-sm); font-size: 0.85rem;">
+            <span id="keyStatusText" style="color: var(--success);">🔓 Key cached - refresh without password</span>
+            <button id="forgetKeyBtn" style="margin-left: 0.5rem; background: none; border: none; color: var(--text-light); cursor: pointer; text-decoration: underline; font-size: 0.85rem;">
+              Forget
+            </button>
+          </div>
         </div>
 
         <div id="chatMessages" style="
@@ -451,8 +453,8 @@
           </button>
         </div>
 
-        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-light);">
-          💡 Messages are encrypted with your paste password. Manual refresh for privacy.
+        <div id="chatInfoText" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-light);">
+          💡 Messages are encrypted with your paste password.
         </div>
       </div>
 
