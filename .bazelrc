@@ -9,10 +9,10 @@ build --tool_java_runtime_version=remotejdk_21
 # Performance optimizations
 build --worker_sandboxing
 build --experimental_worker_cancellation
-build --experimental_reuse_sandbox_directories
+build --reuse_sandbox_directories
 
 # Increase worker resources
-build --worker_max_instances=4
+build --worker_max_instances=5
 
 # Test output configuration
 test --test_output=errors
