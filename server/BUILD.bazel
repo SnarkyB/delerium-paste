@@ -58,12 +58,44 @@ kt_jvm_library(
     ],
 )
 
-# Route tests
+# Route tests - Health
 kt_jvm_test(
     name = "routes_tests",
     size = "small",
     srcs = glob(["src/test/kotlin/routes/*.kt"]),
     test_class = "routes.HealthRouteTest",
+    deps = [
+        ":delerium_server_lib",
+        ":test_utils",
+        "@maven//:junit_junit",
+        "@maven//:org_jetbrains_kotlin_kotlin_test_junit",
+        "@maven//:io_ktor_ktor_server_test_host_jvm",
+        "@maven//:com_fasterxml_jackson_module_jackson_module_kotlin",
+    ],
+)
+
+# Route tests - Chat Security
+kt_jvm_test(
+    name = "chat_security_tests",
+    size = "small",
+    srcs = glob(["src/test/kotlin/routes/*.kt"]),
+    test_class = "routes.ChatRouteSecurityTest",
+    deps = [
+        ":delerium_server_lib",
+        ":test_utils",
+        "@maven//:junit_junit",
+        "@maven//:org_jetbrains_kotlin_kotlin_test_junit",
+        "@maven//:io_ktor_ktor_server_test_host_jvm",
+        "@maven//:com_fasterxml_jackson_module_jackson_module_kotlin",
+    ],
+)
+
+# Route tests - Delete with Auth
+kt_jvm_test(
+    name = "delete_auth_tests",
+    size = "small",
+    srcs = glob(["src/test/kotlin/routes/*.kt"]),
+    test_class = "routes.DeleteWithAuthRouteTest",
     deps = [
         ":delerium_server_lib",
         ":test_utils",
@@ -109,6 +141,8 @@ test_suite(
     name = "all_tests",
     tests = [
         ":routes_tests",
+        ":chat_security_tests",
+        ":delete_auth_tests",
         ":integration_tests",
         ":storage_test",
     ],

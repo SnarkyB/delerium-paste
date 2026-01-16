@@ -26,12 +26,17 @@ import AppConfig
 /**
  * Create a temporary SQLite database for testing
  * 
+ * Uses a custom SQLite config that enables foreign keys via JDBC properties.
+ * 
  * @return Pair of Database and File (for cleanup)
  */
 fun createTestDatabase(): Pair<Database, File> {
     val testDbFile = File.createTempFile("test_paste_db", ".sqlite")
     testDbFile.deleteOnExit()
-    val db = Database.connect("jdbc:sqlite:${testDbFile.absolutePath}", driver = "org.sqlite.JDBC")
+    // Enable foreign keys via JDBC URL parameter for SQLite
+    // This ensures CASCADE DELETE works correctly
+    val jdbcUrl = "jdbc:sqlite:${testDbFile.absolutePath}?foreign_keys=on"
+    val db = Database.connect(jdbcUrl, driver = "org.sqlite.JDBC")
     return Pair(db, testDbFile)
 }
 
@@ -77,30 +82,27 @@ fun createTestAppConfig(
  * @param ct Ciphertext (default: valid base64url string)
  * @param iv IV (default: valid 12-byte base64url string)
  * @param expireTs Expiration timestamp (default: 1 hour from now)
- * @param viewsAllowed Views allowed (default: null = unlimited)
- * @param singleView Single view flag (default: false)
  * @param mime MIME type (default: "text/plain")
  * @param pow Optional PoW submission
+ * @param deleteAuth Optional password-derived delete authorization
  */
 fun createTestPasteRequest(
     ct: String = "dGVzdC1jaXBoZXJ0ZXh0LWNvbnRlbnQ",
     iv: String = "dGVzdC1pdi0xMjM",
     expireTs: Long = Instant.now().epochSecond + 3600,
-    viewsAllowed: Int? = null,
-    singleView: Boolean? = null,
     mime: String? = "text/plain",
-    pow: PowSubmission? = null
+    pow: PowSubmission? = null,
+    deleteAuth: String? = null
 ): CreatePasteRequest {
     return CreatePasteRequest(
         ct = ct,
         iv = iv,
         meta = PasteMeta(
             expireTs = expireTs,
-            viewsAllowed = viewsAllowed,
-            mime = mime,
-            singleView = singleView
+            mime = mime
         ),
-        pow = pow
+        pow = pow,
+        deleteAuth = deleteAuth
     )
 }
 
