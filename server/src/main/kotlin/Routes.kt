@@ -121,7 +121,7 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             val id = Ids.randomId(cfg.idLength)
             val deleteToken = Ids.randomId(24)
             try {
-                repo.create(id, body.ct, body.iv, body.meta, deleteToken)
+                repo.create(id, body.ct, body.iv, body.meta, deleteToken, body.deleteAuth)
                 call.respond(HttpStatusCode.Created, CreatePasteResponse(id, deleteToken))
             } catch (_: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, ErrorResponse("db_error"))
@@ -132,24 +132,16 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
          * Retrieve an encrypted paste
          * 
          * Returns 404 if the paste doesn't exist or has expired.
-         * Increments view count and may delete the paste if:
-         * - singleView is true, or
-         * - viewsAllowed limit has been reached
          */
         get("/pastes/{id}") {
             val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
             val row = repo.getIfAvailable(id) ?: return@get call.respond(HttpStatusCode.NotFound)
             val payload = repo.toPayload(row)
-            if (repo.shouldDeleteAfterView(row)) {
-                repo.delete(id)
-            } else {
-                repo.incrementViews(id)
-            }
             call.respond(payload)
         }
         /**
          * DELETE /api/pastes/{id}?token=...
-         * Delete a paste using its deletion token
+         * Delete a paste using its deletion token (creator-only)
          *
          * Returns 403 Forbidden if the token doesn't match.
          * Returns 204 No Content on successful deletion.
@@ -160,6 +152,31 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
                 HttpStatusCode.BadRequest, ErrorResponse("missing_token"))
             val ok = repo.deleteIfTokenMatches(id, token)
             if (!ok) call.respond(HttpStatusCode.Forbidden, ErrorResponse("invalid_token"))
+            else call.respond(HttpStatusCode.NoContent)
+        }
+        /**
+         * POST /api/pastes/{id}/delete
+         * Delete a paste using password-derived authorization
+         *
+         * This allows anyone who knows the paste password to delete it.
+         * The deleteAuth is derived client-side from the password.
+         *
+         * Returns 403 Forbidden if the auth doesn't match or feature is disabled.
+         * Returns 204 No Content on successful deletion.
+         */
+        post("/pastes/{id}/delete") {
+            val id = call.parameters["id"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+            
+            val body = try { call.receive<DeleteWithAuthRequest>() } catch (_: Exception) {
+                call.respond(HttpStatusCode.BadRequest, ErrorResponse("invalid_json")); return@post
+            }
+            
+            if (body.deleteAuth.isBlank()) {
+                call.respond(HttpStatusCode.BadRequest, ErrorResponse("missing_auth")); return@post
+            }
+            
+            val ok = repo.deleteIfAuthMatches(id, body.deleteAuth)
+            if (!ok) call.respond(HttpStatusCode.Forbidden, ErrorResponse("invalid_auth"))
             else call.respond(HttpStatusCode.NoContent)
         }
         /**

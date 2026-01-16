@@ -141,6 +141,8 @@ fun Application.module() {
     val hikari = HikariDataSource(HikariConfig().apply {
         jdbcUrl = appCfg.dbPath
         maximumPoolSize = 5
+        // Enable SQLite foreign key constraints for CASCADE DELETE support
+        connectionInitSql = "PRAGMA foreign_keys = ON"
     })
     val db = Database.connect(hikari)
     val repo = PasteRepo(db, appCfg.deletionPepper)
