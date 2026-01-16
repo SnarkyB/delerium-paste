@@ -185,7 +185,7 @@ Tests verify:
    # Try to create paste without PoW (should fail)
    curl -X POST http://localhost:8080/api/pastes \
      -H "Content-Type: application/json" \
-     -d '{"ct":"test","iv":"test","meta":{"expireTs":9999999999,"singleView":false,"viewsAllowed":null,"mime":"text/plain"}}'
+     -d '{"ct":"test","iv":"test","meta":{"expireTs":9999999999,"mime":"text/plain"}}'
    
    # Expected: {"error":"pow_required"}
    ```

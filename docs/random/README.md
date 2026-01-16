@@ -125,7 +125,8 @@ make clean
 - **Zero-Knowledge Architecture**: Server never sees unencrypted content
 - **Client-Side Encryption**: AES-256-GCM encryption in the browser
 - **Proof of Work**: Spam protection through computational challenges
-- **Single-View Pastes**: Self-destructing pastes for sensitive data
+- **Password-Based Deletion**: Anyone with the password can delete the paste
+- **Anonymous Chat**: Encrypted messaging between paste viewers
 - **TypeScript Frontend**: Type-safe client-side code
 - **Comprehensive Testing**: Unit, integration, and E2E test suites
 - **Docker Support**: Full containerization for easy deployment

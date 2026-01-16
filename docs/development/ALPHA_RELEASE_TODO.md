@@ -6,9 +6,9 @@
   - See: `docs/architecture/PROOF_OF_WORK.md` for details
   - See: `docs/development/POW_VERIFICATION.md` for testing/monitoring
 - [x] Add security headers back to nginx (CSP, etc.) ✅ (PR #72: security headers tightened)
-- [ ] Test delete page functionality thoroughly
+- [x] Test delete page functionality thoroughly ✅ (Password-based deletion implemented)
 - [ ] Add error handling for edge cases (expired pastes, invalid IDs)
-- [ ] Test single-view paste functionality
+- [x] Single-view paste functionality removed (simplified model)
 - [ ] Verify expiration times work correctly
 - [ ] Add rate limiting verification
 - [ ] Security audit of CORS configuration

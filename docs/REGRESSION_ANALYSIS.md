@@ -39,7 +39,7 @@ Errors: 0
 - ✅ `PowIntegrationTest` (1 test) - Proof of Work
 - ✅ `RateLimitingIntegrationTest` (2 tests) - Rate limiting
 - ✅ `SecurityIntegrationTest` (5 tests) - Security features
-- ✅ `ViewLimitIntegrationTest` (3 tests) - View counting
+- ✅ `ExpirationIntegrationTest` (1 test) - Paste expiration (view limits removed)
 - ✅ `CreatePasteRouteTest` (11 tests) - Paste creation
 - ✅ `DeletePasteRouteTest` (5 tests) - Paste deletion
 - ✅ `GetPasteRouteTest` (6 tests) - Paste retrieval
@@ -122,9 +122,14 @@ curl http://localhost:8080/
 #### Paste Retrieval
 
 - ✅ GET by ID working
-- ✅ View counting working
-- ✅ Single-view deletion working
-- ✅ View limits enforced correctly
+- ✅ Expiration checking working
+- ✅ Encrypted content returned correctly
+
+#### Password-Based Deletion
+
+- ✅ POST /api/pastes/{id}/delete with deleteAuth working
+- ✅ Anyone with password can delete
+- ✅ Cascade deletes chat messages
 
 #### Paste Deletion
 

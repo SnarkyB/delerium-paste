@@ -146,28 +146,47 @@ server/
 ## Critical Code Flows
 
 ### Paste Creation Flow
-1. User enters content + settings (expiration, view limit, password)
+1. User enters content + settings (expiration, password, key caching preference)
 2. Client validates size, expiration, password strength
 3. Client derives encryption key from password via PBKDF2
 4. Client encrypts content with AES-GCM
-5. Client requests PoW challenge: `GET /api/pow`
-6. Client solves PoW (find SHA-256 hash with N leading zero bits)
-7. Client submits: `POST /api/pastes` with {ciphertext, IV, metadata, PoW}
-8. Server verifies PoW, checks rate limit, validates size
-9. Server stores encrypted paste in SQLite
-10. Server returns paste ID + deletion token
-11. Client builds share URL: `domain.com/view?p=ID#salt:iv` (key in fragment!)
+5. Client derives delete authorization from password (separate PBKDF2 with modified salt)
+6. Client requests PoW challenge: `GET /api/pow`
+7. Client solves PoW (find SHA-256 hash with N leading zero bits)
+8. Client submits: `POST /api/pastes` with {ciphertext, IV, metadata, PoW, deleteAuth}
+9. Server verifies PoW, checks rate limit, validates size
+10. Server stores encrypted paste + hashed deleteAuth in SQLite
+11. Server returns paste ID + deletion token
+12. Client builds share URL: `domain.com/view?p=ID#salt:iv` (key in fragment!)
+13. Client displays delete URL separately to the creator
 
 ### Paste Viewing Flow
 1. User opens URL with ID in query string, salt:iv in fragment
 2. Client prompts for password
 3. Client fetches: `GET /api/pastes/{ID}`
 4. Server returns encrypted ciphertext + IV + metadata
-5. Server increments view count (or deletes if single-view)
-6. Client derives key from password + salt
-7. Client decrypts with AES-GCM
-8. Client displays plaintext
+5. Client derives key from password + salt
+6. Client decrypts with AES-GCM
+7. Client displays plaintext
+8. Client shows "Destroy Paste" button (requires password to use)
 9. Client initializes anonymous chat (using same salt from paste)
+
+### Paste Deletion Flow
+
+**Two ways to delete a paste:**
+
+1. **Creator-only (delete token):**
+   - Creator receives unique delete URL at creation time
+   - Uses `DELETE /api/pastes/{id}?token=...`
+   - Token is random, stored hashed server-side
+
+2. **Anyone with password:**
+   - "Destroy Paste" button on view page
+   - Client prompts for password
+   - Client derives delete auth from password + salt + ":delete"
+   - Client sends `POST /api/pastes/{id}/delete` with {deleteAuth}
+   - Server verifies hashed deleteAuth matches stored hash
+   - Paste and all chat messages are deleted (CASCADE)
 
 ### Anonymous Chat Flow
 1. User views decrypted paste, sees chat section
@@ -355,7 +374,8 @@ try {
 ```
 POST   /api/pastes              # Create paste (requires PoW)
 GET    /api/pastes/:id          # Retrieve paste
-DELETE /api/pastes/:id          # Delete paste (requires token)
+DELETE /api/pastes/:id          # Delete paste (requires token - creator only)
+POST   /api/pastes/:id/delete   # Delete paste (requires password-derived auth)
 POST   /api/pastes/:id/messages # Post encrypted chat message
 GET    /api/pastes/:id/messages # Get all encrypted chat messages
 GET    /api/pow                 # Get PoW challenge
@@ -370,14 +390,15 @@ GET    /health                  # Health check
   "ct": "base64-ciphertext",
   "iv": "base64-initialization-vector",
   "meta": {
-    "singleView": false,
-    "expiresAt": 1234567890
+    "expireTs": 1234567890,
+    "mime": "text/plain",
+    "allowKeyCaching": false
   },
   "pow": {
     "challenge": "abc123",
-    "nonce": 42,
-    "hash": "000abc..."
-  }
+    "nonce": 42
+  },
+  "deleteAuth": "base64-delete-authorization"
 }
 ```
 
@@ -386,6 +407,13 @@ GET    /health                  # Health check
 {
   "id": "paste-id",
   "deleteToken": "token-for-deletion"
+}
+```
+
+**POST /api/pastes/:id/delete:**
+```json
+{
+  "deleteAuth": "base64-delete-authorization"
 }
 ```
 
@@ -493,8 +521,11 @@ Per-IP rate limiting: 30 tokens capacity, refills at 30/minute. Fair resource al
 ### Deletion Token Security
 Deletion tokens hashed with SHA-256 + secret pepper (env variable) before storage - prevents rainbow table attacks.
 
-### View Management
-Flexible viewing: unlimited, limited (N views), or one-time (self-destructs after first view).
+### Password-Based Deletion
+Anyone who knows the paste password can delete it. Delete authorization is derived from password via PBKDF2 with modified salt (`salt + ":delete"`), cryptographically separate from the encryption key. Stored hashed server-side.
+
+### Paste Lifecycle
+Pastes can be deleted by: time-based expiration (automatic cleanup), creator delete token, or password-based deletion by anyone with the password.
 
 ## Documentation
 
