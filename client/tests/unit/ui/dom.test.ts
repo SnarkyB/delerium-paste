@@ -33,7 +33,6 @@ describe('DOM Interaction Functions', () => {
       <div>
         <textarea id="paste" rows="16" placeholder="Type or paste text here…"></textarea>
         <input type="number" id="mins" value="60" min="1">
-        <input type="checkbox" id="single">
         <button id="save">Encrypt & Upload</button>
         <span id="btnText"><span class="btn-icon">🔒</span> Encrypt & Upload</span>
         <pre id="out"></pre>
@@ -55,7 +54,6 @@ describe('DOM Interaction Functions', () => {
     it('should have required DOM elements', () => {
       expect(document.getElementById('paste')).toBeTruthy();
       expect(document.getElementById('mins')).toBeTruthy();
-      expect(document.getElementById('single')).toBeTruthy();
       expect(document.getElementById('save')).toBeTruthy();
       expect(document.getElementById('out')).toBeTruthy();
       expect(document.getElementById('content')).toBeTruthy();
@@ -64,12 +62,10 @@ describe('DOM Interaction Functions', () => {
     it('should have correct element types', () => {
       const pasteElement = document.getElementById('paste') as HTMLTextAreaElement;
       const minsElement = document.getElementById('mins') as HTMLInputElement;
-      const singleElement = document.getElementById('single') as HTMLInputElement;
       const saveElement = document.getElementById('save') as HTMLButtonElement;
 
       expect(pasteElement.tagName).toBe('TEXTAREA');
       expect(minsElement.tagName).toBe('INPUT');
-      expect(singleElement.type).toBe('checkbox');
       expect(saveElement.tagName).toBe('BUTTON');
     });
   });
@@ -112,33 +108,26 @@ describe('DOM Interaction Functions', () => {
     it('should extract form data correctly', () => {
       const pasteTextarea = document.getElementById('paste') as HTMLTextAreaElement;
       const minsInput = document.getElementById('mins') as HTMLInputElement;
-      const singleCheckbox = document.getElementById('single') as HTMLInputElement;
 
       // Set test values
       pasteTextarea.value = 'Test paste content';
       minsInput.value = '120';
-      singleCheckbox.checked = true;
 
       // Extract form data
       const text = pasteTextarea.value;
       const mins = parseInt(minsInput.value || '60', 10);
-      const singleView = singleCheckbox.checked;
 
       expect(text).toBe('Test paste content');
       expect(mins).toBe(120);
-      expect(singleView).toBe(true);
     });
 
     it('should handle default values', () => {
       const minsInput = document.getElementById('mins') as HTMLInputElement;
-      const singleCheckbox = document.getElementById('single') as HTMLInputElement;
 
       // Test default values
       const mins = parseInt(minsInput.value || '60', 10);
-      const singleView = singleCheckbox.checked;
 
       expect(mins).toBe(60);
-      expect(singleView).toBe(false);
     });
   });
 

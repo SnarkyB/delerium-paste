@@ -27,8 +27,6 @@ describe('HttpApiClient', () => {
         iv: 'initialization-vector',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: 10,
           mime: 'text/plain'
         }
       };
@@ -59,8 +57,6 @@ describe('HttpApiClient', () => {
         iv: 'initialization-vector',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: 10,
           mime: 'text/plain'
         }
       };
@@ -81,8 +77,6 @@ describe('HttpApiClient', () => {
         iv: 'initialization-vector',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: 10,
           mime: 'text/plain'
         }
       };
@@ -100,8 +94,6 @@ describe('HttpApiClient', () => {
         iv: 'initialization-vector',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: 10,
           mime: 'text/plain'
         }
       };
@@ -226,8 +218,6 @@ describe('MockApiClient', () => {
         iv: 'initialization-vector',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: 10,
           mime: 'text/plain'
         }
       };
@@ -245,8 +235,6 @@ describe('MockApiClient', () => {
         iv: 'initialization-vector',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: 10,
           mime: 'text/plain'
         }
       };
@@ -266,8 +254,6 @@ describe('MockApiClient', () => {
         iv: 'initialization-vector',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: 10,
           mime: 'text/plain'
         }
       };
@@ -292,8 +278,6 @@ describe('MockApiClient', () => {
         iv: 'initialization-vector',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: 10,
           mime: 'text/plain'
         }
       };
@@ -312,8 +296,6 @@ describe('MockApiClient', () => {
         iv: 'initialization-vector',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: 10,
           mime: 'text/plain'
         }
       };
@@ -360,8 +342,6 @@ describe('MockApiClient', () => {
         iv: 'initialization-vector',
         meta: {
           expireTs: Math.floor(Date.now() / 1000) + 3600,
-          singleView: false,
-          viewsAllowed: 10,
           mime: 'text/plain'
         }
       };

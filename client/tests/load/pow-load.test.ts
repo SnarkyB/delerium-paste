@@ -158,8 +158,6 @@ async function verifySolution(
     iv: 'dGVzdC12ZWN0b3I', // base64url encoded "test-vector"
     meta: {
       expireTs: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
-      singleView: false,
-      viewsAllowed: null,
       mime: 'text/plain'
     },
     pow: {
