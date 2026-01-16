@@ -12,27 +12,27 @@
  * @property iv Initialization vector for AES-GCM encryption (base64url encoded)
  * @property meta Metadata about the paste (expiration, view limits, etc.)
  * @property pow Optional proof-of-work solution (required if PoW is enabled)
+ * @property deleteAuth Password-derived delete authorization (allows viewers to delete)
  */
 data class CreatePasteRequest(
     val ct: String,
     val iv: String,
     val meta: PasteMeta,
-    val pow: PowSubmission? = null
+    val pow: PowSubmission? = null,
+    val deleteAuth: String? = null
 )
 
 /**
  * Metadata for a paste
  * 
  * @property expireTs Unix timestamp when the paste should expire
- * @property viewsAllowed Maximum number of views allowed (null = unlimited)
  * @property mime MIME type hint for the content (e.g., "text/plain")
- * @property singleView If true, paste is deleted after first view
+ * @property allowKeyCaching If true, viewers can cache decryption key for chat convenience
  */
 data class PasteMeta(
     val expireTs: Long,
-    val viewsAllowed: Int? = null,
     val mime: String? = null,
-    val singleView: Boolean? = null
+    val allowKeyCaching: Boolean? = null
 )
 
 /**
@@ -57,9 +57,8 @@ data class CreatePasteResponse(val id: String, val deleteToken: String)
  * @property ct Ciphertext - the encrypted paste content
  * @property iv Initialization vector for decryption
  * @property meta Original metadata from paste creation
- * @property viewsLeft Number of views remaining (null if unlimited)
  */
-data class PastePayload(val ct: String, val iv: String, val meta: PasteMeta, val viewsLeft: Int?)
+data class PastePayload(val ct: String, val iv: String, val meta: PasteMeta)
 
 /**
  * Error response format
@@ -120,3 +119,10 @@ data class ChatMessage(
  * @property messages List of encrypted chat messages
  */
 data class GetChatMessagesResponse(val messages: List<ChatMessage>)
+
+/**
+ * Request body for password-based paste deletion
+ *
+ * @property deleteAuth Password-derived delete authorization
+ */
+data class DeleteWithAuthRequest(val deleteAuth: String)

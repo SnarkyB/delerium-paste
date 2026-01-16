@@ -7,9 +7,7 @@
  * Key features:
  * - Automatic schema creation
  * - Secure deletion token hashing with pepper
- * - View counting and limits
  * - Expiration handling
- * - Single-view paste support
  */
 
 import org.jetbrains.exposed.sql.Database
@@ -27,7 +25,6 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import java.security.MessageDigest
 import java.time.Instant
 
@@ -42,12 +39,11 @@ object Pastes : Table("pastes") {
     val ct = text("ct")
     val iv = text("iv")
     val expireTs = long("expire_ts")
-    val viewsAllowed = integer("views_allowed").nullable()
-    val viewsUsed = integer("views_used").default(0)
-    val singleView = bool("single_view").default(false)
     val mime = varchar("mime", 128).nullable()
     val deleteTokenHash = varchar("delete_token_hash", 128)
+    val deleteAuthHash = varchar("delete_auth_hash", 128).nullable()  // Password-derived delete authorization
     val createdAt = long("created_at")
+    val allowKeyCaching = bool("allow_key_caching").default(false)
 }
 
 /**
@@ -94,10 +90,11 @@ class PasteRepo(private val db: Database, private val pepper: String) {
      * @param id Unique paste identifier
      * @param ct Encrypted content (ciphertext)
      * @param iv Initialization vector
-     * @param meta Paste metadata (expiration, view limits, etc.)
+     * @param meta Paste metadata (expiration, etc.)
      * @param rawDeleteToken Raw deletion token (will be hashed before storage)
+     * @param rawDeleteAuth Optional password-derived delete authorization (allows viewers to delete)
      */
-    fun create(id: String, ct: String, iv: String, meta: PasteMeta, rawDeleteToken: String) {
+    fun create(id: String, ct: String, iv: String, meta: PasteMeta, rawDeleteToken: String, rawDeleteAuth: String? = null) {
         val now = Instant.now().epochSecond
         transaction(db) {
             Pastes.insert {
@@ -105,11 +102,11 @@ class PasteRepo(private val db: Database, private val pepper: String) {
                 it[Pastes.ct] = ct
                 it[Pastes.iv] = iv
                 it[Pastes.expireTs] = meta.expireTs
-                it[Pastes.viewsAllowed] = meta.viewsAllowed
-                it[Pastes.singleView] = meta.singleView ?: false
                 it[Pastes.mime] = meta.mime
                 it[Pastes.deleteTokenHash] = hashToken(rawDeleteToken)
+                it[Pastes.deleteAuthHash] = rawDeleteAuth?.let { auth -> hashToken(auth) }
                 it[Pastes.createdAt] = now
+                it[Pastes.allowKeyCaching] = meta.allowKeyCaching ?: false
             }
         }
     }
@@ -123,20 +120,6 @@ class PasteRepo(private val db: Database, private val pepper: String) {
     fun getIfAvailable(id: String): ResultRow? = transaction(db) {
         val now = Instant.now().epochSecond
         Pastes.selectAll().where { Pastes.id eq id and (Pastes.expireTs greater now) }.singleOrNull()
-    }
-
-    /**
-     * Increment the view count for a paste
-     * Only increments if view limit hasn't been reached
-     * 
-     * @param id Paste identifier
-     */
-    fun incrementViews(id: String) = transaction(db) {
-        val row = Pastes.selectAll().where { Pastes.id eq id }.singleOrNull() ?: return@transaction
-        val allowed = row[Pastes.viewsAllowed]
-        val used = row[Pastes.viewsUsed]
-        if (allowed != null && used >= allowed) return@transaction
-        Pastes.update({ Pastes.id eq id }) { it[viewsUsed] = used + 1 }
     }
 
     /**
@@ -154,8 +137,23 @@ class PasteRepo(private val db: Database, private val pepper: String) {
     }
 
     /**
+     * Delete a paste if the provided password-derived authorization is correct
+     * This allows anyone who knows the paste password to delete it
+     * 
+     * @param id Paste identifier
+     * @param rawAuth Password-derived delete authorization
+     * @return true if paste was deleted, false if auth didn't match or paste not found
+     */
+    fun deleteIfAuthMatches(id: String, rawAuth: String): Boolean = transaction(db) {
+        val hash = hashToken(rawAuth)
+        val row = Pastes.selectAll().where { Pastes.id eq id }.singleOrNull() ?: return@transaction false
+        val storedHash = row[Pastes.deleteAuthHash] ?: return@transaction false  // No auth hash means feature disabled
+        if (storedHash != hash) return@transaction false
+        Pastes.deleteWhere { Pastes.id eq id } > 0
+    }
+
+    /**
      * Delete a paste unconditionally
-     * Used for automatic deletion after single-view or when view limit reached
      * 
      * @param id Paste identifier
      * @return true if a row was deleted
@@ -175,38 +173,20 @@ class PasteRepo(private val db: Database, private val pepper: String) {
     }
 
     /**
-     * Determine if a paste should be deleted after the current view
-     * 
-     * @param row Database row for the paste
-     * @return true if paste should be deleted (single-view or view limit reached)
-     */
-    fun shouldDeleteAfterView(row: ResultRow): Boolean {
-        val single = row[Pastes.singleView]
-        val allowed = row[Pastes.viewsAllowed]
-        val used = row[Pastes.viewsUsed]
-        return single || (allowed != null && used + 1 >= allowed)
-    }
-
-    /**
      * Convert a database row to an API response payload
      *
      * @param row Database row
      * @return PastePayload for API response
      */
     fun toPayload(row: ResultRow): PastePayload {
-        val allowed = row[Pastes.viewsAllowed]
-        val used = row[Pastes.viewsUsed]
-        val left = allowed?.let { (it - used).coerceAtLeast(0) }
         return PastePayload(
             ct = row[Pastes.ct],
             iv = row[Pastes.iv],
             meta = PasteMeta(
                 expireTs = row[Pastes.expireTs],
-                viewsAllowed = row[Pastes.viewsAllowed],
                 mime = row[Pastes.mime],
-                singleView = row[Pastes.singleView]
-            ),
-            viewsLeft = left
+                allowKeyCaching = row[Pastes.allowKeyCaching]
+            )
         )
     }
 
