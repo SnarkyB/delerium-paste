@@ -75,5 +75,6 @@ module.exports = {
       statements: 75
     }
   },
+  setupFiles: ['<rootDir>/tests/setup.ts'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts']
 };
