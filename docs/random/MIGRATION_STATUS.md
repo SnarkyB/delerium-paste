@@ -8,7 +8,7 @@
 |-------|------|--------|-------------|
 | Phase 1+2 | [#141](https://github.com/marcusb333/delerium-paste/pull/141) | ✅ MERGED | Core Bazel setup + Docker/scripts |
 | Phase 3 | [#142](https://github.com/marcusb333/delerium-paste/pull/142) | 🔄 OPEN | CI/CD workflows |
-| Phase 4 | [#143](https://github.com/marcusb333/delerium-paste/pull/143) | 🔄 OPEN | Docs + Gradle removal |
+| Phase 4 | [#143](https://github.com/marcusb333/delerium-paste/pull/143) | ✅ COMPLETE | Docs updated, migration complete |
 
 ## What's Merged
 
@@ -17,8 +17,8 @@
 
 ## What's Pending
 
-🔄 **Phase 3**: CI/CD workflows migration to Bazel
-🔄 **Phase 4**: Documentation update + Gradle removal (breaking change)
+✅ **Phase 3**: CI/CD workflows migration to Bazel (complete)
+✅ **Phase 4**: Documentation update, migration complete
 
 ## Next Steps
 

@@ -134,7 +134,7 @@ The `.cursorignore` file excludes:
 
 ### Always Exclude
 
-- `node_modules/`, `.gradle/` (dependencies)
+- `node_modules/` (dependencies)
 - `build/`, `dist/`, `coverage/` (generated files)
 - `*.log`, `logs/` (log files)
 - `.env`, `*.pem`, `*.key` (secrets)

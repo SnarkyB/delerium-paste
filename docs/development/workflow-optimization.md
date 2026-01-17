@@ -33,7 +33,7 @@ This document describes the parallelization and caching optimizations implemente
 - Added TypeScript incremental build cache
 - Added ESLint cache
 - Improved Docker layer caching with buildx cache
-- Optimized Gradle build cache
+- Optimized Bazel build cache
 
 **Key Features**:
 
@@ -69,7 +69,7 @@ This document describes the parallelization and caching optimizations implemente
 - Added `node_modules` cache
 - Added npm audit results cache (for reference, scans still run fresh)
 - Added OWASP Dependency Check results cache
-- Improved Gradle cache to include build outputs
+- Improved Bazel cache to include build outputs
 
 **Note**: Security scans always run fresh to ensure up-to-date vulnerability detection, but cached dependencies speed up the process.
 
@@ -106,9 +106,9 @@ This document describes the parallelization and caching optimizations implemente
 
 **Optimizations**:
 
-- Leverages Gradle's built-in build cache
-- Uses `--build-cache` flag for better caching (if configured)
-- Gradle handles incremental builds automatically
+- Leverages Bazel's built-in build cache
+- Uses Bazel's aggressive caching for better performance
+- Bazel handles incremental builds automatically
 
 ## Makefile Optimizations
 
@@ -146,7 +146,7 @@ Caches are invalidated when:
 - **Jest**: Source files or `jest.config.js` changes
 - **TypeScript**: Source files or `tsconfig.json` changes
 - **ESLint**: Source files or `eslint.config.mjs` changes
-- **Gradle**: Build files or `gradle-wrapper.properties` changes
+- **Bazel**: Build files or `BUILD.bazel` changes
 - **Docker**: Dockerfile or docker-compose.yml changes
 
 ### Cache Keys
@@ -165,7 +165,7 @@ Cache keys use a combination of:
 - **TypeScript**: `client/js`
 - **ESLint**: `client/.eslintcache`
 - **Playwright**: `~/.cache/ms-playwright`
-- **Gradle**: `~/.gradle/caches`, `server/.gradle`, `server/build`
+- **Bazel**: `~/.cache/bazel`
 - **Docker**: `/tmp/.buildx-cache`
 
 ## Troubleshooting
@@ -227,6 +227,6 @@ Potential further optimizations:
 
 - [GitHub Actions Caching](https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows)
 - [GitHub Actions Job Dependencies](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds)
-- [Gradle Build Cache](https://docs.gradle.org/current/userguide/build_cache.html)
+- [Bazel Remote Caching](https://bazel.build/remote/caching)
 - [Jest Caching](https://jestjs.io/docs/cli#--cache)
 - [TypeScript Incremental Builds](https://www.typescriptlang.org/tsconfig#incremental)

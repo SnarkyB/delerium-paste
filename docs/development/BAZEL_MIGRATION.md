@@ -1,8 +1,8 @@
-# Gradle to Bazel Migration Guide
+# Bazel Build Guide
 
 ## Overview
 
-Delirium Paste has migrated from Gradle to Bazel for building the Kotlin/Ktor server.
+Delirium Paste uses Bazel for building the Kotlin/Ktor server.
 
 ## Why Bazel?
 
@@ -12,14 +12,9 @@ Delirium Paste has migrated from Gradle to Bazel for building the Kotlin/Ktor se
 4. **Monorepo-ready**: Native support for multi-language projects
 5. **Remote caching**: Share build artifacts between CI and local development
 
-## What Changed?
+## Build System
 
-### Removed Files
-
-- `server/gradlew` and `server/gradlew.bat` - No longer needed
-- `server/build.gradle.kts` - Replaced by `server/BUILD.bazel`
-- `server/settings.gradle.kts` - Replaced by `WORKSPACE`
-- `server/gradle/` directory - No longer needed
+The project uses Bazel for all server builds. The build configuration is defined in:
 
 ### New Files
 
@@ -69,35 +64,35 @@ bazel --version
 
 ### Building
 
-| Task | Gradle | Bazel |
-|------|--------|-------|
-| Build server | `./gradlew build` | `bazel build //server:delerium_server` |
-| Build JAR | `./gradlew installDist` | `bazel build //server:delerium_server_deploy` |
-| Clean | `./gradlew clean` | `bazel clean` |
-| Full clean | `./gradlew clean --no-cache` | `bazel clean --expunge` |
+| Task | Bazel Command |
+|------|--------------|
+| Build server | `bazel build //server:delerium_server` |
+| Build JAR | `bazel build //server:delerium_server_deploy` |
+| Clean | `bazel clean` |
+| Full clean | `bazel clean --expunge` |
 
 ### Testing
 
-| Task | Gradle | Bazel |
-|------|--------|-------|
-| Run all tests | `./gradlew test` | `bazel test //server:all_tests` |
-| Run specific test | `./gradlew test --tests StorageTest` | `bazel test //server:storage_test` |
-| Test with output | `./gradlew test --info` | `bazel test //server:all_tests --test_output=all` |
-| Coverage report | `./gradlew jacocoTestReport` | `bazel coverage //server:all_tests` |
+| Task | Bazel Command |
+|------|--------------|
+| Run all tests | `bazel test //server:all_tests` |
+| Run specific test | `bazel test //server:storage_test` |
+| Test with output | `bazel test //server:all_tests --test_output=all` |
+| Coverage report | `bazel coverage //server:all_tests` |
 
 ### Running
 
-| Task | Gradle | Bazel |
-|------|--------|-------|
-| Run server | `./gradlew run` | `bazel run //server:delerium_server` |
-| Run with config | `./gradlew run --args="..."` | Set env vars and run |
+| Task | Bazel Command |
+|------|--------------|
+| Run server | `bazel run //server:delerium_server` |
+| Run with config | Set env vars and run |
 
 ### Other Tasks
 
-| Task | Gradle | Bazel Alternative |
-|------|--------|-------------------|
-| Dependency check | `./gradlew dependencyCheckAnalyze` | GitHub Dependabot (automatic) |
-| List dependencies | `./gradlew dependencies` | `bazel query 'deps(//server:delerium_server_lib)'` |
+| Task | Bazel Command |
+|------|--------------|
+| Dependency check | GitHub Dependabot (automatic) |
+| List dependencies | `bazel query 'deps(//server:delerium_server_lib)'` |
 
 ## Common Workflows
 
@@ -233,7 +228,7 @@ bazel clean --expunge
 3. **Parallel execution**: Bazel automatically parallelizes builds
 4. **Cache is shared**: Build once, test multiple times is nearly instant
 
-## Key Differences from Gradle
+## Key Features
 
 ### Hermetic Builds
 
@@ -245,15 +240,15 @@ No more "works on my machine" issues.
 All dependencies must be declared in WORKSPACE and BUILD files.
 This makes the build graph explicit and cacheable.
 
-### No Build Lifecycle
+### Explicit Build Rules
 
-Unlike Gradle's lifecycle phases, Bazel has explicit build rules.
-You specify exactly what to build, not a lifecycle to run.
+Bazel uses explicit build rules.
+You specify exactly what to build.
 
 ### External Dependencies
 
-Maven dependencies are still used but resolved via `rules_jvm_external`
-in the WORKSPACE file instead of Gradle's dependency management.
+Maven dependencies are resolved via `rules_jvm_external`
+in the WORKSPACE file.
 
 ## Migration Status
 
@@ -262,7 +257,7 @@ in the WORKSPACE file instead of Gradle's dependency management.
 ### Completed
 
 - ✅ Install Bazelisk
-- ✅ Replace `./gradlew` commands with `bazel`
+- ✅ Use `bazel` commands for all builds
 - ✅ Update CI/CD scripts (pr-checks.yml, server-ci.yml)
 - ✅ Update Docker build commands
 - ✅ Update local verification scripts (ci-verify-quick.sh, ci-verify-backend.sh)
@@ -273,10 +268,10 @@ in the WORKSPACE file instead of Gradle's dependency management.
 
 ### Migration Checklist
 
-If you're updating existing workflows:
+If you're setting up the project:
 
 - [x] Install Bazelisk
-- [x] Replace `./gradlew` commands with `bazel`
+- [x] Use `bazel` commands for all builds
 - [x] Update CI/CD scripts
 - [x] Update Docker build commands
 - [x] Update documentation
@@ -299,12 +294,6 @@ For questions or issues:
 3. Create an issue on GitHub
 4. Check Bazel documentation
 
-## Rollback Plan
+## Build System History
 
-If needed, previous Gradle setup is preserved in git history:
-
-```bash
-git log --all --oneline -- server/build.gradle.kts
-```
-
-However, Bazel provides significant benefits and we recommend adapting to the new workflow.
+The project uses Bazel for all builds. Previous build system configurations are preserved in git history if needed for reference.

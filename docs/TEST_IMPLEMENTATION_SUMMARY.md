@@ -130,7 +130,7 @@ Failed: 0
 
 ```bash
 # Backend tests
-cd server && ./gradlew test
+cd server && bazel test //server:all_tests
 
 # Frontend tests
 npm run test:all
