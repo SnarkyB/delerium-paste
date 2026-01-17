@@ -14,25 +14,52 @@ if (webcrypto && webcrypto.subtle) {
     },
   };
   
-  Object.defineProperty(global, 'crypto', {
-    value: cryptoImpl,
-    writable: true,
-    configurable: true,
-  });
+  // Delete any existing crypto to ensure clean setup
+  try {
+    delete (global as any).crypto;
+    delete (globalThis as any).crypto;
+    if (typeof window !== 'undefined') {
+      delete (window as any).crypto;
+    }
+  } catch (e) {
+    // Ignore errors if crypto doesn't exist
+  }
   
-  Object.defineProperty(globalThis, 'crypto', {
-    value: cryptoImpl,
-    writable: true,
-    configurable: true,
-  });
+  // Set crypto on all possible global objects
+  (global as any).crypto = cryptoImpl;
+  (globalThis as any).crypto = cryptoImpl;
   
   // Also set on window if it exists (for jsdom)
   if (typeof window !== 'undefined') {
-    Object.defineProperty(window, 'crypto', {
+    (window as any).crypto = cryptoImpl;
+  }
+  
+  // Ensure it's also available via Object.defineProperty for compatibility
+  try {
+    Object.defineProperty(global, 'crypto', {
       value: cryptoImpl,
       writable: true,
       configurable: true,
+      enumerable: true,
     });
+    
+    Object.defineProperty(globalThis, 'crypto', {
+      value: cryptoImpl,
+      writable: true,
+      configurable: true,
+      enumerable: true,
+    });
+    
+    if (typeof window !== 'undefined') {
+      Object.defineProperty(window, 'crypto', {
+        value: cryptoImpl,
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
+    }
+  } catch (e) {
+    // If defineProperty fails, the direct assignment above should work
   }
 } else {
   // Fallback for older Node versions
