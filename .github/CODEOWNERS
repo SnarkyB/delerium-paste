@@ -11,8 +11,7 @@
 
 # Server code
 /server/src/ @marcusb333
-/server/*.gradle.kts @marcusb333
-/server/settings.gradle.kts @marcusb333
+/server/BUILD.bazel @marcusb333
 /server/Dockerfile @marcusb333
 /server/docs/ @marcusb333
 /server/*.sh @marcusb333

@@ -4,7 +4,7 @@ This document describes the automated security scanning setup for Delirium.
 
 ## Overview
 
-Automated security scanning runs vulnerability checks on both frontend (npm) and backend (Gradle/Kotlin) dependencies to identify known security vulnerabilities.
+Automated security scanning runs vulnerability checks on both frontend (npm) and backend (Bazel/Kotlin) dependencies to identify known security vulnerabilities.
 
 ## Components
 
@@ -15,12 +15,12 @@ Automated security scanning runs vulnerability checks on both frontend (npm) and
 - **Severity Threshold:** Moderate and above
 - **Action:** Fails build if Critical or High vulnerabilities found
 
-### 2. Backend Security Scanning (OWASP Dependency Check)
+### 2. Backend Security Scanning (GitHub Dependabot)
 
-- **Tool:** OWASP Dependency Check plugin for Gradle
+- **Tool:** GitHub Dependabot (automatic dependency scanning)
 - **Trigger:** On every PR, push to main, and scheduled daily
-- **CVSS Threshold:** Fails build on CVSS >= 7.0 (High/Critical)
-- **Reports:** HTML, JSON, XML formats in `server/build/reports/dependency-check/`
+- **CVSS Threshold:** Alerts on High/Critical vulnerabilities
+- **Reports:** Available in GitHub Security tab
 
 ### 3. GitHub Actions Workflows
 
@@ -62,8 +62,9 @@ npm audit --audit-level=moderate
 ### Backend Only
 
 ```bash
-cd server
-./gradlew dependencyCheckAnalyze
+# Backend dependencies are managed via Bazel and scanned automatically by GitHub Dependabot
+# Check the GitHub Security tab for vulnerability reports
+bazel query 'deps(//server:delerium_server_lib)' --output=package
 ```
 
 ## Configuration
@@ -72,27 +73,27 @@ cd server
 
 No additional configuration needed. Uses npm's built-in audit database.
 
-### Backend (OWASP Dependency Check)
+### Backend (GitHub Dependabot)
 
-Configuration in `server/build.gradle.kts`:
+Backend dependencies are managed in `MODULE.bazel` and automatically scanned by GitHub Dependabot. Dependencies are defined as Maven artifacts:
 
-```kotlin
-dependencyCheck {
-    format = "ALL"
-    outputDirectory = "build/reports/dependency-check"
-    suppressionFile = "dependency-check-suppressions.xml"
-    failBuildOnCVSS = 7.0f  // Fail build on CVSS >= 7.0
-    analyzers {
-        assemblyEnabled = false
-        nuspecEnabled = false
-        nodeEnabled = false
-    }
-}
+```python
+maven.install(
+    artifacts = [
+        "io.ktor:ktor-server-core-jvm:3.0.2",
+        # ... other dependencies
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+)
 ```
+
+Vulnerability reports are available in the GitHub Security tab.
 
 ### Suppressing False Positives
 
-To suppress false positives or accepted risks, edit `server/dependency-check-suppressions.xml`:
+To suppress false positives or accepted risks in GitHub Dependabot, use the "Dismiss" option in the Security tab with a justification:
 
 ```xml
 <suppress>
@@ -114,9 +115,9 @@ To suppress false positives or accepted risks, edit `server/dependency-check-sup
 
 ### Backend Reports
 
-- **Location:** `server/build/reports/dependency-check/`
-- **Formats:** HTML, JSON, XML
-- **View:** Open `dependency-check-report.html` in browser
+- **Location:** GitHub Security tab
+- **Format:** Web interface with detailed vulnerability information
+- **View:** Navigate to repository → Security → Dependabot alerts
 
 ### GitHub Actions Artifacts
 
@@ -155,9 +156,10 @@ npm audit fix  # Auto-fix vulnerabilities where possible
 
 # Backend
 cd server
-# Update version in build.gradle.kts
-./gradlew dependencyCheckUpdate  # Update CVE database
-./gradlew dependencyCheckAnalyze  # Re-run scan
+# Update version in MODULE.bazel
+# Then rebuild to verify
+bazel build //server:delerium_server_deploy
+# Check GitHub Security tab for updated vulnerability reports
 ```
 
 ### Moderate/Low Severity
@@ -181,9 +183,10 @@ cd server
 First run downloads CVE database (~500MB). Subsequent runs are faster due to caching.
 
 ```bash
-# Update CVE database manually
+# Dependabot automatically updates vulnerability database
+# Check GitHub Security tab for latest reports
 cd server
-./gradlew dependencyCheckUpdate
+bazel query 'deps(//server:delerium_server_lib)' --output=package
 ```
 
 ### False Positives

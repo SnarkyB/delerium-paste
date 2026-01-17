@@ -179,7 +179,7 @@ deploy-full:
 	@echo ""
 	@echo "📦 Step 2/5: Building client and server in parallel..."
 	@(cd client && npm run build) & \
-	(cd server && ./gradlew clean build) & \
+	(cd server && bazel build //server:delerium_server_deploy) & \
 	wait || exit 1
 	@echo ""
 	@echo "🧪 Step 3/5: Running tests in parallel..."
@@ -187,7 +187,7 @@ deploy-full:
 	@(cd client && npm test || (echo "⚠️  Client tests failed!" && exit 1)) & \
 	CLIENT_PID=$$!; \
 	echo "  → Server tests..."
-	@(cd server && ./gradlew test || (echo "⚠️  Server tests failed!" && exit 1)) & \
+	@(cd server && bazel test //server:all_tests --test_output=errors || (echo "⚠️  Server tests failed!" && exit 1)) & \
 	SERVER_PID=$$!; \
 	wait $$CLIENT_PID; \
 	CLIENT_EXIT=$$?; \

@@ -215,7 +215,6 @@ EOFSCRIPT
             --exclude='node_modules' \
             --exclude='client/node_modules' \
             --exclude='server/build' \
-            --exclude='server/.gradle' \
             --exclude='.env' \
             .
         

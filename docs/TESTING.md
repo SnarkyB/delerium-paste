@@ -28,7 +28,7 @@ These tests verify that the backend correctly handles requests with `Origin` hea
 
 ```bash
 cd server
-./gradlew test --tests "integration.CorsIntegrationTest"
+bazel test //server:integration_tests --test_filter="CorsIntegrationTest"
 ```
 
 ### 2. End-to-End Deployment Tests (Bash)
@@ -93,7 +93,7 @@ The tests ensure:
 
 ```bash
 # Backend tests
-cd server && ./gradlew test
+cd server && bazel test //server:all_tests
 
 # Deployment tests (requires running Docker services)
 docker compose up -d

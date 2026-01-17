@@ -150,7 +150,7 @@ The `.cursorignore` file excludes:
 ### Never Exclude
 
 - Source code (`*.ts`, `*.kt`, `*.js` sources)
-- Configuration files (`tsconfig.json`, `build.gradle.kts`)
+- Configuration files (`tsconfig.json`, `BUILD.bazel`, `MODULE.bazel`)
 - Documentation (`*.md`, `docs/`)
 - Tests (`*.test.ts`, `*.spec.ts`)
 

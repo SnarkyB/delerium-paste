@@ -12,7 +12,7 @@ bazel_dep(name = "rules_jvm_external", version = "5.3")
 # Use maven extension
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 
-# Maven dependencies from build.gradle.kts
+# Maven dependencies for the server
 maven.install(
     artifacts = [
         # Ktor dependencies

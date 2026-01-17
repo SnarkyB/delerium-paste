@@ -205,7 +205,7 @@ To modify the workflow:
 
 ### Base Images
 
-- **Builder**: `gradle:8.11.1-jdk21` (latest Gradle with JDK 21 for building)
+- **Builder**: `ubuntu:22.04` with Bazelisk and JDK 21 (Bazel build system)
 - **Runtime**: `eclipse-temurin:21-jre-jammy` (JRE only, smaller size)
 
 ### Multi-Architecture Support
