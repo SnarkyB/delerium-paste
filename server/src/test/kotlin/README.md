@@ -106,22 +106,21 @@ End-to-end tests with real database and services to verify full workflows.
 
 ```bash
 # Run all tests
-./gradlew test
+bazel test //server:all_tests
 
-# Run specific test class
-./gradlew test --tests "routes.CreatePasteRouteTest"
-
-# Run specific test method
-./gradlew test --tests "routes.CreatePasteRouteTest.testPostPastes_Success_Returns201WithIdAndToken"
-
-# Run all route tests
-./gradlew test --tests "routes.*"
-
-# Run all integration tests
-./gradlew test --tests "integration.*"
+# Run specific test suite
+bazel test //server:routes_tests
+bazel test //server:integration_tests
+bazel test //server:storage_test
 
 # Run with detailed output
-./gradlew test --info
+bazel test //server:all_tests --test_output=all
+
+# Run with errors only
+bazel test //server:all_tests --test_output=errors
+
+# Run specific test class (using test filter)
+bazel test //server:routes_tests --test_filter="CreatePasteRouteTest"
 ```
 
 ## Test Coverage

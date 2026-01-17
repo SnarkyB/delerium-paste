@@ -17,9 +17,8 @@
 application.conf @SnarkyB
 
 # Build configuration
-build.gradle.kts @SnarkyB
-settings.gradle.kts @SnarkyB
-gradle.properties @SnarkyB
+BUILD.bazel @SnarkyB
+MODULE.bazel @SnarkyB
 
 # Docker files
 Dockerfile @SnarkyB

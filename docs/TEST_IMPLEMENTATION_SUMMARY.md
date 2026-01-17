@@ -33,7 +33,7 @@ Comprehensive tests have been written to verify the deployment and CORS fixes wo
 ### Backend Tests
 
 ```bash
-cd server && ./gradlew test
+cd server && bazel test //server:all_tests
 ```
 
 **Result**: ✅ ALL PASS (69 total tests, including 11 new CORS tests)

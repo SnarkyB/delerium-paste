@@ -407,27 +407,24 @@ This script will:
 
 ```bash
 # 1. Build the project
-./gradlew build
+bazel build //server:delerium_server_deploy
 
-# 2. Create distribution
-./gradlew installDist
-
-# 3. Create data directory
+# 2. Create data directory
 mkdir -p data
 
-# 4. Set database path and run
+# 3. Set database path and run
 export DB_PATH="jdbc:sqlite:$(pwd)/data/pastes.db"
-./build/install/delerium-paste/bin/delerium-paste
+bazel run //server:delerium_server
 ```
 
-#### Option 3: Using Gradle Run
+#### Option 3: Using Bazel Run (Recommended)
 
 ```bash
 # Set database path
 export DB_PATH="jdbc:sqlite:$(pwd)/data/pastes.db"
 
 # Run directly
-./gradlew run
+bazel run //server:delerium_server
 ```
 
 ### Local Configuration

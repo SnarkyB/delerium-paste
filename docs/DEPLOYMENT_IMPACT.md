@@ -221,7 +221,7 @@ docker compose -f docker-compose.prod.yml logs -f
 ./scripts/test-deployment-cors.sh
 
 # Full test suite
-cd server && ./gradlew test
+cd server && bazel test //server:all_tests
 cd client && npm test
 ```
 
