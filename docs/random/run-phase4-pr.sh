@@ -11,7 +11,7 @@ git push origin feat/bazel-phase4-docs-cleanup --force-with-lease
 gh pr create \
   --base main \
   --head feat/bazel-phase4-docs-cleanup \
-  --title "Phase 4: Complete Bazel Migration - Update Docs and Remove Gradle" \
+  --title "Phase 4: Complete Bazel Migration - Update Docs" \
   --body-file PR_PHASE4_DESCRIPTION.md \
   --label "enhancement"
 

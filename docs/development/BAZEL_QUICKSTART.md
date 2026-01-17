@@ -2,7 +2,7 @@
 
 ## Overview
 
-Delirium Paste is migrating from Gradle to Bazel for improved build performance, reproducibility, and to eliminate wrapper dependencies.
+Delirium Paste uses Bazel for improved build performance, reproducibility, and to eliminate wrapper dependencies.
 
 ## Why Bazel?
 
@@ -178,15 +178,15 @@ bazel clean --expunge
 3. **Parallel execution**: Bazel automatically parallelizes builds
 4. **Remote caching**: Can be configured for team-wide artifact sharing
 
-## Migration from Gradle
+## Common Commands
 
-| Gradle Command | Bazel Equivalent |
-|---------------|------------------|
-| `./gradlew build` | `bazel build //server:delerium_server` |
-| `./gradlew test` | `bazel test //server:all_tests` |
-| `./gradlew run` | `bazel run //server:delerium_server` |
-| `./gradlew clean` | `bazel clean` |
-| `./gradlew jacocoTestReport` | `bazel coverage //server:all_tests` |
+| Task | Bazel Command |
+|------|--------------|
+| Build server | `bazel build //server:delerium_server` |
+| Run tests | `bazel test //server:all_tests` |
+| Run server | `bazel run //server:delerium_server` |
+| Clean | `bazel clean` |
+| Coverage | `bazel coverage //server:all_tests` |
 
 ## Next Steps
 
