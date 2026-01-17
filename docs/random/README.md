@@ -264,7 +264,7 @@ zkpaste-full-docker/
 │   │   ├── App.kt            # Main application
 │   │   ├── Routes.kt         # API routes
 │   │   └── Storage.kt        # Data storage logic
-│   └── build.gradle.kts      # Gradle build configuration
+│   └── BUILD.bazel           # Bazel build configuration
 ├── reverse-proxy/             # Nginx configuration
 │   └── nginx.conf            # Reverse proxy setup
 ├── docker-compose.yml         # Docker orchestration
