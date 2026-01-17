@@ -6,32 +6,71 @@ const { webcrypto } = nodeCrypto;
 
 // Use Node.js Web Crypto API implementation (Node 15.10.0+)
 if (webcrypto && webcrypto.subtle) {
-  Object.defineProperty(global, 'crypto', {
-    value: {
-      subtle: webcrypto.subtle,
-      getRandomValues: (arr: Uint8Array) => {
-        return nodeCrypto.randomFillSync(arr);
-      },
+  // Ensure crypto is available on both global and globalThis
+  const cryptoImpl = {
+    subtle: webcrypto.subtle,
+    getRandomValues: (arr: Uint8Array) => {
+      return nodeCrypto.randomFillSync(arr);
     },
+  };
+  
+  Object.defineProperty(global, 'crypto', {
+    value: cryptoImpl,
+    writable: true,
+    configurable: true,
   });
+  
+  Object.defineProperty(globalThis, 'crypto', {
+    value: cryptoImpl,
+    writable: true,
+    configurable: true,
+  });
+  
+  // Also set on window if it exists (for jsdom)
+  if (typeof window !== 'undefined') {
+    Object.defineProperty(window, 'crypto', {
+      value: cryptoImpl,
+      writable: true,
+      configurable: true,
+    });
+  }
 } else {
   // Fallback for older Node versions
-  Object.defineProperty(global, 'crypto', {
-    value: {
-      subtle: {
-        generateKey: jest.fn(),
-        importKey: jest.fn(),
-        exportKey: jest.fn(),
-        encrypt: jest.fn(),
-        decrypt: jest.fn(),
-        digest: jest.fn(),
-        deriveKey: jest.fn(),
-      },
-      getRandomValues: jest.fn((arr: Uint8Array) => {
-        return nodeCrypto.randomFillSync(arr);
-      }),
+  const mockCrypto = {
+    subtle: {
+      generateKey: jest.fn(),
+      importKey: jest.fn(),
+      exportKey: jest.fn(),
+      encrypt: jest.fn(),
+      decrypt: jest.fn(),
+      digest: jest.fn(),
+      deriveKey: jest.fn(),
+      deriveBits: jest.fn(),
     },
+    getRandomValues: jest.fn((arr: Uint8Array) => {
+      return nodeCrypto.randomFillSync(arr);
+    }),
+  };
+  
+  Object.defineProperty(global, 'crypto', {
+    value: mockCrypto,
+    writable: true,
+    configurable: true,
   });
+  
+  Object.defineProperty(globalThis, 'crypto', {
+    value: mockCrypto,
+    writable: true,
+    configurable: true,
+  });
+  
+  if (typeof window !== 'undefined') {
+    Object.defineProperty(window, 'crypto', {
+      value: mockCrypto,
+      writable: true,
+      configurable: true,
+    });
+  }
 }
 
 // Mock TextEncoder and TextDecoder using a different approach
