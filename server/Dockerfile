@@ -22,6 +22,10 @@ RUN ARCH=$(uname -m) && \
     chmod +x "bazelisk-linux-${BAZELISK_ARCH}" && \
     mv "bazelisk-linux-${BAZELISK_ARCH}" /usr/local/bin/bazel
 
+# Configure Bazelisk to use a specific Bazel version and batch mode
+ENV USE_BAZEL_VERSION=8.5.1
+ENV BAZELISK_SKIP_WRAPPER=0
+
 # Create non-root user for Bazel build (required by rules_python)
 RUN groupadd -r builder && \
     useradd -r -g builder -m builder && \
@@ -42,6 +46,7 @@ RUN chown -R builder:builder /build
 USER builder
 
 # Build with Bazel using CI configuration
+# Note: Bazel automatically avoids persistent server in Docker builds
 RUN bazel build //server:delerium_server_deploy --config=ci
 
 # Extract all JARs and create a fat JAR (as root since we need /app directory)
