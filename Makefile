@@ -218,14 +218,14 @@ build-multiarch:
 	@echo "🏗️  Building for linux/amd64 and linux/arm64..."
 	@cd server && docker buildx build \
 		--platform linux/amd64,linux/arm64 \
-		--tag delerium-paste-server:latest \
-		--tag delerium-paste-server:multi-arch \
+		--tag delerium-server:latest \
+		--tag delerium-server:multi-arch \
 		--load \
 		.
 	@echo "✅ Multi-architecture build complete!"
 	@echo "📦 Images tagged as:"
-	@echo "   - delerium-paste-server:latest"
-	@echo "   - delerium-paste-server:multi-arch"
+	@echo "   - delerium-server:latest"
+	@echo "   - delerium-server:multi-arch"
 
 # Build and push multi-architecture images to registry
 # Usage: make push-multiarch REGISTRY=ghcr.io/username TAG=v1.0.0
@@ -243,15 +243,15 @@ push-multiarch:
 	echo "🏗️  Building and pushing for linux/amd64 and linux/arm64..."; \
 	cd server && docker buildx build \
 		--platform linux/amd64,linux/arm64 \
-		--tag $(REGISTRY)/delerium-paste-server:$$TAG \
-		--tag $(REGISTRY)/delerium-paste-server:latest \
+		--tag $(REGISTRY)/delerium-server:$$TAG \
+		--tag $(REGISTRY)/delerium-server:latest \
 		--push \
 		.; \
 	echo "✅ Multi-architecture images pushed successfully!"; \
 	echo "📦 Images available at:"; \
-	echo "   - $(REGISTRY)/delerium-paste-server:$$TAG"; \
-	echo "   - $(REGISTRY)/delerium-paste-server:latest"; \
-	echo "🔍 Inspect with: docker buildx imagetools inspect $(REGISTRY)/delerium-paste-server:$$TAG"
+	echo "   - $(REGISTRY)/delerium-server:$$TAG"; \
+	echo "   - $(REGISTRY)/delerium-server:latest"; \
+	echo "🔍 Inspect with: docker buildx imagetools inspect $(REGISTRY)/delerium-server:$$TAG"
 
 # Production deployment commands
 deploy-prod:

@@ -17,7 +17,7 @@
 #      - '.github/workflows/docker-publish.yml'
 #
 #env:
-#  IMAGE_NAME: delerium-paste-server
+#  IMAGE_NAME: delerium-server
 #  REGISTRY_GHCR: ghcr.io
 #  REGISTRY_DOCKERHUB: docker.io
 #
