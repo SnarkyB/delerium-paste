@@ -113,7 +113,7 @@ describe.skip('API Integration Tests', () => {
 
   describe('GET /api/pow', () => {
     it('should return PoW challenge when required', async () => {
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .get('/api/pow')
         .expect(200);
 
@@ -151,7 +151,7 @@ describe.skip('API Integration Tests', () => {
         }
       };
 
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .post('/api/pastes')
         .send(pasteData)
         .expect(200);
@@ -172,7 +172,7 @@ describe.skip('API Integration Tests', () => {
         }
       };
 
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .post('/api/pastes')
         .send(pasteData)
         .expect(200);
@@ -187,7 +187,7 @@ describe.skip('API Integration Tests', () => {
         // Missing iv and meta
       };
 
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .post('/api/pastes')
         .send(invalidData)
         .expect(400);
@@ -206,7 +206,7 @@ describe.skip('API Integration Tests', () => {
         }
       };
 
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .post('/api/pastes')
         .send(pasteData)
         .expect(400);
@@ -229,7 +229,7 @@ describe.skip('API Integration Tests', () => {
         }
       };
 
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .post('/api/pastes')
         .send(pasteData)
         .expect(400);
@@ -241,7 +241,7 @@ describe.skip('API Integration Tests', () => {
 
   describe('GET /api/pastes/:id', () => {
     it('should return paste data for valid ID', async () => {
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .get('/api/pastes/valid-id')
         .expect(200);
 
@@ -252,7 +252,7 @@ describe.skip('API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent paste', async () => {
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .get('/api/pastes/non-existent')
         .expect(404);
 
@@ -261,7 +261,7 @@ describe.skip('API Integration Tests', () => {
     });
 
     it('should return 410 for expired paste', async () => {
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .get('/api/pastes/expired')
         .expect(410);
 
@@ -278,7 +278,7 @@ describe.skip('API Integration Tests', () => {
     });
 
     it('should return 401 for missing delete token', async () => {
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .delete('/api/pastes/valid-id')
         .expect(401);
 
@@ -287,7 +287,7 @@ describe.skip('API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent paste', async () => {
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .delete('/api/pastes/non-existent?token=valid-token')
         .expect(404);
 
@@ -312,7 +312,7 @@ describe.skip('API Integration Tests', () => {
         }
       };
 
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .post('/api/pastes')
         .send(pasteData)
         .expect(500);
@@ -322,7 +322,7 @@ describe.skip('API Integration Tests', () => {
     });
 
     it('should handle malformed JSON requests', async () => {
-      const response = await request(mockApp)
+      const response = await request(mockApp as any)
         .post('/api/pastes')
         .set('Content-Type', 'application/json')
         .send('invalid json')

@@ -131,7 +131,7 @@ docker login ghcr.io
 # Build and push
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -t ghcr.io/marcusb333/delerium-paste-server:v1.0.4 \
+  -t ghcr.io/marcusb333/delerium-server:v1.0.4 \
   -f server/Dockerfile \
   --push \
   .
