@@ -27,6 +27,316 @@ You are working on **Delirium**, a zero-knowledge paste system where security an
 - Export main functions for testing
 - Add JSDoc comments for public APIs
 
+## High-Risk Change Protocol (CRITICAL)
+
+### Core Principle: Privacy is Non-Negotiable
+
+**Anonymity, privacy, and quality are paramount.** In a zero-knowledge system, a single mistake can permanently destroy user trust. When making significant changes to privacy-critical systems, extraordinary care is required.
+
+### What Constitutes a High-Risk Change
+
+Changes to these areas require the full High-Risk Change Protocol:
+
+**Privacy-Critical Systems:**
+- Encryption/decryption algorithms or implementations
+- Key generation, storage, or derivation (PBKDF2, salt generation)
+- Password handling or authentication flows
+- Data transmission (what gets sent to server)
+- URL fragment handling (key storage)
+- Chat message encryption/decryption
+- Delete authorization mechanisms
+
+**Anonymity-Critical Systems:**
+- Logging that could leak user data
+- Network requests that could reveal information
+- Session management
+- IP tracking or rate limiting
+- Error messages that could expose internal state
+
+**Data Integrity Systems:**
+- Database schema changes affecting paste/message storage
+- Backup/restore functionality
+- Data cleanup/expiration logic
+- Single-view consumption logic
+
+### Mandatory Requirements for High-Risk Changes
+
+When touching privacy-critical code, you MUST:
+
+#### 1. Risk Assessment (Before Coding)
+```markdown
+Document in PR description:
+- [ ] What system is being changed and why
+- [ ] What could go wrong (threat model)
+- [ ] What data could leak if implementation is flawed
+- [ ] How existing users are protected (backward compatibility)
+- [ ] Rollback plan if issues are discovered
+```
+
+#### 2. Edge Case Identification
+Identify and document ALL edge cases:
+
+**Encryption/Decryption:**
+- Empty strings, single character, maximum size
+- Unicode (emoji, RTL text, zero-width characters)
+- Binary data, null bytes, special characters
+- Corrupted ciphertext, wrong IV length
+- Key derivation with weak/empty passwords
+- Malformed salt or IV values
+
+**Authentication/Authorization:**
+- Password retry limits and memory clearing
+- Delete auth collision scenarios
+- Token generation entropy
+- Timing attacks on password/token comparison
+
+**Data Handling:**
+- Maximum payload sizes
+- Concurrent access/race conditions
+- Database transaction failures
+- Paste expiration edge cases (exactly at expiration time)
+- Single-view with multiple simultaneous requests
+
+**Network/Privacy:**
+- Network failures during encryption
+- Server errors after client-side encryption
+- Key accidentally sent in request body/headers
+- Browser back/forward with cached keys
+- URL fragment handling across browsers
+- Request interception (service workers, proxies)
+- DNS rebinding attacks
+- CORS and preflight request handling
+
+**Browser Compatibility:**
+- Web Crypto API availability in different browsers
+- Safari private mode restrictions (localStorage, IndexedDB)
+- Mobile browser limitations (memory, crypto performance)
+- Older browser versions lacking Web Crypto API
+- Browser extensions interfering with crypto operations
+- Incognito/private browsing mode differences
+
+**State Management:**
+- Browser refresh during encryption/upload
+- Tab close during ongoing operations
+- Multiple tabs viewing same paste simultaneously
+- Session vs localStorage vs memory-only storage
+- Window.unload and beforeunload handling
+- Memory leaks from event listeners
+
+**Time-Based:**
+- Timezone differences for expiration calculations
+- Daylight saving time transitions
+- Server/client clock skew (future/past timestamps)
+- Paste expiring during view attempt
+- Expiration at exactly midnight UTC
+- Leap seconds and year boundaries
+
+**Proof-of-Work:**
+- PoW solving interrupted (tab close, refresh)
+- Challenge expiration/reuse attempts
+- Multiple concurrent PoW attempts from same IP
+- PoW difficulty changes mid-solve
+- Invalid nonce acceptance
+
+**Chat-Specific:**
+- Message ordering with concurrent posts from multiple users
+- 50-message limit boundary (message 50, 51 behavior)
+- Message deletion cascading when paste deleted
+- Rapid message posting hitting rate limits
+- Chat encryption key mismatch with paste key
+- Message timestamps in different timezones
+
+**URL/Fragment:**
+- URL encoding of salt/IV (special characters)
+- Fragment preservation through redirects
+- Bookmarking with vs without fragment
+- URL shorteners and fragment handling
+- Paste ID collision probability
+- QR code generation with fragments
+- Email clients stripping fragments
+
+#### 3. Test Coverage Requirements
+
+High-risk changes require **100% test coverage** for:
+
+**Security paths:**
+```typescript
+// ✅ REQUIRED: Test that keys never leave client
+it('should never send encryption key to server', async () => {
+  const fetchSpy = jest.spyOn(global, 'fetch');
+  await createPaste('test', 'password');
+
+  // Assert: No request contains key material
+  const requestBodies = fetchSpy.mock.calls.map(call => call[1]?.body);
+  requestBodies.forEach(body => {
+    expect(body).not.toContain('key');
+    expect(body).not.toContain('password');
+  });
+});
+
+// ✅ REQUIRED: Test that fragments stay client-side
+it('should store keys only in URL fragments', () => {
+  const url = buildShareUrl(pasteId, salt, iv);
+  expect(url).toMatch(/#/); // Has fragment
+  expect(url.split('#')[0]).not.toContain(salt); // Key not in path
+});
+```
+
+**Edge cases:**
+```typescript
+// ✅ REQUIRED: Unicode edge cases
+it('should encrypt/decrypt emoji correctly', async () => {
+  const emoji = '🔐💾🎉';
+  const result = await roundtrip(emoji, 'password');
+  expect(result).toBe(emoji);
+});
+
+// ✅ REQUIRED: Boundary conditions
+it('should handle maximum paste size', async () => {
+  const maxContent = 'a'.repeat(MAX_PASTE_SIZE);
+  const result = await createPaste(maxContent, 'pass');
+  expect(result.success).toBe(true);
+});
+
+// ✅ REQUIRED: Concurrent access
+it('should handle simultaneous single-view requests safely', async () => {
+  const results = await Promise.all([
+    viewPaste(id),
+    viewPaste(id),
+    viewPaste(id)
+  ]);
+  // Only one should succeed, others should fail gracefully
+  const successes = results.filter(r => r.success).length;
+  expect(successes).toBe(1);
+});
+```
+
+**Failure modes:**
+```typescript
+// ✅ REQUIRED: Graceful degradation
+it('should clear sensitive data on decryption failure', async () => {
+  try {
+    await decryptWithPassword(ct, 'wrong-password', salt, iv);
+  } catch {
+    // Assert: Password not in memory
+    expect(heap).not.toContain('wrong-password');
+  }
+});
+```
+
+#### 4. Security Review Checklist
+
+Before submitting high-risk PR:
+
+**Code Review:**
+- [ ] No hardcoded secrets, keys, or passwords
+- [ ] No logging of plaintext, keys, or tokens
+- [ ] All sensitive data cleared from memory after use
+- [ ] Constant-time comparison for secrets (prevent timing attacks)
+- [ ] Input validation on all user-provided data
+- [ ] Error messages don't leak internal details
+- [ ] No data sent to server that should stay client-side
+
+**Cryptographic Review:**
+- [ ] Using Web Crypto API (not custom crypto)
+- [ ] AES-256-GCM with proper IV generation (crypto.getRandomValues)
+- [ ] PBKDF2 with 100,000+ iterations
+- [ ] Salt generated with crypto.getRandomValues (16+ bytes)
+- [ ] Keys derived independently (encryption vs delete auth)
+- [ ] IVs never reused with same key
+
+**Privacy Review:**
+- [ ] URL fragments used for all key material
+- [ ] No analytics or tracking code
+- [ ] No external resources loaded (CDNs, fonts, etc.)
+- [ ] Server never sees plaintext or keys
+- [ ] Network requests reviewed for information leakage
+- [ ] Browser history/cache can't leak sensitive data
+
+**Testing Review:**
+- [ ] 100% coverage for all changed security-critical code
+- [ ] All edge cases identified and tested
+- [ ] All failure modes tested
+- [ ] Integration tests for full flows
+- [ ] E2E tests for user-facing changes
+- [ ] Load tests for concurrent access scenarios
+
+#### 5. Deployment Safety
+
+For high-risk changes:
+
+**Pre-Deployment:**
+- [ ] Manual testing in local environment
+- [ ] Test with multiple browsers (Chrome, Firefox, Safari)
+- [ ] Test on mobile devices
+- [ ] Verify backward compatibility with existing pastes
+- [ ] Database migration plan (if applicable)
+
+**Deployment Strategy:**
+- [ ] Feature flag for gradual rollout (if applicable)
+- [ ] Monitoring for error rates
+- [ ] Rollback plan documented and tested
+- [ ] Backup of production data before deployment
+
+**Post-Deployment:**
+- [ ] Monitor error logs for new issues
+- [ ] Verify old pastes still decrypt correctly
+- [ ] Check chat messages still function
+- [ ] Validate delete functionality (both methods)
+
+### Examples of High-Risk Changes Done Right
+
+**✅ GOOD: Adding Password Retry Feature**
+```
+PR includes:
+- Feature implementation (password retry logic)
+- Edge case tests (5 attempts, memory clearing)
+- Security tests (password not logged, cleared after use)
+- Integration tests (works with single-view)
+- E2E tests (user flow with retries)
+- Documentation of behavior
+- 100% coverage for new code
+Result: 82.69% → 85.30% coverage ✅
+```
+
+**❌ BAD: Adding Password Retry Feature**
+```
+PR includes:
+- Feature implementation only
+- Comment: "will add tests later"
+- Coverage drops: 82.69% → 75% (-7%)
+- No edge case analysis
+- No security review
+Result: ❌ REJECTED - violates protocol
+```
+
+### When to Apply This Protocol
+
+**ALWAYS apply full protocol for:**
+- Any changes to `client/src/core/crypto/`
+- Any changes to `client/src/security.ts`
+- Password or authentication changes
+- Key generation or derivation changes
+- Network request modifications
+- Delete authorization changes
+- Database schema changes
+
+**MAY skip protocol for:**
+- UI-only changes (CSS, layout) with no logic
+- Documentation updates
+- Build script changes
+- Non-security configuration changes
+
+**When in doubt, apply the protocol.** Better to be overly cautious with privacy than to make a mistake.
+
+### Remember
+
+1. **One mistake can destroy all user trust** - there are no do-overs with privacy
+2. **Test edge cases exhaustively** - users will find them
+3. **Document threat model** - explain what could go wrong
+4. **100% coverage for security code** - no exceptions
+5. **Review twice, deploy once** - get it right the first time
+
 ## Code Style
 
 ### TypeScript (client/)
