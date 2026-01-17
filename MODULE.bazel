@@ -3,11 +3,14 @@ module(
     version = "1.0.7",
 )
 
+# Java rules for Bazel (provides JDK toolchain)
+bazel_dep(name = "rules_java", version = "8.14.0")
+
 # Kotlin rules for Bazel
 bazel_dep(name = "rules_kotlin", version = "1.9.6")
 
 # Maven dependency resolution (Bzlmod-compatible)
-bazel_dep(name = "rules_jvm_external", version = "5.3")
+bazel_dep(name = "rules_jvm_external", version = "6.3")
 
 # Use maven extension
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
