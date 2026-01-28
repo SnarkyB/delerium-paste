@@ -53,7 +53,7 @@ print_info() {
 test_services_running() {
     print_test "Checking if Docker services are running..."
     
-    if docker compose ps | grep -q "delerium-paste-server-1.*Up.*healthy"; then
+    if docker compose ps | grep -q "delerium-server-1.*Up.*healthy"; then
         print_pass "Backend server is running and healthy"
     else
         print_fail "Backend server is not healthy"

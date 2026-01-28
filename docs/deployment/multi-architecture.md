@@ -53,8 +53,8 @@ make build-multiarch
 
 This creates images for both amd64 and arm64 architectures tagged as:
 
-- `delerium-paste-server:latest`
-- `delerium-paste-server:multi-arch`
+- `delerium-server:latest`
+- `delerium-server:multi-arch`
 
 #### Push to Registry
 
@@ -79,7 +79,7 @@ docker buildx create --name delirium-builder --use
 cd server
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  --tag ghcr.io/yourusername/delerium-paste-server:latest \
+  --tag ghcr.io/yourusername/delerium-server:latest \
   --push \
   .
 ```
@@ -106,7 +106,7 @@ When you pull and run the image, Docker automatically selects the correct archit
 
 ```bash
 # Pull the image (automatically selects your platform)
-docker pull ghcr.io/yourusername/delerium-paste-server:latest
+docker pull ghcr.io/yourusername/delerium-server:latest
 
 # Run with docker compose (uses correct architecture)
 docker compose up -d
@@ -118,10 +118,10 @@ You can explicitly specify the platform:
 
 ```bash
 # Run on ARM64 explicitly
-docker run --platform linux/arm64 ghcr.io/yourusername/delerium-paste-server:latest
+docker run --platform linux/arm64 ghcr.io/yourusername/delerium-server:latest
 
 # Run on AMD64 explicitly
-docker run --platform linux/amd64 ghcr.io/yourusername/delerium-paste-server:latest
+docker run --platform linux/amd64 ghcr.io/yourusername/delerium-server:latest
 ```
 
 ### Platform-Specific Compose Override
@@ -171,19 +171,19 @@ After building and pushing, verify the architectures:
 
 ```bash
 # Inspect the manifest
-docker buildx imagetools inspect ghcr.io/yourusername/delerium-paste-server:latest
+docker buildx imagetools inspect ghcr.io/yourusername/delerium-server:latest
 
 # Output shows available platforms:
-# Name:      ghcr.io/yourusername/delerium-paste-server:latest
+# Name:      ghcr.io/yourusername/delerium-server:latest
 # MediaType: application/vnd.docker.distribution.manifest.list.v2+json
 # Digest:    sha256:...
 #
 # Manifests:
-#   Name:      ghcr.io/yourusername/delerium-paste-server:latest@sha256:...
+#   Name:      ghcr.io/yourusername/delerium-server:latest@sha256:...
 #   MediaType: application/vnd.docker.distribution.manifest.v2+json
 #   Platform:  linux/amd64
 #
-#   Name:      ghcr.io/yourusername/delerium-paste-server:latest@sha256:...
+#   Name:      ghcr.io/yourusername/delerium-server:latest@sha256:...
 #   MediaType: application/vnd.docker.distribution.manifest.v2+json
 #   Platform:  linux/arm64
 ```
@@ -216,7 +216,7 @@ docker buildx imagetools inspect ghcr.io/yourusername/delerium-paste-server:late
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
 # Or pull the correct architecture explicitly
-docker pull --platform linux/amd64 delerium-paste-server:latest
+docker pull --platform linux/amd64 delerium-server:latest
 ```
 
 ### Issue: Buildx not found
@@ -338,7 +338,7 @@ spec:
     spec:
       containers:
       - name: server
-        image: ghcr.io/yourusername/delerium-paste-server:latest
+        image: ghcr.io/yourusername/delerium-server:latest
         # Docker automatically selects the correct architecture
         ports:
         - containerPort: 8080
