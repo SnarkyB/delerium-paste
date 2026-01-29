@@ -840,6 +840,7 @@ describe('Username Encryption in Messages', () => {
 
   /**
    * Helper to decrypt a message (simulates decryptMessageWithKey)
+   * Uses Uint8Array for ciphertext/IV so decrypt() receives a valid BufferSource in all environments.
    */
   async function decryptWithUsername(
     ct: string,
@@ -848,11 +849,13 @@ describe('Username Encryption in Messages', () => {
   ): Promise<{ text: string; username?: string }> {
     const ctBuffer = decodeBase64Url(ct);
     const ivBuffer = decodeBase64Url(iv);
+    const ctView = ctBuffer instanceof Uint8Array ? ctBuffer : new Uint8Array(ctBuffer);
+    const ivView = ivBuffer instanceof Uint8Array ? ivBuffer : new Uint8Array(ivBuffer);
 
     const decryptedData = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: ivBuffer },
+      { name: 'AES-GCM', iv: ivView },
       key,
-      ctBuffer
+      ctView
     );
 
     const decryptedText = new TextDecoder().decode(decryptedData);
