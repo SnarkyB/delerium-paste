@@ -27,6 +27,7 @@ interface ChatMessage {
 interface DecryptedMessage {
   text: string;
   timestamp: number;
+  username?: string;
 }
 
 /**
@@ -37,16 +38,27 @@ interface ChatContext {
   salt: Uint8Array;
   allowKeyCaching: boolean;
   cachedKey?: CryptoKey;
+  currentUsername?: string; // Memory-only, cleared on page reload
+}
+
+/**
+ * Generate a random username in format: anon-XXXX (4 hex characters)
+ */
+export function generateRandomUsername(): string {
+  const hex = Array.from(crypto.getRandomValues(new Uint8Array(2)))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+  return `anon-${hex}`;
 }
 
 /**
  * Initialize chat functionality on view page
  * Shows chat section after paste is successfully decrypted
- * 
+ *
  * NOTE: This function should only be called once per page load.
  * For static HTML pages (like view.html), this is safe. If integrating
  * into an SPA, ensure this is only called once or implement cleanup.
- * 
+ *
  * @param pasteId The paste ID
  * @param salt The salt from the paste URL for key derivation
  * @param allowKeyCaching Whether to allow caching the derived key for convenience
@@ -56,6 +68,7 @@ export function setupPasteChat(pasteId: string, salt: Uint8Array, allowKeyCachin
   const refreshBtn = document.getElementById('refreshMessagesBtn');
   const sendBtn = document.getElementById('sendMessageBtn');
   const chatInput = document.getElementById('chatInput') as HTMLInputElement;
+  const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
   const forgetKeyBtn = document.getElementById('forgetKeyBtn');
   const chatInfoText = document.getElementById('chatInfoText');
 
@@ -74,7 +87,22 @@ export function setupPasteChat(pasteId: string, salt: Uint8Array, allowKeyCachin
   chatSection.style.display = 'block';
 
   // Store context for handlers with key caching support
-  const chatContext: ChatContext = { pasteId, salt, allowKeyCaching };
+  // Generate random username for this session
+  const chatContext: ChatContext = {
+    pasteId,
+    salt,
+    allowKeyCaching,
+    currentUsername: generateRandomUsername()
+  };
+
+  // Set auto-generated username in input field if it exists
+  if (usernameInput) {
+    usernameInput.value = chatContext.currentUsername;
+    // Update context when user edits username
+    usernameInput.addEventListener('input', () => {
+      chatContext.currentUsername = usernameInput.value.trim() || generateRandomUsername();
+    });
+  }
 
   // Update info text based on key caching setting
   if (chatInfoText) {
@@ -218,8 +246,12 @@ async function handleRefreshMessages(
     
     for (const msg of data.messages) {
       try {
-        const text = await decryptMessageWithKey(msg, key!, context.salt);
-        decryptedMessages.push({ text, timestamp: msg.timestamp });
+        const decrypted = await decryptMessageWithKey(msg, key!, context.salt);
+        decryptedMessages.push({
+          text: decrypted.text,
+          username: decrypted.username,
+          timestamp: msg.timestamp
+        });
       } catch (e) {
         // Don't log error details in production - may contain sensitive crypto information
         if (DEBUG_MODE) {
@@ -227,7 +259,10 @@ async function handleRefreshMessages(
         } else {
           console.error('Failed to decrypt message');
         }
-        decryptedMessages.push({ text: '[Decryption failed - wrong password?]', timestamp: msg.timestamp });
+        decryptedMessages.push({
+          text: '[Decryption failed - wrong password?]',
+          timestamp: msg.timestamp
+        });
         decryptionFailed = true;
       }
     }
@@ -285,6 +320,10 @@ async function handleSendMessage(
     return;
   }
 
+  // Get username from input field or context
+  const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
+  const username = usernameInput?.value.trim() || context.currentUsername || generateRandomUsername();
+
   // Determine if we can use cached key
   let key: CryptoKey | undefined = context.allowKeyCaching ? context.cachedKey : undefined;
   let password: string | undefined;
@@ -309,8 +348,8 @@ async function handleSendMessage(
       key = await deriveAndCacheKey(context, password);
     }
 
-    // Encrypt message using the key
-    const { encryptedData, iv } = await encryptMessageWithKey(message, key!);
+    // Encrypt message with username using the key
+    const { encryptedData, iv } = await encryptMessageWithKey(message, key!, username);
 
     // Send to server
     const response = await fetch(`/api/pastes/${context.pasteId}/messages`, {
@@ -362,14 +401,20 @@ async function handleSendMessage(
 
 /**
  * Encrypt a chat message using a pre-derived CryptoKey
+ * Encrypts message as JSON payload: { text, username }
  */
 async function encryptMessageWithKey(
   message: string,
-  key: CryptoKey
+  key: CryptoKey,
+  username?: string
 ): Promise<{ encryptedData: ArrayBuffer; iv: ArrayBuffer }> {
   // Generate IV for this message
   const iv = new Uint8Array(12);
   crypto.getRandomValues(iv);
+
+  // Create payload with message and optional username
+  const payload = username ? { text: message, username } : { text: message };
+  const payloadStr = JSON.stringify(payload);
 
   // Encrypt message
   const encryptedData = await crypto.subtle.encrypt(
@@ -378,7 +423,7 @@ async function encryptMessageWithKey(
       iv: iv
     },
     key,
-    new TextEncoder().encode(message)
+    new TextEncoder().encode(payloadStr)
   );
 
   return {
@@ -389,12 +434,13 @@ async function encryptMessageWithKey(
 
 /**
  * Decrypt a chat message using a pre-derived CryptoKey
+ * Handles both new JSON format { text, username } and old plain text format
  */
 async function decryptMessageWithKey(
   msg: ChatMessage,
   key: CryptoKey,
   _salt: Uint8Array // kept for signature compatibility
-): Promise<string> {
+): Promise<{ text: string; username?: string }> {
   const { decodeBase64Url } = await import('../core/crypto/encoding.js');
   const ctBuffer = decodeBase64Url(msg.ct);
   const ivBuffer = decodeBase64Url(msg.iv);
@@ -412,7 +458,24 @@ async function decryptMessageWithKey(
     ctBuffer
   );
 
-  return new TextDecoder().decode(decryptedData);
+  const decryptedText = new TextDecoder().decode(decryptedData);
+
+  // Try to parse as JSON (new format with username)
+  try {
+    const parsed = JSON.parse(decryptedText);
+    // Validate it has the expected structure
+    if (parsed && typeof parsed.text === 'string') {
+      return {
+        text: parsed.text,
+        username: parsed.username
+      };
+    }
+  } catch {
+    // Not JSON or invalid format, fall through to plain text handling
+  }
+
+  // Backward compatibility: treat as plain text (old format)
+  return { text: decryptedText, username: undefined };
 }
 
 /**
@@ -431,11 +494,13 @@ function displayMessages(messages: DecryptedMessage[]): void {
   for (const msg of messages) {
     const date = new Date(msg.timestamp * 1000);
     const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const username = msg.username || 'Anonymous';
 
     html += `
       <div style="margin-bottom: 0.75rem; padding: 0.5rem; background: var(--bg-card); border-radius: 0.375rem;">
-        <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">
-          ${escapeHtml(timeStr)}
+        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">
+          <span style="font-weight: 600;">${escapeHtml(username)}</span>
+          <span>${escapeHtml(timeStr)}</span>
         </div>
         <div style="color: var(--text); word-wrap: break-word;">
           ${escapeHtml(msg.text)}

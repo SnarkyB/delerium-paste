@@ -375,7 +375,11 @@ make test                     # Run all client tests
 cd client && npm run test:unit           # Unit tests only
 cd client && npm run test:integration    # Integration tests only
 cd client && npm run test:e2e            # Playwright e2e tests
+cd client && npm run test:e2e:ui         # Playwright UI mode (interactive debugging)
 cd client && npm run test:coverage       # With coverage report
+cd client && npm run test:watch          # Watch mode for TDD workflow
+cd client && npm run test:load           # Load tests (normally skipped)
+cd client && npm run test:all            # Run all test types sequentially
 
 # Server (Bazel)
 make build-server-bazel       # Build server with Bazel
