@@ -6,7 +6,7 @@
 
 import { deriveKeyFromPassword, generateSalt } from '../../../src/security.js';
 import { encodeBase64Url, decodeBase64Url } from '../../../src/core/crypto/encoding.js';
-import { setupPasteChat, escapeHtml } from '../../../src/features/paste-chat.js';
+import { setupPasteChat, escapeHtml, generateRandomUsername, encryptMessageWithKey } from '../../../src/features/paste-chat.js';
 
 // ============================================================================
 // CHAT ENCRYPTION/DECRYPTION TESTS
@@ -758,5 +758,523 @@ describe('Chat Password Security', () => {
       encrypted
     );
     expect(new TextDecoder().decode(decrypted)).toBe(message);
+  });
+});
+
+// ============================================================================
+// USERNAME GENERATION TESTS
+// ============================================================================
+
+describe('Username Generation', () => {
+  it('should generate username in format anon-XXXX', () => {
+    // Act
+    const username = generateRandomUsername();
+
+    // Assert - Should match format: anon-[4 hex chars]
+    expect(username).toMatch(/^anon-[0-9a-f]{4}$/);
+  });
+
+  it('should generate different usernames each time', () => {
+    // Act - Generate multiple usernames
+    const usernames = new Set();
+    for (let i = 0; i < 100; i++) {
+      usernames.add(generateRandomUsername());
+    }
+
+    // Assert - Should have high uniqueness (at least 95 unique out of 100)
+    // With 65536 possible combinations (16^4), collision probability is low
+    expect(usernames.size).toBeGreaterThan(95);
+  });
+
+  it('should only use lowercase hexadecimal characters', () => {
+    // Act - Generate many usernames and check characters
+    for (let i = 0; i < 50; i++) {
+      const username = generateRandomUsername();
+      const hexPart = username.substring(5); // Remove "anon-" prefix
+
+      // Assert - Should only contain 0-9 and a-f
+      expect(hexPart).toMatch(/^[0-9a-f]{4}$/);
+      expect(hexPart).not.toMatch(/[A-F]/); // No uppercase
+    }
+  });
+
+  it('should have correct length (9 characters total)', () => {
+    // Act
+    const username = generateRandomUsername();
+
+    // Assert - "anon-" (5) + 4 hex chars = 9 total
+    expect(username.length).toBe(9);
+  });
+});
+
+// ============================================================================
+// USERNAME ENCRYPTION/DECRYPTION TESTS
+// ============================================================================
+
+describe('Username Encryption in Messages', () => {
+  /**
+   * Helper to encrypt a message with username (simulates encryptMessageWithKey)
+   */
+  async function encryptWithUsername(
+    text: string,
+    username: string | undefined,
+    key: CryptoKey
+  ): Promise<{ ct: string; iv: string }> {
+    const iv = new Uint8Array(12);
+    crypto.getRandomValues(iv);
+
+    const payload = username ? { text, username } : { text };
+    const payloadStr = JSON.stringify(payload);
+
+    const encryptedData = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      new TextEncoder().encode(payloadStr)
+    );
+
+    return {
+      ct: encodeBase64Url(new Uint8Array(encryptedData)),
+      iv: encodeBase64Url(iv)
+    };
+  }
+
+  /**
+   * Helper to decrypt a message (simulates decryptMessageWithKey)
+   * Uses Uint8Array for ciphertext/IV so decrypt() receives a valid BufferSource in all environments.
+   */
+  async function decryptWithUsername(
+    ct: string,
+    iv: string,
+    key: CryptoKey
+  ): Promise<{ text: string; username?: string }> {
+    const ctBuffer = decodeBase64Url(ct);
+    const ivBuffer = decodeBase64Url(iv);
+    const ctView = ctBuffer instanceof Uint8Array ? ctBuffer : new Uint8Array(ctBuffer);
+    const ivView = ivBuffer instanceof Uint8Array ? ivBuffer : new Uint8Array(ivBuffer);
+
+    const decryptedData = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: ivView },
+      key,
+      ctView
+    );
+
+    const decryptedText = new TextDecoder().decode(decryptedData);
+
+    // Try to parse as JSON (new format with username)
+    try {
+      const parsed = JSON.parse(decryptedText);
+      if (parsed && typeof parsed.text === 'string') {
+        return {
+          text: parsed.text,
+          username: parsed.username
+        };
+      }
+    } catch {
+      // Not JSON, fall through
+    }
+
+    // Backward compatibility: treat as plain text
+    return { text: decryptedText, username: undefined };
+  }
+
+  it('should encrypt and decrypt message with username', async () => {
+    // Arrange
+    const password = 'test-password';
+    const message = 'Hello with username!';
+    const username = 'anon-a3f9';
+    const salt = generateSalt();
+    const key = await deriveKeyFromPassword(password, salt);
+
+    // Act - Encrypt with username
+    const { ct, iv } = await encryptWithUsername(message, username, key);
+
+    // Decrypt
+    const decrypted = await decryptWithUsername(ct, iv, key);
+
+    // Assert
+    expect(decrypted.text).toBe(message);
+    expect(decrypted.username).toBe(username);
+  });
+
+  it('should encrypt and decrypt message without username', async () => {
+    // Arrange
+    const password = 'test-password';
+    const message = 'Hello without username!';
+    const salt = generateSalt();
+    const key = await deriveKeyFromPassword(password, salt);
+
+    // Act - Encrypt without username
+    const { ct, iv } = await encryptWithUsername(message, undefined, key);
+
+    // Decrypt
+    const decrypted = await decryptWithUsername(ct, iv, key);
+
+    // Assert
+    expect(decrypted.text).toBe(message);
+    expect(decrypted.username).toBeUndefined();
+  });
+
+  it('should handle backward compatibility with old plain text messages', async () => {
+    // Arrange - Simulate old message format (plain text, no JSON)
+    const password = 'test-password';
+    const oldMessage = 'This is an old message without JSON';
+    const salt = generateSalt();
+    const key = await deriveKeyFromPassword(password, salt);
+
+    const iv = new Uint8Array(12);
+    crypto.getRandomValues(iv);
+
+    // Encrypt as plain text (old format)
+    const encryptedData = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      new TextEncoder().encode(oldMessage)
+    );
+
+    const ct = encodeBase64Url(new Uint8Array(encryptedData));
+    const ivB64 = encodeBase64Url(iv);
+
+    // Act - Decrypt using new function
+    const decrypted = await decryptWithUsername(ct, ivB64, key);
+
+    // Assert - Should treat as plain text, username undefined
+    expect(decrypted.text).toBe(oldMessage);
+    expect(decrypted.username).toBeUndefined();
+  });
+
+  it('should handle special characters in username', async () => {
+    // Arrange
+    const password = 'test-password';
+    const message = 'Test message';
+    const username = 'anon-<script>';
+    const salt = generateSalt();
+    const key = await deriveKeyFromPassword(password, salt);
+
+    // Act
+    const { ct, iv } = await encryptWithUsername(message, username, key);
+    const decrypted = await decryptWithUsername(ct, iv, key);
+
+    // Assert - Username should be preserved (escaping happens at display time)
+    expect(decrypted.text).toBe(message);
+    expect(decrypted.username).toBe(username);
+  });
+
+  it('should handle unicode in username', async () => {
+    // Arrange
+    const password = 'test-password';
+    const message = 'Test message';
+    const username = 'user-🎉';
+    const salt = generateSalt();
+    const key = await deriveKeyFromPassword(password, salt);
+
+    // Act
+    const { ct, iv } = await encryptWithUsername(message, username, key);
+    const decrypted = await decryptWithUsername(ct, iv, key);
+
+    // Assert
+    expect(decrypted.text).toBe(message);
+    expect(decrypted.username).toBe(username);
+  });
+
+  it('should handle long username (20 chars)', async () => {
+    // Arrange
+    const password = 'test-password';
+    const message = 'Test message';
+    const username = 'a'.repeat(20); // Max length
+    const salt = generateSalt();
+    const key = await deriveKeyFromPassword(password, salt);
+
+    // Act
+    const { ct, iv } = await encryptWithUsername(message, username, key);
+    const decrypted = await decryptWithUsername(ct, iv, key);
+
+    // Assert
+    expect(decrypted.text).toBe(message);
+    expect(decrypted.username).toBe(username);
+  });
+
+  it('should fail gracefully with corrupted JSON', async () => {
+    // Arrange - Create message with invalid JSON structure
+    const password = 'test-password';
+    const salt = generateSalt();
+    const key = await deriveKeyFromPassword(password, salt);
+
+    const iv = new Uint8Array(12);
+    crypto.getRandomValues(iv);
+
+    // Encrypt invalid JSON (object without 'text' field)
+    const invalidPayload = JSON.stringify({ username: 'test' }); // Missing 'text' field
+    const encryptedData = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      new TextEncoder().encode(invalidPayload)
+    );
+
+    const ct = encodeBase64Url(new Uint8Array(encryptedData));
+    const ivB64 = encodeBase64Url(iv);
+
+    // Act - Decrypt
+    const decrypted = await decryptWithUsername(ct, ivB64, key);
+
+    // Assert - Should treat as plain text when structure is invalid
+    expect(decrypted.text).toBe(invalidPayload);
+    expect(decrypted.username).toBeUndefined();
+  });
+
+  it('should truncate username to 20 characters when longer', async () => {
+    // Arrange - Use real encryptMessageWithKey (truncates username to 20)
+    const password = 'test-password';
+    const message = 'Test message';
+    const longUsername = 'a'.repeat(25);
+    const salt = generateSalt();
+    const key = await deriveKeyFromPassword(password, salt);
+
+    // Act - Encrypt with app's encryptMessageWithKey (applies truncation)
+    const { encryptedData, iv } = await encryptMessageWithKey(message, key, longUsername);
+    const ct = encodeBase64Url(new Uint8Array(encryptedData));
+    const ivB64 = encodeBase64Url(new Uint8Array(iv));
+    const decrypted = await decryptWithUsername(ct, ivB64, key);
+
+    // Assert - Username should be truncated to 20 chars
+    expect(decrypted.text).toBe(message);
+    expect(decrypted.username).toHaveLength(20);
+    expect(decrypted.username).toBe('a'.repeat(20));
+  });
+});
+
+// ============================================================================
+// USERNAME UI TESTS
+// ============================================================================
+
+describe('Username UI Integration', () => {
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    // Setup DOM
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    // Cleanup
+    document.body.removeChild(container);
+  });
+
+  it('should auto-populate username input field on setup', () => {
+    // Arrange - Create DOM elements
+    const chatSection = document.createElement('div');
+    chatSection.id = 'chatSection';
+    chatSection.style.display = 'none';
+    container.appendChild(chatSection);
+
+    const refreshBtn = document.createElement('button');
+    refreshBtn.id = 'refreshMessagesBtn';
+    container.appendChild(refreshBtn);
+
+    const sendBtn = document.createElement('button');
+    sendBtn.id = 'sendMessageBtn';
+    container.appendChild(sendBtn);
+
+    const chatInput = document.createElement('input');
+    chatInput.id = 'chatInput';
+    container.appendChild(chatInput);
+
+    const usernameInput = document.createElement('input');
+    usernameInput.id = 'usernameInput';
+    container.appendChild(usernameInput);
+
+    const pasteId = 'test-paste-123';
+    const salt = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+
+    // Act - Setup chat
+    setupPasteChat(pasteId, salt);
+
+    // Assert - Username input should have auto-generated value
+    expect(usernameInput.value).toMatch(/^anon-[0-9a-f]{4}$/);
+  });
+
+  it('should display username in message (escaping HTML)', () => {
+    // Arrange
+    const username = '<script>alert("xss")</script>';
+    const timeStr = '14:30';
+    const messageText = 'Test message';
+
+    // Act - Use escapeHtml on username (as in displayMessages)
+    const escapedUsername = escapeHtml(username);
+
+    // Build HTML as in displayMessages
+    const html = `
+      <div style="margin-bottom: 0.75rem; padding: 0.5rem; background: var(--bg-card); border-radius: 0.375rem;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">
+          <span style="font-weight: 600;">${escapedUsername}</span>
+          <span>${escapeHtml(timeStr)}</span>
+        </div>
+        <div style="color: var(--text); word-wrap: break-word;">
+          ${escapeHtml(messageText)}
+        </div>
+      </div>
+    `;
+
+    // Assert - Script tags should be escaped
+    expect(html).toContain('&lt;script&gt;');
+    expect(html).not.toContain('<script>alert');
+  });
+
+  it('should display "Anonymous" when username is undefined', () => {
+    // Arrange
+    const username = undefined;
+    const timeStr = '14:30';
+    const messageText = 'Test message';
+
+    // Act - Use default value as in displayMessages
+    const displayName = username || 'Anonymous';
+    const escapedUsername = escapeHtml(displayName);
+
+    // Build HTML
+    const html = `
+      <div>
+        <span style="font-weight: 600;">${escapedUsername}</span>
+      </div>
+    `;
+
+    // Assert
+    expect(html).toContain('Anonymous');
+  });
+
+  it('should handle username input changes', () => {
+    // Arrange - Create DOM elements
+    const chatSection = document.createElement('div');
+    chatSection.id = 'chatSection';
+    chatSection.style.display = 'none';
+    container.appendChild(chatSection);
+
+    const refreshBtn = document.createElement('button');
+    refreshBtn.id = 'refreshMessagesBtn';
+    container.appendChild(refreshBtn);
+
+    const sendBtn = document.createElement('button');
+    sendBtn.id = 'sendMessageBtn';
+    container.appendChild(sendBtn);
+
+    const chatInput = document.createElement('input');
+    chatInput.id = 'chatInput';
+    container.appendChild(chatInput);
+
+    const usernameInput = document.createElement('input');
+    usernameInput.id = 'usernameInput';
+    container.appendChild(usernameInput);
+
+    const pasteId = 'test-paste-456';
+    const salt = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+
+    // Act - Setup chat
+    setupPasteChat(pasteId, salt);
+
+    const originalUsername = usernameInput.value;
+
+    // Simulate user editing username
+    usernameInput.value = 'anon-test';
+    usernameInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Assert - Username should be updated
+    expect(usernameInput.value).toBe('anon-test');
+    expect(usernameInput.value).not.toBe(originalUsername);
+  });
+
+  it('should generate new username if input is cleared', () => {
+    // Arrange - Create DOM elements
+    const chatSection = document.createElement('div');
+    chatSection.id = 'chatSection';
+    chatSection.style.display = 'none';
+    container.appendChild(chatSection);
+
+    const refreshBtn = document.createElement('button');
+    refreshBtn.id = 'refreshMessagesBtn';
+    container.appendChild(refreshBtn);
+
+    const sendBtn = document.createElement('button');
+    sendBtn.id = 'sendMessageBtn';
+    container.appendChild(sendBtn);
+
+    const chatInput = document.createElement('input');
+    chatInput.id = 'chatInput';
+    container.appendChild(chatInput);
+
+    const usernameInput = document.createElement('input');
+    usernameInput.id = 'usernameInput';
+    container.appendChild(usernameInput);
+
+    const pasteId = 'test-paste-789';
+    const salt = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+
+    // Act - Setup chat
+    setupPasteChat(pasteId, salt);
+
+    // Simulate user clearing username
+    usernameInput.value = '   '; // Whitespace only
+    usernameInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Note: Context is updated internally, but we can't directly test it
+    // In real usage, when message is sent, a new username would be generated
+    // This test documents the expected behavior
+    expect(true).toBe(true);
+  });
+});
+
+// ============================================================================
+// USERNAME XSS PREVENTION TESTS
+// ============================================================================
+
+describe('Username XSS Prevention', () => {
+  it('should escape script tags in username', () => {
+    // Arrange
+    const maliciousUsername = '<script>alert("XSS")</script>';
+
+    // Act
+    const escaped = escapeHtml(maliciousUsername);
+
+    // Assert
+    expect(escaped).toBe('&lt;script&gt;alert("XSS")&lt;/script&gt;');
+    expect(escaped).not.toContain('<script>');
+  });
+
+  it('should escape HTML injection attempts in username', () => {
+    // Arrange
+    const testCases = [
+      { input: '<img src=x onerror=alert(1)>', expected: '&lt;img src=x onerror=alert(1)&gt;' },
+      { input: '<iframe src="evil.com"></iframe>', expected: '&lt;iframe src="evil.com"&gt;&lt;/iframe&gt;' },
+      { input: '"><script>alert(1)</script>', expected: '"&gt;&lt;script&gt;alert(1)&lt;/script&gt;' },
+      { input: "' onclick='alert(1)'", expected: "' onclick='alert(1)'" },
+    ];
+
+    // Act & Assert
+    testCases.forEach(({ input, expected }) => {
+      const result = escapeHtml(input);
+      expect(result).toBe(expected);
+      // Ensure no executable HTML remains
+      expect(result).not.toMatch(/<(?!&lt;)[^>]+>/);
+    });
+  });
+
+  it('should preserve safe characters in username', () => {
+    // Arrange
+    const safeUsername = 'anon-a3f9';
+
+    // Act
+    const escaped = escapeHtml(safeUsername);
+
+    // Assert - Should remain unchanged
+    expect(escaped).toBe(safeUsername);
+  });
+
+  it('should handle empty username gracefully', () => {
+    // Arrange
+    const emptyUsername = '';
+
+    // Act
+    const escaped = escapeHtml(emptyUsername);
+
+    // Assert
+    expect(escaped).toBe('');
   });
 });

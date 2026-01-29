@@ -355,7 +355,7 @@ spec:
 
 | Component | AMD64 | ARM64 | Notes |
 |-----------|-------|-------|-------|
-| Server (Kotlin/JVM) | ✅ | ✅ | Eclipse Temurin JRE 21 supports both |
+| Server (Kotlin/JVM) | ✅ | ✅ | Eclipse Temurin JRE 25 supports both |
 | Nginx (Web) | ✅ | ✅ | Official nginx:alpine image is multi-arch |
 | Client (Static) | ✅ | ✅ | Architecture-independent (served by nginx) |
 | Database (SQLite) | ✅ | ✅ | File-based, architecture-independent |

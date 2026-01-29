@@ -654,7 +654,7 @@ See the comprehensive guide: [docs/deployment/SSL_SETUP.md](../deployment/SSL_SE
 
 The Docker setup includes:
 
-- **Ktor Server** (Kotlin/JVM): API server running on Java 21
+- **Ktor Server** (Kotlin/JVM): API server running on Java 21+ (container uses Eclipse Temurin 25 JRE)
 - **Nginx**: Reverse proxy serving static frontend and proxying API requests
 - **Persistent Storage**: SQLite database in a Docker volume
 
@@ -684,7 +684,7 @@ The server Docker image includes several production-ready enhancements:
 
 **📦 Image Details**
 
-- **Base**: Bazel 7.4.0 + JDK 21 (builder), Eclipse Temurin 21 JRE (runtime)
+- **Base**: Bazel 7.4.0 + JDK 25 (builder), Eclipse Temurin 25 JRE (runtime)
 - **Size**: Optimized multi-stage build (< 300MB)
 - **Registry**: Available on GitHub Container Registry (GHCR)
 
@@ -725,8 +725,8 @@ docker-compose up --build
 
 **Java version mismatch**
 
-- Ensure Docker is using the correct base image (eclipse-temurin:21-jre-jammy)
-- The Kotlin code is compiled for Java 21 (class file version 65.0)
+- Ensure Docker is using the correct base image (eclipse-temurin:25-jre-jammy)
+- The Kotlin code is compiled for Java 21+ (class file version 65.0)
 
 **Database issues**
 
