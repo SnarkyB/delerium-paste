@@ -41,7 +41,7 @@ const mockKey = {
 } as CryptoKey;
 
 // Save real subtle so we restore it after each test (other tests e.g. paste-viewer need real Web Crypto)
-const subtle = global.crypto?.subtle as Record<string, unknown> | undefined;
+const subtle = global.crypto?.subtle as unknown as Record<string, unknown> | undefined;
 const originalGenerateKey = subtle?.generateKey;
 const originalImportKey = subtle?.importKey;
 const originalExportKey = subtle?.exportKey;
