@@ -1,9 +1,11 @@
 # TypeScript Rules (Delirium)
 
 ## File Patterns
+
 Apply to: `**/*.ts`, `**/*.tsx`
 
 ## Strict Mode Always
+
 ```typescript
 // tsconfig.json should have:
 {
