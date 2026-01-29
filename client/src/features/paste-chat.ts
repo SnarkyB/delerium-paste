@@ -402,12 +402,19 @@ async function handleSendMessage(
 /**
  * Encrypt a chat message using a pre-derived CryptoKey
  * Encrypts message as JSON payload: { text, username }
+ * Username is truncated to 20 chars if longer.
+ * @internal Exported for testing
  */
-async function encryptMessageWithKey(
+export async function encryptMessageWithKey(
   message: string,
   key: CryptoKey,
   username?: string
 ): Promise<{ encryptedData: ArrayBuffer; iv: ArrayBuffer }> {
+  // Truncate username to max 20 chars (validation at encryption boundary)
+  if (username && username.length > 20) {
+    username = username.substring(0, 20);
+  }
+
   // Generate IV for this message
   const iv = new Uint8Array(12);
   crypto.getRandomValues(iv);

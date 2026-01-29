@@ -6,7 +6,7 @@
 
 import { deriveKeyFromPassword, generateSalt } from '../../../src/security.js';
 import { encodeBase64Url, decodeBase64Url } from '../../../src/core/crypto/encoding.js';
-import { setupPasteChat, escapeHtml, generateRandomUsername } from '../../../src/features/paste-chat.js';
+import { setupPasteChat, escapeHtml, generateRandomUsername, encryptMessageWithKey } from '../../../src/features/paste-chat.js';
 
 // ============================================================================
 // CHAT ENCRYPTION/DECRYPTION TESTS
@@ -1019,6 +1019,26 @@ describe('Username Encryption in Messages', () => {
     // Assert - Should treat as plain text when structure is invalid
     expect(decrypted.text).toBe(invalidPayload);
     expect(decrypted.username).toBeUndefined();
+  });
+
+  it('should truncate username to 20 characters when longer', async () => {
+    // Arrange - Use real encryptMessageWithKey (truncates username to 20)
+    const password = 'test-password';
+    const message = 'Test message';
+    const longUsername = 'a'.repeat(25);
+    const salt = generateSalt();
+    const key = await deriveKeyFromPassword(password, salt);
+
+    // Act - Encrypt with app's encryptMessageWithKey (applies truncation)
+    const { encryptedData, iv } = await encryptMessageWithKey(message, key, longUsername);
+    const ct = encodeBase64Url(new Uint8Array(encryptedData));
+    const ivB64 = encodeBase64Url(new Uint8Array(iv));
+    const decrypted = await decryptWithUsername(ct, ivB64, key);
+
+    // Assert - Username should be truncated to 20 chars
+    expect(decrypted.text).toBe(message);
+    expect(decrypted.username).toHaveLength(20);
+    expect(decrypted.username).toBe('a'.repeat(20));
   });
 });
 
