@@ -329,13 +329,13 @@ export async function deriveDeleteAuth(password: string, salt: Uint8Array): Prom
   
   const passwordBuffer = new TextEncoder().encode(password);
   
-  // Import password as key material
-  const keyMaterial = await crypto.subtle.importKey(
+  // Import password as CryptoKey (required: deriveBits 2nd arg must be a CryptoKey)
+  const importedKey = await crypto.subtle.importKey(
     'raw',
     passwordBuffer,
-    'PBKDF2',
+    { name: 'PBKDF2' },
     false,
-    ['deriveBits']
+    ['deriveBits', 'deriveKey']
   );
   
   // Derive bits using PBKDF2 with the modified salt
@@ -346,7 +346,7 @@ export async function deriveDeleteAuth(password: string, salt: Uint8Array): Prom
       iterations: 100000,
       hash: 'SHA-256'
     },
-    keyMaterial,
+    importedKey,
     256 // 32 bytes
   );
   
