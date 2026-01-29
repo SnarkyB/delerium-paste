@@ -76,6 +76,12 @@ This will:
    make start
    ```
 
+   To use a locally built server image instead of pulling from the registry:
+
+   ```bash
+   make build-server-image && make start
+   ```
+
 ## Where Secrets Go
 
 **All secrets go in `.env` file in the project root:**

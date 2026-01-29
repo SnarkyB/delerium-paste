@@ -32,7 +32,7 @@ Share URL: domain.com/view?p=ID#salt:iv  (key stays client-side)
 - Kotlin + Ktor framework
 - SQLite database with Exposed SQL library
 - Bazel build system
-- JDK 21+
+- JDK 21+ (container uses Eclipse Temurin 25 JRE)
 
 **Infrastructure:**
 - Docker + Docker Compose

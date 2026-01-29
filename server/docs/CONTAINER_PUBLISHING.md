@@ -205,8 +205,8 @@ To modify the workflow:
 
 ### Base Images
 
-- **Builder**: `ubuntu:22.04` with Bazelisk and JDK 21 (Bazel build system)
-- **Runtime**: `eclipse-temurin:21-jre-jammy` (JRE only, smaller size)
+- **Builder**: `eclipse-temurin:25-jdk-jammy` with Bazelisk (Bazel build system)
+- **Runtime**: `eclipse-temurin:25-jre-jammy` (JRE only, smaller size)
 
 ### Multi-Architecture Support
 
@@ -236,7 +236,7 @@ The Docker image includes several security enhancements:
 
 The multi-stage build produces a minimal runtime image containing only:
 
-- JRE 21
+- JRE 25
 - Application binaries
 - Application dependencies
 

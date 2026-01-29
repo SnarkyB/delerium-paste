@@ -1,7 +1,7 @@
 # Delirium - Zero-Knowledge Paste System
 # Makefile for local development and deployment
 
-.PHONY: help setup start stop restart logs dev clean test build-client build-server health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop bazel-setup build-server-bazel test-server-bazel run-server-bazel ci-check ci-quick version-bump version-bump-dry-run
+.PHONY: help setup start stop restart logs dev clean test build-client build-server build-server-image health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop bazel-setup build-server-bazel test-server-bazel run-server-bazel ci-check ci-quick version-bump version-bump-dry-run
 
 # Default target
 help:
@@ -25,6 +25,7 @@ help:
 	@echo "  make clean         - Clean up everything (volumes, containers, etc.)"
 	@echo "  make test          - Run all tests"
 	@echo "  make build-client  - Build TypeScript only"
+	@echo "  make build-server-image - Build server Docker image locally (then make start to use it)"
 	@echo "  make health-check  - Verify services are running"
 	@echo "  make quick-start   - First-time setup and start"
 	@echo "  make quick-start-headless - First-time setup for headless environments"
@@ -54,6 +55,7 @@ help:
 	@echo "  make backup        - Create data backup"
 	@echo ""
 	@echo "🐳 Docker:"
+	@echo "  make build-server-image - Build server Docker image locally (used by make start if not pulled)"
 	@echo "  make deploy-full   - Full pipeline: clean, build, test, and deploy"
 	@echo "  make build-multiarch - Build multi-architecture Docker images locally"
 	@echo "  make push-multiarch - Build and push multi-architecture images to registry"
@@ -113,6 +115,12 @@ build-client:
 	@echo "📦 Building TypeScript client..."
 	cd client && npm run build
 	@echo "✅ Client built"
+
+# Build server Docker image locally (used by make start; otherwise image is pulled from registry)
+build-server-image:
+	@echo "🐳 Building server Docker image locally..."
+	docker compose build server
+	@echo "✅ Server image built (marcusb333/delerium-server:latest)"
 
 # Health check
 health-check:
