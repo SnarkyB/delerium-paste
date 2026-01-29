@@ -40,15 +40,29 @@ const mockKey = {
   extractable: true
 } as CryptoKey;
 
+// Save real subtle so we restore it after each test (other tests e.g. paste-viewer need real Web Crypto)
+const subtle = global.crypto?.subtle as Record<string, unknown> | undefined;
+const originalGenerateKey = subtle?.generateKey;
+const originalImportKey = subtle?.importKey;
+const originalExportKey = subtle?.exportKey;
+const originalEncrypt = subtle?.encrypt;
+const originalDecrypt = subtle?.decrypt;
+
 beforeEach(() => {
   jest.clearAllMocks();
-  
-  // Setup default mocks
   (global.crypto.subtle as any).generateKey = mockGenerateKey;
   (global.crypto.subtle as any).importKey = mockImportKey;
   (global.crypto.subtle as any).exportKey = mockExportKey;
   (global.crypto.subtle as any).encrypt = mockEncrypt;
   (global.crypto.subtle as any).decrypt = mockDecrypt;
+});
+
+afterEach(() => {
+  if (originalGenerateKey != null) (global.crypto.subtle as any).generateKey = originalGenerateKey;
+  if (originalImportKey != null) (global.crypto.subtle as any).importKey = originalImportKey;
+  if (originalExportKey != null) (global.crypto.subtle as any).exportKey = originalExportKey;
+  if (originalEncrypt != null) (global.crypto.subtle as any).encrypt = originalEncrypt;
+  if (originalDecrypt != null) (global.crypto.subtle as any).decrypt = originalDecrypt;
 });
 
 describe('Encryption Functions', () => {

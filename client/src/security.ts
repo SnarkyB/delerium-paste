@@ -328,18 +328,15 @@ export async function deriveDeleteAuth(password: string, salt: Uint8Array): Prom
   deleteSalt.set(deleteMarker, salt.length);
   
   const passwordBuffer = new TextEncoder().encode(password);
-  
-  // Import password as CryptoKey (required: deriveBits 2nd arg must be a CryptoKey)
   const importedKey = await crypto.subtle.importKey(
     'raw',
     passwordBuffer,
     { name: 'PBKDF2' },
     false,
-    ['deriveBits', 'deriveKey']
+    ['deriveKey']
   );
-  
-  // Derive bits using PBKDF2 with the modified salt
-  const derivedBits = await crypto.subtle.deriveBits(
+  // Derive a 256-bit key then export raw bytes (avoids deriveBits CryptoKey issues in some envs)
+  const derivedKey = await crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
       salt: deleteSalt,
@@ -347,12 +344,13 @@ export async function deriveDeleteAuth(password: string, salt: Uint8Array): Prom
       hash: 'SHA-256'
     },
     importedKey,
-    256 // 32 bytes
+    { name: 'AES-GCM', length: 256 },
+    true, // extractable so we can export raw bytes for delete auth
+    ['encrypt']
   );
-  
-  // Convert to base64url
+  const rawBytes = await crypto.subtle.exportKey('raw', derivedKey);
   const { encodeBase64Url } = await import('./core/crypto/encoding.js');
-  return encodeBase64Url(derivedBits);
+  return encodeBase64Url(rawBytes);
 }
 
 // ============================================================================
