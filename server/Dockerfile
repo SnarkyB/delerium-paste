@@ -1,12 +1,11 @@
 # ---- builder ----
-FROM ubuntu:22.04 AS builder
+FROM eclipse-temurin:25-jdk-jammy AS builder
 
-# Install dependencies for Bazel and Java
+# Install dependencies for Bazel (JDK already in image)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         curl \
         ca-certificates \
-        openjdk-21-jdk \
         git \
         build-essential \
     && rm -rf /var/lib/apt/lists/*
@@ -69,14 +68,14 @@ RUN mkdir -p /app/lib && \
     echo "io.ktor.server.netty.EngineMain" > /app/mainclass.txt
 
 # ---- runner ----
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 
 # OCI metadata labels
 LABEL org.opencontainers.image.title="Delirium Paste Server"
 LABEL org.opencontainers.image.description="Zero-knowledge encrypted paste service backend"
 LABEL org.opencontainers.image.source="https://github.com/marcusb333/delerium-paste"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.base.name="eclipse-temurin:21-jre-jammy"
+LABEL org.opencontainers.image.base.name="eclipse-temurin:25-jre-jammy"
 
 # Install curl for health checks
 RUN apt-get update && \

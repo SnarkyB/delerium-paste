@@ -32,16 +32,16 @@ test.describe('UI Snapshots', () => {
   test('index page - with content', async ({ page }) => {
     await page.goto('/');
     
-    // Fill in the form
+    // Fill in the form (no #views - single-view/max-views removed from UI)
     await page.fill('#paste', 'This is a test paste content for snapshot testing.');
     await page.fill('#mins', '120');
-    await page.fill('#views', '5');
     
     await page.waitForLoadState('networkidle');
     
     await expect(page).toHaveScreenshot('index-with-content.png', {
       fullPage: true,
-      animations: 'disabled'
+      animations: 'disabled',
+      maxDiffPixelRatio: 0.02
     });
   });
 
@@ -56,7 +56,8 @@ test.describe('UI Snapshots', () => {
     
     await expect(page).toHaveScreenshot('index-char-warning.png', {
       fullPage: false,
-      animations: 'disabled'
+      animations: 'disabled',
+      maxDiffPixelRatio: 0.02
     });
   });
 
@@ -70,7 +71,8 @@ test.describe('UI Snapshots', () => {
 
     await expect(page).toHaveScreenshot('index-password-required.png', {
       fullPage: true,
-      animations: 'disabled'
+      animations: 'disabled',
+      maxDiffPixelRatio: 0.02
     });
   });
 

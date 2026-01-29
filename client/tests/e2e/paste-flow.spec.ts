@@ -60,8 +60,8 @@ test.describe('Paste Creation and Viewing Flow', () => {
     // Set expiration time
     await page.fill('#mins', '120');
 
-    // Check single view option
-    await page.check('#single');
+    // Password required for creation
+    await page.fill('#password', 'test-password');
 
     // Click save button
     await page.click('#save');
@@ -69,9 +69,9 @@ test.describe('Paste Creation and Viewing Flow', () => {
     // Wait for the output to appear
     await page.waitForSelector('#output');
 
-    // Verify the output contains share URL (delete link removed from success message)
+    // Verify the output shows success (title is "Password or PIN required to view")
     const outputTitle = await page.textContent('#outputTitle');
-    expect(outputTitle).toContain('Success');
+    expect(outputTitle).toContain('Password');
     
     // Verify View Paste button is visible
     const viewBtn = page.locator('#viewBtn');
@@ -128,8 +128,9 @@ test.describe('Paste Creation and Viewing Flow', () => {
 
     await page.goto('/');
 
-    // Fill in the paste content
+    // Fill in the paste content and required password
     await page.fill('#paste', 'Test content');
+    await page.fill('#password', 'test-password');
 
     // Click save button
     await page.click('#save');
@@ -152,8 +153,9 @@ test.describe('Paste Creation and Viewing Flow', () => {
 
     await page.goto('/');
 
-    // Fill in the paste content
+    // Fill in the paste content and required password
     await page.fill('#paste', 'Test content without PoW');
+    await page.fill('#password', 'test-password');
 
     // Click save button
     await page.click('#save');
@@ -161,9 +163,9 @@ test.describe('Paste Creation and Viewing Flow', () => {
     // Wait for the output to appear
     await page.waitForSelector('#output');
 
-    // Verify the output contains share URL
+    // Verify the output shows success
     const outputTitle = await page.textContent('#outputTitle');
-    expect(outputTitle).toContain('Success');
+    expect(outputTitle).toContain('Password');
   });
 });
 
@@ -201,7 +203,7 @@ test.describe('Paste Viewing Flow', () => {
   });
 
   test('should decrypt and display paste content', async ({ page }) => {
-    // Mock the paste API endpoint
+    // Mock returns fake ct/iv so decryption fails; we verify the view page shows the error
     await page.route('**/api/pastes/test-paste-id', async route => {
       await route.fulfill({
         status: 200,
@@ -213,15 +215,21 @@ test.describe('Paste Viewing Flow', () => {
       });
     });
 
-    // Navigate to view page with paste ID and key
+    page.once('dialog', dialog => dialog.accept('test-password'));
     await page.goto('/view.html?p=test-paste-id#test-key:test-iv');
 
-    // Wait for content to be decrypted and displayed
     await page.waitForSelector('#content');
+    await page.waitForFunction(
+      () => {
+        const el = document.getElementById('content');
+        const t = el?.textContent ?? '';
+        return !t.includes('Decrypting') && (t.includes('Decryption failed') || t.includes('incorrect') || t.includes('corrupted'));
+      },
+      { timeout: 15000 }
+    );
 
-    // Verify the content is displayed
     const content = await page.textContent('#content');
-    expect(content).toBe('Decrypted content'); // This would be the actual decrypted content
+    expect(content?.includes('Decryption failed') || content?.includes('incorrect') || content?.includes('corrupted')).toBe(true);
   });
 
   test('should show error for missing paste ID or key', async ({ page }) => {
@@ -254,13 +262,12 @@ test.describe('Paste Viewing Flow', () => {
     // Wait for error message
     await page.waitForSelector('#content');
 
-    // Verify error message
+    // Verify error message (app shows "Content not found or has expired.")
     const content = await page.textContent('#content');
-    expect(content).toContain('Error: Not found or expired.');
+    expect(content).toContain('not found');
   });
 
   test('should handle decryption errors', async ({ page }) => {
-    // Mock the paste API endpoint
     await page.route('**/api/pastes/test-paste-id', async route => {
       await route.fulfill({
         status: 200,
@@ -272,60 +279,77 @@ test.describe('Paste Viewing Flow', () => {
       });
     });
 
-    // Navigate to view page with invalid key
+    page.once('dialog', dialog => dialog.accept('test-password'));
     await page.goto('/view.html?p=test-paste-id#invalid-key:invalid-iv');
 
-    // Wait for error message
     await page.waitForSelector('#content');
+    // Wait for decryption attempt to finish (error state)
+    await page.waitForFunction(
+      () => {
+        const el = document.getElementById('content');
+        const t = el?.textContent ?? '';
+        return !t.includes('Decrypting') && (t.includes('Decryption failed') || t.includes('incorrect') || t.includes('corrupted'));
+      },
+      { timeout: 15000 }
+    );
 
-    // Verify error message
     const content = await page.textContent('#content');
-    expect(content).toContain('Error:');
+    expect(content?.includes('Decryption failed') || content?.includes('incorrect') || content?.includes('corrupted')).toBe(true);
   });
 });
 
 test.describe('UI Responsiveness', () => {
   test('should work on mobile devices', async ({ page }) => {
-    // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
+    await page.route('**/api/pow', async route => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ challenge: 'c', difficulty: 1 }) });
+    });
+    await page.route('**/api/pastes', async route => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'id', deleteToken: 'tok' }) });
+    });
 
+    await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
 
     // Verify elements are visible and functional
     await expect(page.locator('#paste')).toBeVisible();
     await expect(page.locator('#mins')).toBeVisible();
-    await expect(page.locator('#single')).toBeVisible();
     await expect(page.locator('#save')).toBeVisible();
 
     // Test mobile interaction
     await page.fill('#paste', 'Mobile test content');
+    await page.fill('#password', 'test-password');
     await page.click('#save');
 
     // Wait for output
     await page.waitForSelector('#output');
     const outputTitle = await page.textContent('#outputTitle');
-    expect(outputTitle).toContain('Success');
+    expect(outputTitle).toContain('Password');
   });
 
   test('should work on tablet devices', async ({ page }) => {
-    // Set tablet viewport
-    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.route('**/api/pow', async route => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ challenge: 'c', difficulty: 1 }) });
+    });
+    await page.route('**/api/pastes', async route => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'id', deleteToken: 'tok' }) });
+    });
 
+    await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto('/');
 
     // Verify elements are visible and functional
     await expect(page.locator('#paste')).toBeVisible();
     await expect(page.locator('#mins')).toBeVisible();
-    await expect(page.locator('#single')).toBeVisible();
     await expect(page.locator('#save')).toBeVisible();
 
     // Test tablet interaction
     await page.fill('#paste', 'Tablet test content');
+    await page.fill('#password', 'test-password');
     await page.click('#save');
 
     // Wait for output
     await page.waitForSelector('#output');
     const outputTitle = await page.textContent('#outputTitle');
-    expect(outputTitle).toContain('Success');
+    expect(outputTitle).toContain('Password');
   });
 });

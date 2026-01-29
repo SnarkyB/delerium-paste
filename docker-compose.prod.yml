@@ -1,5 +1,6 @@
 services:
   server:
+    image: marcusb333/delerium-server:latest
     build:
       context: .
       dockerfile: ./server/Dockerfile

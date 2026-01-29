@@ -16,6 +16,7 @@ bazel_dep(name = "rules_jvm_external", version = "6.3")
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 
 # Maven dependencies for the server
+# Note: Ktor 3.2+ requires Kotlin 2.1; rules_kotlin 1.9 uses Kotlin 1.9. Stay on 3.0.x until rules_kotlin supports Kotlin 2.x.
 maven.install(
     artifacts = [
         # Ktor dependencies
@@ -28,8 +29,8 @@ maven.install(
         "io.ktor:ktor-server-call-logging-jvm:3.0.2",
         "io.ktor:ktor-server-rate-limit-jvm:3.0.2",
         # Logging
-        "org.apache.logging.log4j:log4j-core:2.24.0",
-        "org.apache.logging.log4j:log4j-slf4j2-impl:2.24.0",
+        "org.apache.logging.log4j:log4j-core:2.24.1",
+        "org.apache.logging.log4j:log4j-slf4j2-impl:2.24.1",
         # Database
         "org.jetbrains.exposed:exposed-core:0.54.0",
         "org.jetbrains.exposed:exposed-dao:0.54.0",
