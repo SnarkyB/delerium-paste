@@ -12,6 +12,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    "tsBuildInfoFile": "./js/.tsbuildinfo",
     "lib": [
       "ES2020",
       "DOM"
