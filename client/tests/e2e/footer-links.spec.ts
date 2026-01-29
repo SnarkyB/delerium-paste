@@ -69,6 +69,7 @@ test.describe('Footer Links Removal', () => {
 
     await page.goto('/');
     await page.fill('#paste', 'Test content');
+    await page.fill('#password', 'test-password');
     await page.click('#save');
 
     // Wait for success output
