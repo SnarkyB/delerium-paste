@@ -3,6 +3,7 @@
 ## Pre-Deployment Security
 
 - [ ] **Environment Variables**: Secure `.env` file with strong `DELETION_TOKEN_PEPPER`
+- [ ] **Keyring Backup**: Back up `/data/keyring.json` securely (required for at-rest encryption)
 - [ ] **User Permissions**: Running as non-root user
 - [ ] **Network Security**: Firewall configured (ports 80, 443 only)
 - [ ] **SSL/TLS**: HTTPS enabled with valid certificates

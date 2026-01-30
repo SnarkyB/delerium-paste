@@ -23,6 +23,7 @@ import PasteRepo
 import PowService
 import PowChallenge
 import createTestDatabase
+import createTestKeyManager
 import createTestAppConfig
 import testModule
 
@@ -38,7 +39,7 @@ class PowRouteTest {
         val (database, file) = createTestDatabase()
         db = database
         testDbFile = file
-        repo = PasteRepo(db, testPepper)
+        repo = PasteRepo(db, testPepper, createTestKeyManager())
     }
 
     @After

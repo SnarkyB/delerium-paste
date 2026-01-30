@@ -24,6 +24,7 @@ import CreatePasteResponse
 import PowChallenge
 import PowSubmission
 import createTestDatabase
+import createTestKeyManager
 import createTestAppConfig
 import createTestPasteRequest
 import solvePowChallenge
@@ -41,7 +42,7 @@ class PowIntegrationTest {
         val (database, file) = createTestDatabase()
         db = database
         testDbFile = file
-        repo = PasteRepo(db, testPepper)
+        repo = PasteRepo(db, testPepper, createTestKeyManager())
     }
 
     @After

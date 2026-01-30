@@ -20,6 +20,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import PasteRepo
 import TokenBucket
 import createTestDatabase
+import createTestKeyManager
 import createTestAppConfig
 import createTestPasteRequest
 import testModule
@@ -36,7 +37,7 @@ class RateLimitingIntegrationTest {
         val (database, file) = createTestDatabase()
         db = database
         testDbFile = file
-        repo = PasteRepo(db, testPepper)
+        repo = PasteRepo(db, testPepper, createTestKeyManager())
     }
 
     @After

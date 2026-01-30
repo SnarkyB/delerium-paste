@@ -20,6 +20,7 @@ import org.junit.Test
 import java.io.File
 import PasteRepo
 import createTestDatabase
+import createTestKeyManager
 import createTestAppConfig
 import testModule
 
@@ -34,7 +35,7 @@ class SecurityIntegrationTest {
         val (database, file) = createTestDatabase()
         db = database
         testDbFile = file
-        repo = PasteRepo(db, testPepper)
+        repo = PasteRepo(db, testPepper, createTestKeyManager())
     }
 
     @After

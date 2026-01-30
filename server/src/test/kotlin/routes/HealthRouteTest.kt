@@ -24,6 +24,7 @@ import PowService
 import TokenBucket
 import createTestAppConfig
 import createTestDatabase
+import createTestKeyManager
 import testModule
 
 class HealthRouteTest {
@@ -38,7 +39,7 @@ class HealthRouteTest {
         val (database, file) = createTestDatabase()
         db = database
         testDbFile = file
-        repo = PasteRepo(db, testPepper)
+        repo = PasteRepo(db, testPepper, createTestKeyManager())
     }
 
     @After

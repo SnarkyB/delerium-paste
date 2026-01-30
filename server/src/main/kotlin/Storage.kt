@@ -17,6 +17,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greater
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.and
@@ -24,6 +25,7 @@ import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.security.MessageDigest
 import java.time.Instant
@@ -38,6 +40,7 @@ object Pastes : Table("pastes") {
     val id = varchar("id", 32).uniqueIndex()
     val ct = text("ct")
     val iv = text("iv")
+    val encKeyId = varchar("enc_key_id", 64).nullable()
     val expireTs = long("expire_ts")
     val mime = varchar("mime", 128).nullable()
     val deleteTokenHash = varchar("delete_token_hash", 128)
@@ -57,6 +60,7 @@ object ChatMessages : Table("chat_messages") {
     val pasteId = varchar("paste_id", 32).references(Pastes.id, onDelete = ReferenceOption.CASCADE)
     val ct = text("ct")
     val iv = text("iv")
+    val encKeyId = varchar("enc_key_id", 64).nullable()
     val timestamp = long("timestamp")
     override val primaryKey = PrimaryKey(id)
 }
@@ -70,7 +74,7 @@ object ChatMessages : Table("chat_messages") {
  * @property db Database connection
  * @property pepper Secret value mixed into deletion token hashes
  */
-class PasteRepo(private val db: Database, private val pepper: String) {
+class PasteRepo(private val db: Database, private val pepper: String, private val keyManager: DataKeyManager) {
     init { transaction(db) { SchemaUtils.createMissingTablesAndColumns(Pastes, ChatMessages) } }
 
     /**
@@ -96,11 +100,15 @@ class PasteRepo(private val db: Database, private val pepper: String) {
      */
     fun create(id: String, ct: String, iv: String, meta: PasteMeta, rawDeleteToken: String, rawDeleteAuth: String? = null) {
         val now = Instant.now().epochSecond
+        val activeKeyId = keyManager.activeKeyId()
+        val encCt = keyManager.encryptFieldWithKeyId(activeKeyId, ct)
+        val encIv = keyManager.encryptFieldWithKeyId(activeKeyId, iv)
         transaction(db) {
             Pastes.insert {
                 it[Pastes.id] = id
-                it[Pastes.ct] = ct
-                it[Pastes.iv] = iv
+                it[Pastes.ct] = encCt
+                it[Pastes.iv] = encIv
+                it[Pastes.encKeyId] = activeKeyId
                 it[Pastes.expireTs] = meta.expireTs
                 it[Pastes.mime] = meta.mime
                 it[Pastes.deleteTokenHash] = hashToken(rawDeleteToken)
@@ -120,6 +128,18 @@ class PasteRepo(private val db: Database, private val pepper: String) {
     fun getIfAvailable(id: String): ResultRow? = transaction(db) {
         val now = Instant.now().epochSecond
         Pastes.selectAll().where { Pastes.id eq id and (Pastes.expireTs greater now) }.singleOrNull()
+    }
+
+    /**
+     * Retrieve a paste payload with decrypted ct/iv.
+     * Lazily migrates legacy rows without enc_key_id.
+     */
+    fun getPayloadIfAvailable(id: String): PastePayload? = transaction(db) {
+        val now = Instant.now().epochSecond
+        val row = Pastes.selectAll()
+            .where { Pastes.id eq id and (Pastes.expireTs greater now) }
+            .singleOrNull() ?: return@transaction null
+        toPayload(row)
     }
 
     /**
@@ -179,9 +199,10 @@ class PasteRepo(private val db: Database, private val pepper: String) {
      * @return PastePayload for API response
      */
     fun toPayload(row: ResultRow): PastePayload {
+        val (ctPlain, ivPlain) = decryptOrMigratePaste(row)
         return PastePayload(
-            ct = row[Pastes.ct],
-            iv = row[Pastes.iv],
+            ct = ctPlain,
+            iv = ivPlain,
             meta = PasteMeta(
                 expireTs = row[Pastes.expireTs],
                 mime = row[Pastes.mime],
@@ -201,12 +222,16 @@ class PasteRepo(private val db: Database, private val pepper: String) {
      */
     fun addChatMessage(pasteId: String, ct: String, iv: String): Int = transaction(db) {
         val now = Instant.now().epochSecond
+        val activeKeyId = keyManager.activeKeyId()
+        val encCt = keyManager.encryptFieldWithKeyId(activeKeyId, ct)
+        val encIv = keyManager.encryptFieldWithKeyId(activeKeyId, iv)
 
         // Insert new message
         ChatMessages.insert {
             it[ChatMessages.pasteId] = pasteId
-            it[ChatMessages.ct] = ct
-            it[ChatMessages.iv] = iv
+            it[ChatMessages.ct] = encCt
+            it[ChatMessages.iv] = encIv
+            it[ChatMessages.encKeyId] = activeKeyId
             it[ChatMessages.timestamp] = now
         }
 
@@ -250,11 +275,122 @@ class PasteRepo(private val db: Database, private val pepper: String) {
             .where { ChatMessages.pasteId eq pasteId }
             .orderBy(ChatMessages.timestamp to SortOrder.ASC)
             .map { row ->
+                val (ctPlain, ivPlain) = decryptOrMigrateChat(row)
                 ChatMessage(
-                    ct = row[ChatMessages.ct],
-                    iv = row[ChatMessages.iv],
+                    ct = ctPlain,
+                    iv = ivPlain,
                     timestamp = row[ChatMessages.timestamp]
                 )
             }
+    }
+
+    /**
+     * Re-encrypt all at-rest data with the active key.
+     * Returns count of rows updated (pastes + messages).
+     */
+    fun rotateAtRestEncryption(batchSize: Int = 200): Int {
+        val activeKeyId = keyManager.activeKeyId()
+        var updated = 0
+        updated += rotatePastes(activeKeyId, batchSize)
+        updated += rotateChatMessages(activeKeyId, batchSize)
+        return updated
+    }
+
+    private fun rotatePastes(activeKeyId: String, batchSize: Int): Int {
+        var total = 0
+        while (true) {
+            val batchCount = transaction(db) {
+                val rows = Pastes.selectAll()
+                    .where { Pastes.encKeyId.isNull() or (Pastes.encKeyId neq activeKeyId) }
+                    .limit(batchSize)
+                    .toList()
+                if (rows.isEmpty()) return@transaction 0
+                rows.forEach { row ->
+                    val encKeyId = row[Pastes.encKeyId]
+                    val ctPlain = if (encKeyId == null) row[Pastes.ct] else keyManager.decryptField(row[Pastes.ct], encKeyId)
+                    val ivPlain = if (encKeyId == null) row[Pastes.iv] else keyManager.decryptField(row[Pastes.iv], encKeyId)
+                    val encCt = keyManager.encryptFieldWithKeyId(activeKeyId, ctPlain)
+                    val encIv = keyManager.encryptFieldWithKeyId(activeKeyId, ivPlain)
+                    Pastes.update({ Pastes.id eq row[Pastes.id] }) {
+                        it[Pastes.ct] = encCt
+                        it[Pastes.iv] = encIv
+                        it[Pastes.encKeyId] = activeKeyId
+                    }
+                }
+                rows.size
+            }
+            if (batchCount == 0) break
+            total += batchCount
+        }
+        return total
+    }
+
+    private fun rotateChatMessages(activeKeyId: String, batchSize: Int): Int {
+        var total = 0
+        while (true) {
+            val batchCount = transaction(db) {
+                val rows = ChatMessages.selectAll()
+                    .where { ChatMessages.encKeyId.isNull() or (ChatMessages.encKeyId neq activeKeyId) }
+                    .limit(batchSize)
+                    .toList()
+                if (rows.isEmpty()) return@transaction 0
+                rows.forEach { row ->
+                    val encKeyId = row[ChatMessages.encKeyId]
+                    val ctPlain = if (encKeyId == null) row[ChatMessages.ct] else keyManager.decryptField(row[ChatMessages.ct], encKeyId)
+                    val ivPlain = if (encKeyId == null) row[ChatMessages.iv] else keyManager.decryptField(row[ChatMessages.iv], encKeyId)
+                    val encCt = keyManager.encryptFieldWithKeyId(activeKeyId, ctPlain)
+                    val encIv = keyManager.encryptFieldWithKeyId(activeKeyId, ivPlain)
+                    ChatMessages.update({ ChatMessages.id eq row[ChatMessages.id] }) {
+                        it[ChatMessages.ct] = encCt
+                        it[ChatMessages.iv] = encIv
+                        it[ChatMessages.encKeyId] = activeKeyId
+                    }
+                }
+                rows.size
+            }
+            if (batchCount == 0) break
+            total += batchCount
+        }
+        return total
+    }
+
+    private fun decryptOrMigratePaste(row: ResultRow): Pair<String, String> {
+        val encKeyId = row[Pastes.encKeyId]
+        if (encKeyId == null) {
+            val ctPlain = row[Pastes.ct]
+            val ivPlain = row[Pastes.iv]
+            val activeKeyId = keyManager.activeKeyId()
+            val encCt = keyManager.encryptFieldWithKeyId(activeKeyId, ctPlain)
+            val encIv = keyManager.encryptFieldWithKeyId(activeKeyId, ivPlain)
+            Pastes.update({ Pastes.id eq row[Pastes.id] }) {
+                it[Pastes.ct] = encCt
+                it[Pastes.iv] = encIv
+                it[Pastes.encKeyId] = activeKeyId
+            }
+            return Pair(ctPlain, ivPlain)
+        }
+        val ctPlain = keyManager.decryptField(row[Pastes.ct], encKeyId)
+        val ivPlain = keyManager.decryptField(row[Pastes.iv], encKeyId)
+        return Pair(ctPlain, ivPlain)
+    }
+
+    private fun decryptOrMigrateChat(row: ResultRow): Pair<String, String> {
+        val encKeyId = row[ChatMessages.encKeyId]
+        if (encKeyId == null) {
+            val ctPlain = row[ChatMessages.ct]
+            val ivPlain = row[ChatMessages.iv]
+            val activeKeyId = keyManager.activeKeyId()
+            val encCt = keyManager.encryptFieldWithKeyId(activeKeyId, ctPlain)
+            val encIv = keyManager.encryptFieldWithKeyId(activeKeyId, ivPlain)
+            ChatMessages.update({ ChatMessages.id eq row[ChatMessages.id] }) {
+                it[ChatMessages.ct] = encCt
+                it[ChatMessages.iv] = encIv
+                it[ChatMessages.encKeyId] = activeKeyId
+            }
+            return Pair(ctPlain, ivPlain)
+        }
+        val ctPlain = keyManager.decryptField(row[ChatMessages.ct], encKeyId)
+        val ivPlain = keyManager.decryptField(row[ChatMessages.iv], encKeyId)
+        return Pair(ctPlain, ivPlain)
     }
 }

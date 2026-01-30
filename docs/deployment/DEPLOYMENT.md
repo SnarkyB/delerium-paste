@@ -98,6 +98,14 @@ cp .env.example .env
 # Generate secure pepper
 echo "DELETION_TOKEN_PEPPER=$(openssl rand -hex 32)" >> .env
 
+# Data-at-rest encryption (SQLite)
+# Default keyring location is /data/keyring.json (back up this file securely)
+# Rotation interval in days (default 30)
+echo "DATA_ENC_KEYRING_PATH=/data/keyring.json" >> .env
+echo "DATA_ENC_ROTATION_DAYS=30" >> .env
+# One-time migration to encrypt any legacy rows at startup
+echo "DATA_ENC_MIGRATE_ON_STARTUP=false" >> .env
+
 # Add domain and email (for SSL)
 echo "DOMAIN=your-domain.com" >> .env
 echo "LETSENCRYPT_EMAIL=your-email@example.com" >> .env
