@@ -6,6 +6,7 @@
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.After
@@ -22,6 +23,7 @@ class StorageTest {
     private lateinit var db: Database
     private lateinit var repo: PasteRepo
     private lateinit var testDbFile: File
+    private lateinit var keyManager: DataKeyManager
     private val testPepper = "test-pepper-12345"
 
     @Before
@@ -34,7 +36,8 @@ class StorageTest {
         val jdbcUrl = "jdbc:sqlite:${testDbFile.absolutePath}?foreign_keys=on"
         db = Database.connect(jdbcUrl, driver = "org.sqlite.JDBC")
         // Create repo - this will create tables in its init block
-        repo = PasteRepo(db, testPepper)
+        keyManager = createTestKeyManager()
+        repo = PasteRepo(db, testPepper, keyManager)
     }
 
     @After
@@ -42,6 +45,123 @@ class StorageTest {
         // Clean up test database file
         if (::testDbFile.isInitialized && testDbFile.exists()) {
             testDbFile.delete()
+        }
+    }
+
+    @Test
+    fun testEncryptedAtRest_RoundTrip() {
+        val now = Instant.now().epochSecond
+        val futureExpiry = now + 3600
+        val id = "roundtrip1"
+        val ct = "encrypted-content-roundtrip"
+        val iv = "iv-roundtrip-123"
+
+        repo.create(
+            id = id,
+            ct = ct,
+            iv = iv,
+            meta = PasteMeta(expireTs = futureExpiry),
+            rawDeleteToken = "token-roundtrip"
+        )
+
+        val payload = repo.getPayloadIfAvailable(id)
+        assertNotNull("Payload should be returned for active paste", payload)
+        assertEquals(ct, payload!!.ct)
+        assertEquals(iv, payload.iv)
+    }
+
+    @Test
+    fun testLegacyRowMigratesOnRead() {
+        val now = Instant.now().epochSecond
+        val futureExpiry = now + 3600
+        val id = "legacy1"
+        val ct = "legacy-ct"
+        val iv = "legacy-iv"
+
+        transaction(db) {
+            Pastes.insert {
+                it[Pastes.id] = id
+                it[Pastes.ct] = ct
+                it[Pastes.iv] = iv
+                it[Pastes.encKeyId] = null
+                it[Pastes.expireTs] = futureExpiry
+                it[Pastes.mime] = "text/plain"
+                it[Pastes.deleteTokenHash] = "hash"
+                it[Pastes.deleteAuthHash] = null
+                it[Pastes.createdAt] = now
+                it[Pastes.allowKeyCaching] = false
+            }
+        }
+
+        val payload = repo.getPayloadIfAvailable(id)
+        assertNotNull("Payload should be returned for legacy paste", payload)
+        assertEquals(ct, payload!!.ct)
+        assertEquals(iv, payload.iv)
+
+        val row = transaction(db) {
+            Pastes.selectAll().where { Pastes.id eq id }.single()
+        }
+        assertNotNull("Legacy row should be migrated with encKeyId", row[Pastes.encKeyId])
+        assertNotEquals("Encrypted ct should not match plaintext", ct, row[Pastes.ct])
+        assertNotEquals("Encrypted iv should not match plaintext", iv, row[Pastes.iv])
+    }
+
+    @Test
+    fun testRotationReencryptsData() {
+        val now = Instant.now().epochSecond
+        val futureExpiry = now + 3600
+        val id = "rotate1"
+        val ct = "rotate-ct"
+        val iv = "rotate-iv"
+
+        repo.create(
+            id = id,
+            ct = ct,
+            iv = iv,
+            meta = PasteMeta(expireTs = futureExpiry),
+            rawDeleteToken = "token-rotate"
+        )
+
+        val beforeRow = transaction(db) {
+            Pastes.selectAll().where { Pastes.id eq id }.single()
+        }
+        val beforeKeyId = beforeRow[Pastes.encKeyId]
+        val beforeCt = beforeRow[Pastes.ct]
+        val beforeIv = beforeRow[Pastes.iv]
+
+        keyManager.rotate()
+        val updated = repo.rotateAtRestEncryption(batchSize = 10)
+        assertTrue("Expected at least one row to be updated", updated >= 1)
+
+        val afterRow = transaction(db) {
+            Pastes.selectAll().where { Pastes.id eq id }.single()
+        }
+        assertNotNull(afterRow[Pastes.encKeyId])
+        assertNotEquals(beforeKeyId, afterRow[Pastes.encKeyId])
+        assertNotEquals(beforeCt, afterRow[Pastes.ct])
+        assertNotEquals(beforeIv, afterRow[Pastes.iv])
+
+        val payload = repo.getPayloadIfAvailable(id)
+        assertEquals(ct, payload!!.ct)
+        assertEquals(iv, payload.iv)
+    }
+
+    @Test
+    fun testMissingKeyFailsDecryption() {
+        val now = Instant.now().epochSecond
+        val futureExpiry = now + 3600
+        val id = "missingkey1"
+        repo.create(
+            id = id,
+            ct = "ct-missing",
+            iv = "iv-missing",
+            meta = PasteMeta(expireTs = futureExpiry),
+            rawDeleteToken = "token-missing"
+        )
+
+        val otherRepo = PasteRepo(db, testPepper, createTestKeyManager())
+        assertThrows(IllegalStateException::class.java) {
+            otherRepo.getPayloadIfAvailable(id)
         }
     }
 

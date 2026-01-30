@@ -6,6 +6,7 @@
  */
 
 import java.io.File
+import java.nio.file.Files
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.Base64
@@ -60,7 +61,10 @@ fun createTestAppConfig(
     rlCapacity: Int = 100,
     rlRefill: Int = 100,
     maxSizeBytes: Int = 1048576,
-    idLength: Int = 10
+    idLength: Int = 10,
+    dataEncKeyringPath: String = Files.createTempFile("test-keyring", ".json").toAbsolutePath().toString(),
+    dataEncRotationDays: Long = 3650,
+    dataEncMigrateOnStartup: Boolean = false
 ): AppConfig {
     return AppConfig(
         dbPath = "jdbc:sqlite:memory:",
@@ -72,8 +76,20 @@ fun createTestAppConfig(
         rlCapacity = rlCapacity,
         rlRefill = rlRefill,
         maxSizeBytes = maxSizeBytes,
-        idLength = idLength
+        idLength = idLength,
+        dataEncKeyringPath = dataEncKeyringPath,
+        dataEncRotationDays = dataEncRotationDays,
+        dataEncMigrateOnStartup = dataEncMigrateOnStartup
     )
+}
+
+/**
+ * Create a DataKeyManager for tests with a temporary keyring file.
+ */
+fun createTestKeyManager(rotationDays: Long = 3650): DataKeyManager {
+    val keyringPath = Files.createTempFile("test-keyring", ".json").toAbsolutePath()
+    keyringPath.toFile().deleteOnExit()
+    return DataKeyManager(keyringPath, rotationDays, null)
 }
 
 /**

@@ -135,8 +135,7 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
          */
         get("/pastes/{id}") {
             val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
-            val row = repo.getIfAvailable(id) ?: return@get call.respond(HttpStatusCode.NotFound)
-            val payload = repo.toPayload(row)
+            val payload = repo.getPayloadIfAvailable(id) ?: return@get call.respond(HttpStatusCode.NotFound)
             call.respond(payload)
         }
         /**

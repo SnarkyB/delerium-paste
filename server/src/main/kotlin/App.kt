@@ -32,6 +32,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.IOException
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 /**
@@ -59,7 +61,10 @@ data class AppConfig(
     val rlCapacity: Int,
     val rlRefill: Int,
     val maxSizeBytes: Int,
-    val idLength: Int
+    val idLength: Int,
+    val dataEncKeyringPath: String,
+    val dataEncRotationDays: Long,
+    val dataEncMigrateOnStartup: Boolean
 )
 
 /**
@@ -104,6 +109,17 @@ fun Application.module() {
     
     val envDbPath = System.getenv("DB_PATH")
     val dbPath = envDbPath ?: cfg.property("storage.dbPath").getString()
+    val dataEncKeyringPath = System.getenv("DATA_ENC_KEYRING_PATH")
+        ?: cfg.propertyOrNull("storage.dataEnc.keyringPath")?.getString()
+        ?: "/data/keyring.json"
+    val dataEncRotationDays = System.getenv("DATA_ENC_ROTATION_DAYS")
+        ?.toLongOrNull()
+        ?: cfg.propertyOrNull("storage.dataEnc.rotationDays")?.getString()?.toLongOrNull()
+        ?: 30L
+    val dataEncMigrateOnStartup = System.getenv("DATA_ENC_MIGRATE_ON_STARTUP")
+        ?.toBooleanStrictOrNull()
+        ?: cfg.propertyOrNull("storage.dataEnc.migrateOnStartup")?.getString()?.toBooleanStrictOrNull()
+        ?: false
     val appCfg = AppConfig(
         dbPath = dbPath,
         deletionPepper = deletionPepper,
@@ -114,7 +130,10 @@ fun Application.module() {
         rlCapacity = cfg.property("storage.rateLimit.capacity").getString().toInt(),
         rlRefill = cfg.property("storage.rateLimit.refillPerMinute").getString().toInt(),
         maxSizeBytes = cfg.property("storage.paste.maxSizeBytes").getString().toInt(),
-        idLength = cfg.property("storage.paste.idLength").getString().toInt()
+        idLength = cfg.property("storage.paste.idLength").getString().toInt(),
+        dataEncKeyringPath = dataEncKeyringPath,
+        dataEncRotationDays = dataEncRotationDays,
+        dataEncMigrateOnStartup = dataEncMigrateOnStartup
     )
 
     install(Compression)
@@ -142,10 +161,23 @@ fun Application.module() {
         jdbcUrl = appCfg.dbPath
         maximumPoolSize = 5
         // Enable SQLite foreign key constraints for CASCADE DELETE support
-        connectionInitSql = "PRAGMA foreign_keys = ON"
+        connectionInitSql = listOf(
+            "PRAGMA foreign_keys = ON",
+            "PRAGMA journal_mode = WAL",
+            "PRAGMA synchronous = NORMAL",
+            "PRAGMA busy_timeout = 5000",
+            "PRAGMA temp_store = MEMORY",
+            "PRAGMA trusted_schema = OFF"
+        ).joinToString("; ")
     })
     val db = Database.connect(hikari)
-    val repo = PasteRepo(db, appCfg.deletionPepper)
+    val seedKeyring = System.getenv("DATA_ENC_KEYRING")
+    val keyManager = DataKeyManager(
+        Paths.get(appCfg.dataEncKeyringPath),
+        appCfg.dataEncRotationDays,
+        seedKeyring
+    )
+    val repo = PasteRepo(db, appCfg.deletionPepper, keyManager)
     val rl = if (appCfg.rlEnabled) TokenBucket(appCfg.rlCapacity, appCfg.rlRefill) else null
     val pow = if (appCfg.powEnabled) PowService(appCfg.powDifficulty, appCfg.powTtl) else null
 
@@ -158,10 +190,38 @@ fun Application.module() {
                 if (deleted > 0) {
                     environment.log.info("🧹 Cleaned up $deleted expired paste(s)")
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 environment.log.error("Error during expired paste cleanup", e)
             } finally {
                 delay(TimeUnit.HOURS.toMillis(1)) // Run cleanup every hour
+            }
+        }
+    }
+
+    // Rotate at-rest encryption key on schedule and re-encrypt stored data
+    cleanupScope.launch {
+        while (true) {
+            try {
+                if (keyManager.rotateIfDue()) {
+                    val updated = repo.rotateAtRestEncryption()
+                    environment.log.info("🔐 Rotated data encryption key, re-encrypted $updated rows")
+                }
+            } catch (e: Exception) {
+                environment.log.error("Error during data key rotation", e)
+            } finally {
+                delay(TimeUnit.HOURS.toMillis(6))
+            }
+        }
+    }
+
+    // One-time migration pass: encrypt any legacy rows at startup
+    if (appCfg.dataEncMigrateOnStartup) {
+        cleanupScope.launch {
+            try {
+                val updated = repo.rotateAtRestEncryption()
+                environment.log.info("🔐 One-time at-rest encryption migration updated $updated rows")
+            } catch (e: Exception) {
+                environment.log.error("Error during at-rest encryption migration", e)
             }
         }
     }

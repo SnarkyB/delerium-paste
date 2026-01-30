@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     environment:
       - DELETION_TOKEN_PEPPER=${DELETION_TOKEN_PEPPER}
+      - DATA_ENC_KEYRING_PATH=/data/keyring.json
+      - DATA_ENC_ROTATION_DAYS=30
     volumes:
       - server-data:/data
     expose:

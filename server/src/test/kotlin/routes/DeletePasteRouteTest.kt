@@ -26,6 +26,7 @@ import PasteRepo
 import CreatePasteResponse
 import ErrorResponse
 import createTestDatabase
+import createTestKeyManager
 import createTestAppConfig
 import createTestPasteRequest
 import testModule
@@ -42,7 +43,7 @@ class DeletePasteRouteTest {
         val (database, file) = createTestDatabase()
         db = database
         testDbFile = file
-        repo = PasteRepo(db, testPepper)
+        repo = PasteRepo(db, testPepper, createTestKeyManager())
     }
 
     @After

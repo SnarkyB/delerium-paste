@@ -22,6 +22,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import PasteRepo
 import CreatePasteResponse
 import createTestDatabase
+import createTestKeyManager
 import createTestAppConfig
 import createTestPasteRequest
 import testModule
@@ -38,7 +39,7 @@ class ViewLimitIntegrationTest {
         val (database, file) = createTestDatabase()
         db = database
         testDbFile = file
-        repo = PasteRepo(db, testPepper)
+        repo = PasteRepo(db, testPepper, createTestKeyManager())
     }
 
     @After

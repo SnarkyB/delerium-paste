@@ -38,6 +38,13 @@ Guide for security scanning and vulnerability assessment:
 
 ## Security Best Practices
 
+### Data-at-Rest Protection (SQLite)
+
+- [ ] Ensure the data encryption keyring is stored at `DATA_ENC_KEYRING_PATH` (default `/data/keyring.json`)
+- [ ] Back up the keyring securely (loss of keyring means stored data cannot be decrypted)
+- [ ] Configure rotation interval via `DATA_ENC_ROTATION_DAYS` (default 30)
+- [ ] Optional one-time migration on startup: set `DATA_ENC_MIGRATE_ON_STARTUP=true` to encrypt legacy rows immediately
+
 ### Before Deployment
 
 - [ ] Review the [Security Checklist](CHECKLIST.md)
