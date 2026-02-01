@@ -1,8 +1,4 @@
 /**
- * @jest-environment jsdom
- */
-
-/**
  * DOM Interaction Functions Test Suite
  * 
  * Tests the client-side DOM manipulation and user interface interactions
@@ -33,6 +29,11 @@ describe('DOM Interaction Functions', () => {
       <div>
         <textarea id="paste" rows="16" placeholder="Type or paste text here…"></textarea>
         <input type="number" id="mins" value="60" min="1">
+        <div class="presets">
+          <button class="preset-btn" type="button" data-mins="60">1 hour</button>
+          <button class="preset-btn" type="button" data-mins="1440">1 day</button>
+          <button class="preset-btn" type="button" data-mins="invalid">Invalid</button>
+        </div>
         <button id="save">Encrypt & Upload</button>
         <span id="btnText"><span class="btn-icon">🔒</span> Encrypt & Upload</span>
         <pre id="out"></pre>
@@ -128,6 +129,41 @@ describe('DOM Interaction Functions', () => {
       const mins = parseInt(minsInput.value || '60', 10);
 
       expect(mins).toBe(60);
+    });
+  });
+
+  describe('Expiration Presets', () => {
+    it('should apply preset value to minutes input', async () => {
+      const { setupExpirationPresets } = await import('../../../src/ui/dom-helpers.js');
+      setupExpirationPresets();
+
+      const minsInput = document.getElementById('mins') as HTMLInputElement;
+      const preset = document.querySelector<HTMLButtonElement>('.preset-btn[data-mins="1440"]');
+      expect(preset).toBeTruthy();
+
+      preset?.click();
+      expect(minsInput.value).toBe('1440');
+    });
+
+    it('should ignore invalid preset values', async () => {
+      const { setupExpirationPresets } = await import('../../../src/ui/dom-helpers.js');
+      setupExpirationPresets();
+
+      const minsInput = document.getElementById('mins') as HTMLInputElement;
+      minsInput.value = '60';
+      const preset = document.querySelector<HTMLButtonElement>('.preset-btn[data-mins="invalid"]');
+      expect(preset).toBeTruthy();
+
+      preset?.click();
+      expect(minsInput.value).toBe('60');
+    });
+
+    it('should not throw when minutes input is missing', async () => {
+      const { setupExpirationPresets } = await import('../../../src/ui/dom-helpers.js');
+      const minsInput = document.getElementById('mins');
+      minsInput?.remove();
+
+      expect(() => setupExpirationPresets()).not.toThrow();
     });
   });
 

@@ -21,6 +21,7 @@ import {
   setupViewCopyButton,
   setupUrlInputSelection,
   setupSingleViewToggle,
+  setupExpirationPresets,
   setupNewPasteButton
 } from './ui/dom-helpers.js';
 
@@ -55,6 +56,7 @@ function initializeApp(): void {
     setupViewCopyButton();
     setupUrlInputSelection();
     setupSingleViewToggle();
+    setupExpirationPresets();
     setupNewPasteButton();
   });
   
