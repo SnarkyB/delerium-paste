@@ -110,6 +110,6 @@ curl -v -X POST http://localhost:8080/api/pastes \
 
 ## See Also
 
-- `docs/DEPLOYMENT_FIXES.md` - Detailed documentation of all fixes
+- `DEPLOYMENT_FIXES.md` - Detailed documentation of all fixes
 - `server/src/test/kotlin/integration/` - All integration tests
 - `scripts/test-deployment-cors.sh` - Deployment test script

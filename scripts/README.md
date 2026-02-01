@@ -319,6 +319,6 @@ vim .env
 
 For detailed documentation, see:
 
-- [Production Deployment Guide](../PRODUCTION_DEPLOYMENT.md)
-- [Main README](../docs/random/README.md)
+- [Production Deployment Guide](../docs/deployment/DEPLOYMENT.md)
+- [Main README](../docs/README.md)
 - [Deployment Docs](../docs/deployment/)

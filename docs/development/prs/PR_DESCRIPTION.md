@@ -57,7 +57,7 @@ This PR transforms Delirium from a basic development setup into a **production-r
 - `docker-compose.secure.yml` - Security-hardened configuration
 - `reverse-proxy/dev.conf` - Development nginx config
 - `reverse-proxy/secure/security.conf` - Security nginx config
-- `SECURITY_CHECKLIST.md` - Security verification checklist
+- `docs/security/HEADLESS_SECURITY_CHECKLIST.md` - Security verification checklist
 
 ### Modified Files
 

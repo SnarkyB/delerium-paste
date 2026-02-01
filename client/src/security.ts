@@ -54,12 +54,6 @@ export function secureClearBuffer(buffer: ArrayBuffer): void {
   }
 }
 
-// Prevent unused variable warning - this function is part of the public API
-// even if not used internally
-if (typeof window !== 'undefined') {
-  (window as unknown as Record<string, unknown>)['__secureClearBuffer'] = secureClearBuffer;
-}
-
 // ============================================================================
 // SAFE DISPLAY UTILITIES
 // ============================================================================
@@ -78,37 +72,6 @@ export function safeDisplayContent(element: HTMLElement, content: string): void 
   // Preserve whitespace and formatting
   element.style.whiteSpace = 'pre-wrap';
   element.style.wordWrap = 'break-word';
-}
-
-/**
- * Safely display content with basic formatting
- * Only allows safe formatting without code execution
- * 
- * @param element DOM element to update
- * @param content Content to display
- */
-export function safeDisplayFormatted(element: HTMLElement, content: string): void {
-  // Escape HTML to prevent XSS
-  const escaped = escapeHtml(content);
-  
-  // Use innerHTML with escaped content (safe because we escaped it)
-  element.innerHTML = escaped;
-  
-  // Apply safe styling
-  element.style.whiteSpace = 'pre-wrap';
-  element.style.wordWrap = 'break-word';
-}
-
-/**
- * Escape HTML characters to prevent XSS
- * 
- * @param str String to escape
- * @returns Escaped string
- */
-function escapeHtml(str: string): string {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }
 
 // ============================================================================
@@ -353,35 +316,3 @@ export async function deriveDeleteAuth(password: string, salt: Uint8Array): Prom
   return encodeBase64Url(rawBytes);
 }
 
-// ============================================================================
-// SECURITY HEADERS AND POLICIES
-// ============================================================================
-
-/**
- * Enhanced Content Security Policy for better security
- */
-export const ENHANCED_CSP = [
-  "default-src 'self'",
-  "script-src 'self'", // Disallow inline scripts
-  "style-src 'self' 'unsafe-inline'",  // Allow inline styles
-  "img-src 'self' data:",
-  "font-src 'self'",
-  "connect-src 'self'",
-  "base-uri 'none'",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  "upgrade-insecure-requests"
-].join('; ');
-
-/**
- * Security headers to add to responses
- */
-export const SECURITY_HEADERS = {
-  'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'DENY',
-  'X-XSS-Protection': '1; mode=block',
-  'Referrer-Policy': 'no-referrer',
-  'Permissions-Policy': 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()',
-  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-  'Content-Security-Policy': ENHANCED_CSP
-} as const;

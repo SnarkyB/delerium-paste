@@ -354,43 +354,49 @@ class PasteRepo(private val db: Database, private val pepper: String, private va
         return total
     }
 
-    private fun decryptOrMigratePaste(row: ResultRow): Pair<String, String> {
-        val encKeyId = row[Pastes.encKeyId]
+    private fun decryptOrMigrate(
+        encKeyId: String?,
+        ct: String,
+        iv: String,
+        updateEncrypted: (encCt: String, encIv: String, keyId: String) -> Unit
+    ): Pair<String, String> {
         if (encKeyId == null) {
-            val ctPlain = row[Pastes.ct]
-            val ivPlain = row[Pastes.iv]
             val activeKeyId = keyManager.activeKeyId()
-            val encCt = keyManager.encryptFieldWithKeyId(activeKeyId, ctPlain)
-            val encIv = keyManager.encryptFieldWithKeyId(activeKeyId, ivPlain)
-            Pastes.update({ Pastes.id eq row[Pastes.id] }) {
-                it[Pastes.ct] = encCt
-                it[Pastes.iv] = encIv
-                it[Pastes.encKeyId] = activeKeyId
-            }
-            return Pair(ctPlain, ivPlain)
+            val encCt = keyManager.encryptFieldWithKeyId(activeKeyId, ct)
+            val encIv = keyManager.encryptFieldWithKeyId(activeKeyId, iv)
+            updateEncrypted(encCt, encIv, activeKeyId)
+            return Pair(ct, iv)
         }
-        val ctPlain = keyManager.decryptField(row[Pastes.ct], encKeyId)
-        val ivPlain = keyManager.decryptField(row[Pastes.iv], encKeyId)
+        val ctPlain = keyManager.decryptField(ct, encKeyId)
+        val ivPlain = keyManager.decryptField(iv, encKeyId)
         return Pair(ctPlain, ivPlain)
     }
 
+    private fun decryptOrMigratePaste(row: ResultRow): Pair<String, String> {
+        return decryptOrMigrate(
+            row[Pastes.encKeyId],
+            row[Pastes.ct],
+            row[Pastes.iv]
+        ) { encCt, encIv, keyId ->
+            Pastes.update({ Pastes.id eq row[Pastes.id] }) {
+                it[Pastes.ct] = encCt
+                it[Pastes.iv] = encIv
+                it[Pastes.encKeyId] = keyId
+            }
+        }
+    }
+
     private fun decryptOrMigrateChat(row: ResultRow): Pair<String, String> {
-        val encKeyId = row[ChatMessages.encKeyId]
-        if (encKeyId == null) {
-            val ctPlain = row[ChatMessages.ct]
-            val ivPlain = row[ChatMessages.iv]
-            val activeKeyId = keyManager.activeKeyId()
-            val encCt = keyManager.encryptFieldWithKeyId(activeKeyId, ctPlain)
-            val encIv = keyManager.encryptFieldWithKeyId(activeKeyId, ivPlain)
+        return decryptOrMigrate(
+            row[ChatMessages.encKeyId],
+            row[ChatMessages.ct],
+            row[ChatMessages.iv]
+        ) { encCt, encIv, keyId ->
             ChatMessages.update({ ChatMessages.id eq row[ChatMessages.id] }) {
                 it[ChatMessages.ct] = encCt
                 it[ChatMessages.iv] = encIv
-                it[ChatMessages.encKeyId] = activeKeyId
+                it[ChatMessages.encKeyId] = keyId
             }
-            return Pair(ctPlain, ivPlain)
         }
-        val ctPlain = keyManager.decryptField(row[ChatMessages.ct], encKeyId)
-        val ivPlain = keyManager.decryptField(row[ChatMessages.iv], encKeyId)
-        return Pair(ctPlain, ivPlain)
     }
 }

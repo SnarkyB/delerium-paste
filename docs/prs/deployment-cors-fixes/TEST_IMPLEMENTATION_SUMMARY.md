@@ -92,8 +92,8 @@ Failed: 0
 
 ## Documentation Updates
 
-1. **Created**: `docs/TESTING.md` - Comprehensive testing guide
-2. **Created**: `docs/DEPLOYMENT_FIXES.md` - Detailed fix documentation
+1. **Created**: `docs/prs/deployment-cors-fixes/TESTING.md` - Comprehensive testing guide
+2. **Created**: `docs/prs/deployment-cors-fixes/DEPLOYMENT_FIXES.md` - Detailed fix documentation
 3. **Updated**: `README.md` - Added CORS and deployment test section
 4. **Updated**: `server/src/test/kotlin/TestUtils.kt` - Added security headers to test module
 
@@ -110,8 +110,8 @@ Failed: 0
 
 ### Documentation Created
 
-- `docs/TESTING.md` (new, comprehensive test guide)
-- `docs/DEPLOYMENT_FIXES.md` (new, detailed fix documentation)
+- `docs/prs/deployment-cors-fixes/TESTING.md` (new, comprehensive test guide)
+- `docs/prs/deployment-cors-fixes/DEPLOYMENT_FIXES.md` (new, detailed fix documentation)
 
 ### Documentation Updated
 
@@ -212,4 +212,4 @@ For future enhancements:
 
 - [TESTING.md](TESTING.md) - Comprehensive testing guide
 - [DEPLOYMENT_FIXES.md](DEPLOYMENT_FIXES.md) - Deployment fix details
-- [README.md](../random/README.md) - Updated with test instructions
+- [README.md](../../README.md) - Updated with test instructions

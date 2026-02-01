@@ -68,7 +68,7 @@ Consolidated multiple deployment scripts into a single, unified `deploy.sh` scri
 
 ### 4. Created Quick Reference Card
 
-**File:** `DEPLOY_QUICK_REFERENCE.md` (2.8KB)
+**File:** `docs/deployment/DEPLOY_QUICK_REFERENCE.md` (2.8KB)
 
 **Contents:**
 
@@ -206,7 +206,7 @@ ls -lh deploy.sh
 ```text
 /home/noob/delirium/
 ├── deploy.sh                                    # Main script (22KB)
-├── DEPLOY_QUICK_REFERENCE.md                    # Quick reference (2.8KB)
+├── docs/deployment/DEPLOY_QUICK_REFERENCE.md    # Quick reference (2.8KB)
 ├── README.md                                    # Updated with new commands
 └── docs/
     ├── deployment/
@@ -290,7 +290,7 @@ The new `deploy.sh` script is production-ready and provides a significantly bett
 ## References
 
 - Main Script: `/home/noob/delirium/deploy.sh`
-- Quick Reference: `/home/noob/delirium/DEPLOY_QUICK_REFERENCE.md`
+- Quick Reference: `/home/noob/delirium/docs/deployment/DEPLOY_QUICK_REFERENCE.md`
 - Full Guide: `/home/noob/delirium/docs/deployment/UNIFIED_DEPLOYMENT.md`
 - Updated README: `/home/noob/delirium/README.md`
 

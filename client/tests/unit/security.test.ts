@@ -19,7 +19,6 @@ import {
   encryptWithPassword,
   decryptWithPassword,
   safeDisplayContent,
-  safeDisplayFormatted,
   deriveDeleteAuth,
 } from '../../src/security.js';
 
@@ -182,34 +181,6 @@ describe('safeDisplayContent', () => {
     
     expect(element.textContent).toBe('<script>alert("xss")</script>');
     expect(element.innerHTML).not.toContain('<script>');
-  });
-});
-
-describe('safeDisplayFormatted', () => {
-  it('should escape HTML and set innerHTML', () => {
-    const element = document.createElement('div');
-    safeDisplayFormatted(element, '<script>alert("xss")</script>');
-    
-    expect(element.innerHTML).not.toContain('<script>');
-    expect(element.style.whiteSpace).toBe('pre-wrap');
-    expect(element.style.wordWrap).toBe('break-word');
-  });
-
-  it('should handle empty content', () => {
-    const element = document.createElement('div');
-    safeDisplayFormatted(element, '');
-    
-    expect(element.innerHTML).toBeDefined();
-    expect(element.style.whiteSpace).toBe('pre-wrap');
-  });
-
-  it('should escape special HTML characters', () => {
-    const element = document.createElement('div');
-    safeDisplayFormatted(element, '<>&"\'');
-    
-    const html = element.innerHTML;
-    expect(html).not.toContain('<');
-    expect(html).not.toContain('>');
   });
 });
 
