@@ -28,11 +28,11 @@ This PR resolves critical deployment issues causing 403 Forbidden errors during 
 ### 🧹 Documentation & Cleanup
 
 - **New Documentation**:
-  - `docs/DEPLOYMENT_FIXES.md` - Comprehensive breakdown of issues and solutions
-  - `docs/DEPLOYMENT_IMPACT.md` - Impact analysis of deployment changes
-  - `docs/REGRESSION_ANALYSIS.md` - Regression testing results
-  - `docs/TESTING.md` - Testing strategy documentation
-  - `docs/TEST_IMPLEMENTATION_SUMMARY.md` - Test implementation details
+  - `DEPLOYMENT_FIXES.md` - Comprehensive breakdown of issues and solutions
+  - `DEPLOYMENT_IMPACT.md` - Impact analysis of deployment changes
+  - `REGRESSION_ANALYSIS.md` - Regression testing results
+  - `TESTING.md` - Testing strategy documentation
+  - `TEST_IMPLEMENTATION_SUMMARY.md` - Test implementation details
 - **Archived Old Documentation**: Moved 8,780 lines of outdated migration artifacts and old documentation to `docs/archive/`
 - **Removed Unused Files**:
   - `scripts/sync-to-standalone.sh` (empty/commented code)
@@ -111,7 +111,7 @@ The development configuration uses `Access-Control-Allow-Origin: *` for convenie
 ### For Developers
 
 - Run `make dev` to test locally with the new CORS configuration
-- Review `docs/DEPLOYMENT_FIXES.md` for detailed technical background
+- Review `DEPLOYMENT_FIXES.md` for detailed technical background
 - CORS is now handled by Nginx, not Ktor
 
 ### For Deployment

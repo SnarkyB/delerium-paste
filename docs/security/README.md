@@ -14,6 +14,14 @@ Security checklist for production deployments, covering:
 - Application security
 - Monitoring and logging
 
+### [HEADLESS_SECURITY_CHECKLIST.md](HEADLESS_SECURITY_CHECKLIST.md)
+
+Checklist for headless/VPS deployments, covering:
+
+- Non-root execution
+- Firewall and SSL setup
+- Monitoring and backups
+
 ### [SCANNING.md](SCANNING.md)
 
 Guide for security scanning and vulnerability assessment:

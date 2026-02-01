@@ -189,11 +189,11 @@ After this PR merges:
 - [Bazel Documentation](https://bazel.build/docs)
 - [Bazel Kotlin Rules](https://github.com/bazelbuild/rules_kotlin)
 - [Bazelisk](https://github.com/bazelbuild/bazelisk)
-- [Quick Start Guide](../development/BAZEL_QUICKSTART.md) (in this PR)
+- [Quick Start Guide](../../development/BAZEL_QUICKSTART.md) (in this PR)
 
 ## Questions?
 
-See [BAZEL_QUICKSTART.md](../development/BAZEL_QUICKSTART.md) or ask in comments!
+See [BAZEL_QUICKSTART.md](../../development/BAZEL_QUICKSTART.md) or ask in comments!
 
 ---
 

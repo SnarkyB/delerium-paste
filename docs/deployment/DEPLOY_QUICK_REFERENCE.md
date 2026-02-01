@@ -78,9 +78,9 @@ cd delerium-paste
 
 ## 📖 Full Documentation
 
-- **Detailed Guide:** [docs/deployment/UNIFIED_DEPLOYMENT.md](../deployment/UNIFIED_DEPLOYMENT.md)
-- **README:** [README.md](README.md)
-- **SSL Setup:** [docs/deployment/SSL_SETUP.md](../deployment/SSL_SETUP.md)
+- **Detailed Guide:** [UNIFIED_DEPLOYMENT.md](UNIFIED_DEPLOYMENT.md)
+- **README:** [README.md](../README.md)
+- **SSL Setup:** [SSL_SETUP.md](SSL_SETUP.md)
 
 ## 🆘 Quick Troubleshooting
 
@@ -104,4 +104,4 @@ cd delerium-paste
 
 ---
 
-**Need help?** Run `./deploy.sh help` or see [docs/deployment/UNIFIED_DEPLOYMENT.md](../deployment/UNIFIED_DEPLOYMENT.md)
+**Need help?** Run `./deploy.sh help` or see [UNIFIED_DEPLOYMENT.md](UNIFIED_DEPLOYMENT.md)

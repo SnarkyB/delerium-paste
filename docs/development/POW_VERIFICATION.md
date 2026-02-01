@@ -336,5 +336,5 @@ After verification:
 ## References
 
 - [Main PoW Documentation](../architecture/PROOF_OF_WORK.md)
-- [Testing Guide](../TESTING.md)
+- [Testing Guide](../../client/tests/README.md)
 - [Deployment Guide](../deployment/DEPLOYMENT.md)

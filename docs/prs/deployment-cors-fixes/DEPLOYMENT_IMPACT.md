@@ -286,7 +286,7 @@ docker compose exec web cat /etc/nginx/nginx.conf | grep -A5 "location /api"
 - **Full fixes documentation**: [DEPLOYMENT_FIXES.md](DEPLOYMENT_FIXES.md)
 - **Regression analysis**: [REGRESSION_ANALYSIS.md](REGRESSION_ANALYSIS.md)
 - **Testing guide**: [TESTING.md](TESTING.md)
-- **Deployment guide**: [deployment/DEPLOYMENT.md](deployment/DEPLOYMENT.md)
+- **Deployment guide**: [deployment/DEPLOYMENT.md](../../deployment/DEPLOYMENT.md)
 
 ## ✨ TL;DR
 
