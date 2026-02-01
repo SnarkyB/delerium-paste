@@ -117,6 +117,32 @@ export function setupSingleViewToggle(): void {
 }
 
 /**
+ * Setup expiration preset buttons to update minutes input
+ */
+export function setupExpirationPresets(): void {
+  if (typeof document === 'undefined') return;
+  const minsInput = document.getElementById('mins') as HTMLInputElement | null;
+  const presetButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.preset-btn[data-mins]'));
+  if (!minsInput || presetButtons.length === 0) return;
+
+  const applyPreset = (value: string): void => {
+    const mins = Number.parseInt(value, 10);
+    if (!Number.isFinite(mins)) return;
+    minsInput.value = String(mins);
+    minsInput.dispatchEvent(new Event('input', { bubbles: true }));
+    minsInput.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+
+  presetButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const value = button.dataset.mins;
+      if (!value) return;
+      applyPreset(value);
+    });
+  });
+}
+
+/**
  * Setup "Create New Paste" button navigation
  */
 export function setupNewPasteButton(): void {
