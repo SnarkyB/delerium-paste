@@ -167,58 +167,9 @@ jobs:
           fi
 
           if [ "$pow_status" = "200" ]; then
-            payload=$(python3 - <<'PY'
-import json
-import hashlib
-import time
-
-with open("/tmp/pow.json") as f:
-    data = json.load(f)
-
-challenge = data["challenge"]
-difficulty = int(data["difficulty"])
-
-def leading_zero_bits(digest: bytes) -> int:
-    bits = 0
-    for b in digest:
-        if b == 0:
-            bits += 8
-            continue
-        bits += 8 - b.bit_length()
-        break
-    return bits
-
-nonce = 0
-while True:
-    digest = hashlib.sha256(f"{challenge}:{nonce}".encode()).digest()
-    if leading_zero_bits(digest) >= difficulty:
-        break
-    nonce += 1
-
-payload = {
-    "ct": "dGVzdA",
-    "iv": "dGVzdGl2MTIzNDU2",
-    "meta": {"expireTs": int(time.time()) + 3600},
-    "pow": {"challenge": challenge, "nonce": nonce},
-}
-
-print(json.dumps(payload))
-PY
-)
+            payload=$(python3 -c $'import json,hashlib,time\nwith open("/tmp/pow.json") as f:\n    data = json.load(f)\nchallenge = data["challenge"]\ndifficulty = int(data["difficulty"])\n\ndef leading_zero_bits(digest: bytes) -> int:\n    bits = 0\n    for b in digest:\n        if b == 0:\n            bits += 8\n            continue\n        bits += 8 - b.bit_length()\n        break\n    return bits\n\nnonce = 0\nwhile True:\n    digest = hashlib.sha256(f"{challenge}:{nonce}".encode()).digest()\n    if leading_zero_bits(digest) >= difficulty:\n        break\n    nonce += 1\n\npayload = {\n    "ct": "dGVzdA",\n    "iv": "dGVzdGl2MTIzNDU2",\n    "meta": {"expireTs": int(time.time()) + 3600},\n    "pow": {"challenge": challenge, "nonce": nonce},\n}\n\nprint(json.dumps(payload))')
           else
-            payload=$(python3 - <<'PY'
-import json
-import time
-
-payload = {
-    "ct": "dGVzdA",
-    "iv": "dGVzdGl2MTIzNDU2",
-    "meta": {"expireTs": int(time.time()) + 3600},
-}
-
-print(json.dumps(payload))
-PY
-)
+            payload=$(python3 -c $'import json,time\npayload = {"ct": "dGVzdA", "iv": "dGVzdGl2MTIzNDU2", "meta": {"expireTs": int(time.time()) + 3600}}\nprint(json.dumps(payload))')
           fi
 
           response=$(curl -s -X POST http://localhost:8080/api/pastes \
