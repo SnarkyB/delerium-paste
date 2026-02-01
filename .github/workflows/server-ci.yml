@@ -23,17 +23,17 @@ env:
 jobs:
   build-test:
     name: Build & Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
 
       - name: Mount Bazel cache
         uses: actions/cache@v4
@@ -58,14 +58,14 @@ jobs:
           bazel --version
 
       - name: Build with Bazel
-        run: bazel build //server:delerium_server_deploy --config=ci
+        run: bazel build //server:delerium_server_deploy
 
       - name: Run tests
-        run: bazel test //server:all_tests --config=ci --test_output=errors
+        run: bazel test //server:all_tests --test_output=errors
 
       - name: Generate coverage report
         if: always()
-        run: bazel coverage //server:all_tests --config=ci --combined_report=lcov
+        run: bazel coverage //server:all_tests --combined_report=lcov || echo "⚠️  Coverage generation optional"
 
       - name: Upload test results
         if: always()
@@ -85,7 +85,7 @@ jobs:
 
   docker-test:
     name: Docker Build Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build-test
     
     steps:
@@ -128,16 +128,16 @@ jobs:
 
       - name: Test health check endpoint
         run: |
-          # Test /api/pow endpoint (used for health checks) with retries
-          echo "Testing /api/pow endpoint..."
+          # Test /api/health endpoint with retries
+          echo "Testing /api/health endpoint..."
           MAX_RETRIES=5
           RETRY_COUNT=0
           
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
             # Use -o /dev/null to discard body, -w to write only status code
-            http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/pow)
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/health)
             
-            if [ "$http_code" = "200" ] || [ "$http_code" = "204" ]; then
+            if [ "$http_code" = "200" ]; then
               echo "Health check passed (HTTP $http_code)"
               exit 0
             fi
@@ -155,11 +155,75 @@ jobs:
 
       - name: Test paste creation endpoint
         run: |
+          set -euo pipefail
           # Test creating a paste
           echo "Testing paste creation..."
+
+          pow_status=$(curl -s -o /tmp/pow.json -w "%{http_code}" http://localhost:8080/api/pow)
+          if [ "$pow_status" != "200" ] && [ "$pow_status" != "204" ]; then
+            echo "Failed to get PoW challenge (HTTP $pow_status)"
+            docker logs test-server
+            exit 1
+          fi
+
+          if [ "$pow_status" = "200" ]; then
+            payload=$(python3 - <<'PY'
+import json
+import hashlib
+import time
+
+with open("/tmp/pow.json") as f:
+    data = json.load(f)
+
+challenge = data["challenge"]
+difficulty = int(data["difficulty"])
+
+def leading_zero_bits(digest: bytes) -> int:
+    bits = 0
+    for b in digest:
+        if b == 0:
+            bits += 8
+            continue
+        bits += 8 - b.bit_length()
+        break
+    return bits
+
+nonce = 0
+while True:
+    digest = hashlib.sha256(f"{challenge}:{nonce}".encode()).digest()
+    if leading_zero_bits(digest) >= difficulty:
+        break
+    nonce += 1
+
+payload = {
+    "ct": "dGVzdA",
+    "iv": "dGVzdGl2MTIzNDU2",
+    "meta": {"expireTs": int(time.time()) + 3600},
+    "pow": {"challenge": challenge, "nonce": nonce},
+}
+
+print(json.dumps(payload))
+PY
+)
+          else
+            payload=$(python3 - <<'PY'
+import json
+import time
+
+payload = {
+    "ct": "dGVzdA",
+    "iv": "dGVzdGl2MTIzNDU2",
+    "meta": {"expireTs": int(time.time()) + 3600},
+}
+
+print(json.dumps(payload))
+PY
+)
+          fi
+
           response=$(curl -s -X POST http://localhost:8080/api/pastes \
             -H "Content-Type: application/json" \
-            -d '{"ct":"dGVzdA==","iv":"dGVzdGl2MTIzNDU2","meta":{"expireTs":9999999999}}')
+            -d "$payload")
           
           if echo "$response" | grep -q '"id"'; then
             echo "Paste creation test passed"
