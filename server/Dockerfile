@@ -45,8 +45,8 @@ RUN chown -R builder:builder /build
 USER builder
 
 # Build with Bazel using CI configuration
-# Note: Bazel automatically avoids persistent server in Docker builds
-RUN bazel build //server:delerium_server_deploy --config=ci
+# --batch: no persistent server (avoids "couldn't connect to server" in Docker / QEMU emulation)
+RUN bazel --batch build //server:delerium_server_deploy --config=ci
 
 # Extract all JARs and create a fat JAR (as root since we need /app directory)
 USER root

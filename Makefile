@@ -224,8 +224,9 @@ build-multiarch:
 	@echo "🔧 Creating/using buildx builder..."
 	@docker buildx create --name delirium-builder --use 2>/dev/null || docker buildx use delirium-builder || docker buildx use default
 	@echo "🏗️  Building for linux/amd64 and linux/arm64..."
-	@cd server && docker buildx build \
+	@docker buildx build \
 		--platform linux/amd64,linux/arm64 \
+		-f server/Dockerfile \
 		--tag delerium-server:latest \
 		--tag delerium-server:multi-arch \
 		--load \
@@ -249,8 +250,9 @@ push-multiarch:
 	echo "🔧 Creating/using buildx builder..."; \
 	docker buildx create --name delirium-builder --use 2>/dev/null || docker buildx use delirium-builder || docker buildx use default; \
 	echo "🏗️  Building and pushing for linux/amd64 and linux/arm64..."; \
-	cd server && docker buildx build \
+	docker buildx build \
 		--platform linux/amd64,linux/arm64 \
+		-f server/Dockerfile \
 		--tag $(REGISTRY)/delerium-server:$$TAG \
 		--tag $(REGISTRY)/delerium-server:latest \
 		--push \
