@@ -5,9 +5,11 @@
  * and used for deletion without requiring a password prompt.
  * 
  * Security tests verify that deleteAuth is properly cleared and single-use.
+ * allowChat tests verify setupPasteChat is only called when meta.allowChat === true.
  */
 
 import { deriveDeleteAuth, secureClear } from '../../../src/security.js';
+import { shouldInitChat } from '../../../src/features/paste-viewer.js';
 
 describe('paste-viewer deleteAuth derivation', () => {
   /**
@@ -109,5 +111,19 @@ describe('paste-viewer deleteAuth security', () => {
     expect(deleteAuth).not.toContain('+');
     expect(deleteAuth).not.toContain('/');
     expect(deleteAuth).not.toContain('=');
+  });
+});
+
+describe('paste-viewer allowChat (shouldInitChat)', () => {
+  it('returns true when meta.allowChat is true', () => {
+    expect(shouldInitChat({ expireTs: 1, mime: 'text/plain', allowChat: true })).toBe(true);
+  });
+
+  it('returns false when meta.allowChat is false', () => {
+    expect(shouldInitChat({ expireTs: 1, mime: 'text/plain', allowChat: false })).toBe(false);
+  });
+
+  it('returns false when meta.allowChat is undefined', () => {
+    expect(shouldInitChat({ expireTs: 1, mime: 'text/plain' })).toBe(false);
   });
 });

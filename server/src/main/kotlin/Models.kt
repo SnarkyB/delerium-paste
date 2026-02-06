@@ -28,11 +28,13 @@ data class CreatePasteRequest(
  * @property expireTs Unix timestamp when the paste should expire
  * @property mime MIME type hint for the content (e.g., "text/plain")
  * @property allowKeyCaching If true, viewers can cache decryption key for chat convenience
+ * @property allowChat If true, viewers can use anonymous chat for this paste
  */
 data class PasteMeta(
     val expireTs: Long,
     val mime: String? = null,
-    val allowKeyCaching: Boolean? = null
+    val allowKeyCaching: Boolean? = null,
+    val allowChat: Boolean? = null
 )
 
 /**

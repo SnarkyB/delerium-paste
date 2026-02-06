@@ -141,7 +141,7 @@ class ChatRouteSecurityTest {
     fun testGetMessages_DeletedPaste_Returns404() = testApplication {
         // SECURITY: Cannot retrieve chat messages for deleted pastes
         val cfg = createTestAppConfig(powEnabled = false, rlEnabled = false)
-        val request = createTestPasteRequest()
+        val request = createTestPasteRequest(allowChat = true)
 
         application {
             testModule(repo, null, null, cfg)
@@ -188,7 +188,7 @@ class ChatRouteSecurityTest {
     fun testPostMessage_DeletedPaste_Returns404() = testApplication {
         // SECURITY: Cannot post chat messages to deleted pastes
         val cfg = createTestAppConfig(powEnabled = false, rlEnabled = false)
-        val request = createTestPasteRequest()
+        val request = createTestPasteRequest(allowChat = true)
 
         application {
             testModule(repo, null, null, cfg)
@@ -268,5 +268,53 @@ class ChatRouteSecurityTest {
         )
         val error = objectMapper.readValue<ErrorResponse>(response.bodyAsText())
         assertEquals("paste_not_found", error.error)
+    }
+
+    // ========== Chat Disabled (generic 403) ==========
+
+    @Test
+    fun testGetMessages_ChatDisabled_Returns403() = testApplication {
+        val cfg = createTestAppConfig(powEnabled = false, rlEnabled = false)
+        val request = createTestPasteRequest(allowChat = false)
+
+        application {
+            testModule(repo, null, null, cfg)
+        }
+
+        val createResponse = client.post("/api/pastes") {
+            contentType(ContentType.Application.Json)
+            setBody(objectMapper.writeValueAsString(request))
+        }
+        val createResult = objectMapper.readValue<CreatePasteResponse>(createResponse.bodyAsText())
+
+        val response = client.get("/api/pastes/${createResult.id}/messages")
+        assertEquals(HttpStatusCode.Forbidden, response.status)
+        val error = objectMapper.readValue<ErrorResponse>(response.bodyAsText())
+        assertEquals("forbidden", error.error)
+    }
+
+    @Test
+    fun testPostMessage_ChatDisabled_Returns403() = testApplication {
+        val cfg = createTestAppConfig(powEnabled = false, rlEnabled = false)
+        val request = createTestPasteRequest(allowChat = false)
+
+        application {
+            testModule(repo, null, null, cfg)
+        }
+
+        val createResponse = client.post("/api/pastes") {
+            contentType(ContentType.Application.Json)
+            setBody(objectMapper.writeValueAsString(request))
+        }
+        val createResult = objectMapper.readValue<CreatePasteResponse>(createResponse.bodyAsText())
+
+        val messageRequest = PostChatMessageRequest(ct = "secret", iv = "iv123456789012")
+        val response = client.post("/api/pastes/${createResult.id}/messages") {
+            contentType(ContentType.Application.Json)
+            setBody(objectMapper.writeValueAsString(messageRequest))
+        }
+        assertEquals(HttpStatusCode.Forbidden, response.status)
+        val error = objectMapper.readValue<ErrorResponse>(response.bodyAsText())
+        assertEquals("forbidden", error.error)
     }
 }
