@@ -99,7 +99,8 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
                     call.respond(HttpStatusCode.TooManyRequests, ErrorResponse("rate_limited")); return@post
                 }
             }
-            val body = try { call.receive<CreatePasteRequest>() } catch (_: Exception) {
+            val body = try { call.receive<CreatePasteRequest>() } catch (e: Exception) {
+                call.application.environment.log.error("POST /api/pastes parse failed: ${e.message}", e)
                 call.respond(HttpStatusCode.BadRequest, ErrorResponse("invalid_json")); return@post
             }
             if (cfg.powEnabled && pow != null) {
@@ -194,8 +195,10 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             val id = call.parameters["id"] ?: return@post call.respond(HttpStatusCode.BadRequest)
 
             // Check if paste exists and is not expired
-            repo.getIfAvailable(id) ?: return@post call.respond(
+            val row = repo.getIfAvailable(id) ?: return@post call.respond(
                 HttpStatusCode.NotFound, ErrorResponse("paste_not_found"))
+            if (!row[Pastes.allowChat]) return@post call.respond(
+                HttpStatusCode.Forbidden, ErrorResponse("forbidden"))
 
             // Rate limiting
             if (rl != null) {
@@ -237,8 +240,10 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
 
             // Check if paste exists and is not expired
-            repo.getIfAvailable(id) ?: return@get call.respond(
+            val row = repo.getIfAvailable(id) ?: return@get call.respond(
                 HttpStatusCode.NotFound, ErrorResponse("paste_not_found"))
+            if (!row[Pastes.allowChat]) return@get call.respond(
+                HttpStatusCode.Forbidden, ErrorResponse("forbidden"))
 
             try {
                 val messages = repo.getChatMessages(id)

@@ -249,7 +249,7 @@ class DeleteWithAuthRouteTest {
     fun testDeleteWithAuth_CascadesDeleteToChatMessages() = testApplication {
         val cfg = createTestAppConfig(powEnabled = false, rlEnabled = false)
         val deleteAuth = "cascade-test-auth"
-        val request = createTestPasteRequest(deleteAuth = deleteAuth)
+        val request = createTestPasteRequest(deleteAuth = deleteAuth, allowChat = true)
 
         application {
             testModule(repo, null, null, cfg)

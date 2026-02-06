@@ -21,8 +21,14 @@ import { decodeBase64Url } from '../core/crypto/encoding.js';
 import { HttpApiClient } from '../infrastructure/api/http-client.js';
 import { WindowWithUI } from '../ui/ui-manager.js';
 import { setupPasteChat } from './paste-chat.js';
+import type { PasteMetadata } from '../core/models/paste.js';
 
 const apiClient = new HttpApiClient();
+
+/** Returns true if chat should be initialized for this paste (for testing). */
+export function shouldInitChat(meta: PasteMetadata): boolean {
+  return meta.allowChat === true;
+}
 
 /**
  * Setup the destroy button for password-based deletion
@@ -213,8 +219,10 @@ export async function viewPaste(): Promise<void> {
       deleteAuth = null;
     }
 
-    // Initialize chat functionality with key caching setting from metadata
-    setupPasteChat(id, new Uint8Array(salt), meta.allowKeyCaching ?? false);
+    // Initialize chat only when enabled for this paste
+    if (shouldInitChat(meta)) {
+      setupPasteChat(id, new Uint8Array(salt), meta.allowKeyCaching ?? false);
+    }
 
     // Securely clear decryption data from memory
     secureClear(keyB64);

@@ -40,6 +40,7 @@ export async function createPaste(): Promise<void> {
   const text = (document.getElementById("paste") as HTMLTextAreaElement).value;
   const mins = parseInt((document.getElementById("mins") as HTMLInputElement).value || "60", 10);
   const password = (document.getElementById("password") as HTMLInputElement).value;
+  const allowChat = (document.getElementById("allowChat") as HTMLInputElement)?.checked ?? false;
   const allowKeyCaching = (document.getElementById("allowKeyCaching") as HTMLInputElement)?.checked ?? false;
 
   // Privacy-preserving validation (without reading content)
@@ -107,6 +108,7 @@ export async function createPaste(): Promise<void> {
       meta: {
         expireTs,
         mime: "text/plain",
+        allowChat,
         allowKeyCaching
       },
       pow,
