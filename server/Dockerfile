@@ -77,8 +77,9 @@ LABEL org.opencontainers.image.source="https://github.com/marcusb333/delerium-pa
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.base.name="eclipse-temurin:25-jre-jammy"
 
-# Install curl for health checks
+# Install curl for health checks; upgrade base packages (e.g. glibc) for security
 RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
