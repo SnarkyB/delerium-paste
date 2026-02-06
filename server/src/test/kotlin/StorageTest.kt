@@ -273,13 +273,13 @@ class StorageTest {
         // Create paste expiring exactly now
         repo.create("exact1", "ct1", "iv12345678901", PasteMeta(expireTs = exactlyNow), "token1")
         
-        // Create paste expiring 1 second ago
-        repo.create("past1", "ct2", "iv12345678902", PasteMeta(expireTs = now - 1), "token2")
+        // Create paste expiring in the past
+        repo.create("past1", "ct2", "iv12345678902", PasteMeta(expireTs = now - 10), "token2")
         
-        // Create paste expiring 1 second from now (should not be deleted)
-        repo.create("future1", "ct3", "iv12345678903", PasteMeta(expireTs = now + 1), "token3")
+        // Create paste expiring well in the future so deleteExpired()'s fresh clock doesn't cross it
+        repo.create("future1", "ct3", "iv12345678903", PasteMeta(expireTs = now + 60), "token3")
 
-        // Delete expired pastes
+        // Delete expired pastes (uses fresh Instant.now() inside; avoid 1s boundary race)
         val deletedCount = repo.deleteExpired()
 
         // Verify results
