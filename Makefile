@@ -122,6 +122,20 @@ build-server-image:
 	docker compose build server
 	@echo "✅ Server image built (marcusb333/delerium-server:latest)"
 
+# Build clean server image and push to Docker Hub with version tag; use: make push-server-version VERSION=v1.0.9
+push-server-version:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "❌ VERSION required. Usage: make push-server-version VERSION=v1.0.9"; \
+		exit 1; \
+	fi
+	@echo "🐳 Building server image (no cache)..."
+	docker compose build --no-cache server
+	@echo "🏷️  Tagging $(VERSION)..."
+	docker tag marcusb333/delerium-server:latest marcusb333/delerium-server:$(VERSION)
+	@echo "📤 Pushing to Docker Hub..."
+	docker push marcusb333/delerium-server:$(VERSION)
+	@echo "✅ Pushed marcusb333/delerium-server:$(VERSION)"
+
 # Health check
 health-check:
 	@echo "🏥 Checking service health..."

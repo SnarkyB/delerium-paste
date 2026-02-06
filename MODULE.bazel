@@ -1,6 +1,6 @@
 module(
     name = "delerium_paste",
-    version = "1.0.9",
+    version = "1.0.10",
 )
 
 # Java rules for Bazel (provides JDK toolchain)
