@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="styles/pages.css">
     <link rel="stylesheet" href="styles/modals.css">
     <link rel="stylesheet" href="styles/loading.css">
+    <link rel="stylesheet" href="styles/chat.css">
     <style>
       /* CSS Reset & Base */
       * {
@@ -402,81 +403,58 @@
       </div>
 
       <!-- Chat Section -->
-      <div class="card" id="chatSection" style="margin-top: 2rem; display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <h3 style="margin: 0; color: var(--text); font-size: 1.25rem;">Anonymous Chat</h3>
-          <span style="font-size: 0.875rem; color: var(--text-light);">50 message limit</span>
+      <div class="card chat-section" id="chatSection" style="display: none;">
+        <div class="chat-header">
+          <h3 class="chat-title">Anonymous Chat</h3>
+          <span class="chat-limit">50 message limit</span>
         </div>
 
-        <div style="margin-bottom: 1rem;">
-          <button class="btn btn-primary" id="refreshMessagesBtn" style="width: 100%;">
+        <div style="margin-bottom: var(--space-4);">
+          <button class="btn btn-primary btn-full" id="refreshMessagesBtn">
             <span>🔄</span>
             <span>Refresh Messages</span>
           </button>
-          <div id="keyStatus" style="display: none; margin-top: 0.5rem; padding: 0.5rem; background: var(--bg); border-radius: var(--radius-sm); font-size: 0.85rem;">
-            <span id="keyStatusText" style="color: var(--success);">🔓 Key cached - refresh without password</span>
-            <button id="forgetKeyBtn" style="margin-left: 0.5rem; background: none; border: none; color: var(--text-light); cursor: pointer; text-decoration: underline; font-size: 0.85rem;">
+          <div id="keyStatus" class="chat-key-status" style="display: none;">
+            <span id="keyStatusText" class="chat-key-status-text">🔓 Key cached - refresh without password</span>
+            <button id="forgetKeyBtn" class="chat-forget-key-button">
               Forget
             </button>
           </div>
         </div>
 
-        <div id="chatMessages" style="
-          background: var(--bg);
-          border: 2px solid var(--border);
-          border-radius: var(--radius-sm);
-          padding: 1rem;
-          min-height: 200px;
-          max-height: 400px;
-          overflow-y: auto;
-          margin-bottom: 1rem;
-          font-size: 0.9rem;">
-          <div style="color: var(--text-light); text-align: center; padding: 2rem;">
+        <div id="chatMessages" class="chat-messages">
+          <div class="chat-empty">
             Click "Refresh Messages" to load chat (password required)
           </div>
         </div>
 
-        <div style="margin-bottom: 0.5rem;">
+        <div class="chat-input-area">
           <input
             type="text"
             id="usernameInput"
+            class="chat-username-input"
             placeholder="Username (auto-generated, editable)"
             maxlength="20"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 2px solid var(--border);
-              border-radius: var(--radius-sm);
-              background: var(--bg);
-              color: var(--text);
-              font-size: 0.85rem;
-              font-family: inherit;"
+            aria-label="Chat username"
           />
+
+          <div class="chat-input-row">
+            <input
+              type="text"
+              id="chatInput"
+              class="chat-message-input"
+              placeholder="Type your message..."
+              maxlength="1000"
+              aria-label="Chat message"
+            />
+            <button class="btn btn-primary chat-send-button" id="sendMessageBtn">
+              <span>📤</span>
+              <span>Send</span>
+            </button>
+          </div>
         </div>
 
-        <div style="display: flex; gap: 0.5rem;">
-          <input
-            type="text"
-            id="chatInput"
-            placeholder="Type your message..."
-            style="
-              flex: 1;
-              padding: 0.75rem;
-              border: 2px solid var(--border);
-              border-radius: var(--radius-sm);
-              background: var(--bg);
-              color: var(--text);
-              font-size: 0.95rem;
-              font-family: inherit;"
-            maxlength="1000"
-          />
-          <button class="btn btn-primary" id="sendMessageBtn" style="min-width: 100px;">
-            <span>📤</span>
-            <span>Send</span>
-          </button>
-        </div>
-
-        <div id="chatInfoText" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-light);">
+        <div id="chatInfoText" class="chat-info">
           💡 Messages are encrypted with your paste password.
         </div>
       </div>

@@ -87,33 +87,38 @@ export class ChatView {
     if (!messagesDiv) return;
 
     if (messages.length === 0) {
-      messagesDiv.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-light);">No messages yet. Be the first to chat!</div>';
+      messagesDiv.innerHTML = '<div class="chat-empty">No messages yet. Be the first to chat!</div>';
       return;
     }
 
     let html = '';
     for (const msg of messages) {
-      const date = new Date(msg.timestamp * 1000);
+      const date = msg.timestamp ? new Date(msg.timestamp * 1000) : new Date();
       const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const username = msg.username || 'Anonymous';
+      
+      // Determine if message is from current user (simple heuristic: check if username matches context)
+      const isCurrentUser = this.context?.currentUsername && username === this.context.currentUsername;
+      const messageClass = isCurrentUser ? 'chat-message chat-message-sent' : 'chat-message chat-message-received';
 
       html += `
-        <div style="margin-bottom: 0.75rem; padding: 0.5rem; background: var(--bg-card); border-radius: 0.375rem;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">
-            <span style="font-weight: 600;">${escapeHtml(username)}</span>
-            <span>${escapeHtml(timeStr)}</span>
+        <div class="${messageClass}">
+          <div class="chat-message-header">
+            <span class="chat-message-username">${escapeHtml(username)}</span>
+            <span class="chat-message-timestamp">${escapeHtml(timeStr)}</span>
           </div>
-          <div style="color: var(--text); word-wrap: break-word;">
-            ${escapeHtml(msg.text)}
-          </div>
+          <div class="chat-message-content">${escapeHtml(msg.text)}</div>
         </div>
       `;
     }
 
     messagesDiv.innerHTML = html;
 
-    // Scroll to bottom
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    // Scroll to bottom smoothly
+    messagesDiv.scrollTo({
+      top: messagesDiv.scrollHeight,
+      behavior: 'smooth'
+    });
   }
 
   /**
@@ -124,7 +129,7 @@ export class ChatView {
     if (!messagesDiv) return;
 
     messagesDiv.innerHTML = `
-      <div style="text-align: center; padding: 2rem; color: var(--danger);">
+      <div class="chat-error">
         ⚠️ ${escapeHtml(message)}
       </div>
     `;
@@ -157,7 +162,7 @@ export class ChatView {
     }
 
     try {
-      messagesDiv.innerHTML = '<div style="text-align: center; padding: 1rem; color: var(--text-light);">Loading messages...</div>';
+      messagesDiv.innerHTML = '<div class="chat-loading">Loading messages...</div>';
 
       // Call use case
       const result = await this.useCase.refreshMessages(
