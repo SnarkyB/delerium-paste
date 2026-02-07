@@ -27,18 +27,35 @@ export class PasswordModal {
   private inputElement: HTMLInputElement | null = null;
   private resolveCallback: ((result: PasswordModalResult) => void) | null = null;
   private isOpen = false;
+  private currentOptions: PasswordModalOptions | null = null;
+
+  /**
+   * Check if modal is currently open
+   */
+  isOpen(): boolean {
+    return this.isOpen;
+  }
 
   /**
    * Show password modal and return promise that resolves with password or null
    */
-  show(options: PasswordModalOptions = {}): Promise<PasswordModalResult> {
+  show(options: PasswordModalOptions = {}): Promise<string | null> {
     return new Promise((resolve) => {
-      // If modal is already open, close it first
-      if (this.isOpen) {
-        this.close();
+      // If modal is already open, update it instead of creating new one
+      if (this.isOpen && this.modalElement) {
+        this.updateModal(options);
+        // Set new resolve callback for next submission
+        this.resolveCallback = (result) => {
+          resolve(result.cancelled ? null : result.password);
+        };
+        return;
       }
 
-      this.resolveCallback = resolve;
+      // Create new modal
+      this.currentOptions = options;
+      this.resolveCallback = (result) => {
+        resolve(result.cancelled ? null : result.password);
+      };
       this.createModal(options);
       this.open();
     });
@@ -58,6 +75,51 @@ export class PasswordModal {
 
     this.removeModal();
     this.isOpen = false;
+    this.currentOptions = null;
+  }
+
+  /**
+   * Update existing modal with new options (for retries)
+   */
+  private updateModal(options: PasswordModalOptions): void {
+    if (!this.modalElement) return;
+
+    this.currentOptions = options;
+
+    // Update title if provided
+    const titleElement = this.modalElement.querySelector('#modal-title');
+    if (titleElement && options.title) {
+      titleElement.textContent = options.title;
+    }
+
+    // Update retry message
+    const retryElement = this.modalElement.querySelector('.modal-retry');
+    if (retryElement) {
+      if (options.attempt && options.attempt > 0 && options.remainingAttempts !== undefined) {
+        retryElement.textContent = `Incorrect password. ${options.remainingAttempts} attempt${options.remainingAttempts !== 1 ? 's' : ''} remaining.`;
+        retryElement.style.display = 'block';
+      } else {
+        retryElement.style.display = 'none';
+      }
+    }
+
+    // Update placeholder
+    if (this.inputElement && options.placeholder) {
+      this.inputElement.placeholder = options.placeholder;
+    }
+
+    // Clear input and focus
+    if (this.inputElement) {
+      this.inputElement.value = '';
+      this.inputElement.focus();
+    }
+
+    // Clear any previous errors
+    const errorElement = this.modalElement.querySelector('#modal-error') as HTMLElement | null;
+    if (errorElement) {
+      errorElement.style.display = 'none';
+      errorElement.textContent = '';
+    }
   }
 
   /**
@@ -253,21 +315,41 @@ export class PasswordModal {
       return;
     }
 
-    // Resolve with password
+    // Resolve with password (don't close modal yet - caller will handle success/failure)
     const result: PasswordModalResult = {
       password,
       cancelled: false
     };
 
-    this.resolveCallback(result);
+    const callback = this.resolveCallback;
+    // Clear resolveCallback temporarily - it will be set again if retry is needed
     this.resolveCallback = null;
 
-    // Clear input
+    // Clear input for next attempt
     this.inputElement.value = '';
 
-    // Close modal
+    // Resolve the promise
+    callback(result);
+  }
+
+  /**
+   * Close modal after successful password entry
+   */
+  closeOnSuccess(): void {
+    this.resolveCallback = null;
     this.removeModal();
     this.isOpen = false;
+    this.currentOptions = null;
+  }
+
+  /**
+   * Show error and keep modal open for retry
+   */
+  showErrorAndRetry(message: string): void {
+    this.showError(message);
+    // Keep modal open - don't close it
+    // User can try again
+    // The resolveCallback remains set so next submission will work
   }
 
   /**
