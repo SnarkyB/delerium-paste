@@ -12,6 +12,7 @@ import { safeDisplayContent, secureClear, getSafeErrorMessage } from '../../secu
 import { WindowWithUI } from '../../ui/ui-manager.js';
 import type { PasteMetadata } from '../../core/models/paste.js';
 import { isFailure } from '../../core/models/result.js';
+import { showPasswordModal } from './password-modal.js';
 
 /**
  * Paste viewer view component
@@ -149,12 +150,18 @@ export class PasteViewerView {
     try {
       if (updateStatus) updateStatus(true, 'Fetching paste...');
 
-      // Prompt for password with retry logic
-      const passwordPrompt = (attempt: number, remaining: number): string | null => {
-        const promptMessage = attempt === 0
-          ? 'This paste is protected. Enter the password or PIN:'
-          : `Incorrect password or PIN. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining:`;
-        return prompt(promptMessage);
+      // Prompt for password with retry logic using modal
+      const passwordPrompt = async (attempt: number, remaining: number): Promise<string | null> => {
+        const message = attempt === 0
+          ? 'This paste is protected. Enter the password or PIN to decrypt it.'
+          : undefined;
+        return showPasswordModal({
+          title: 'Password Required',
+          message,
+          attempt,
+          remainingAttempts: remaining,
+          placeholder: 'Enter password or PIN'
+        });
       };
 
       // Execute use case

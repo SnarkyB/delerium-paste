@@ -7,6 +7,7 @@
 
 import { ChatUseCase } from '../../application/use-cases/chat-use-case.js';
 import { secureClear } from '../../security.js';
+import { showPasswordModal } from './password-modal.js';
 
 /**
  * Escape HTML to prevent XSS attacks
@@ -144,7 +145,11 @@ export class ChatView {
 
     // If no cached key and no password provided, prompt for password
     if (!key && !pwd) {
-      pwd = prompt('Enter the paste password to decrypt messages:');
+      pwd = await showPasswordModal({
+        title: 'Password Required',
+        message: 'Enter the paste password to decrypt messages.',
+        placeholder: 'Enter password or PIN'
+      });
       if (!pwd) {
         this.showChatError('Password is required to decrypt messages');
         return;
@@ -225,7 +230,11 @@ export class ChatView {
 
     // If no cached key, prompt for password
     if (!key) {
-      password = prompt('Enter the paste password to send message:') ?? undefined;
+      password = await showPasswordModal({
+        title: 'Password Required',
+        message: 'Enter the paste password to encrypt and send your message.',
+        placeholder: 'Enter password or PIN'
+      }) ?? undefined;
       if (!password) {
         this.showChatError('Password is required to encrypt message');
         return;
