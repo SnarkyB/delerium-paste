@@ -1,0 +1,208 @@
+/**
+ * Mobile Optimizations
+ * 
+ * Enhanced mobile experience with touch optimizations and responsive improvements.
+ */
+
+/* Ensure all interactive elements meet touch target size (44x44px minimum) */
+button,
+.btn,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+a.button {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation; /* Disable double-tap zoom */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
+}
+
+/* Improve touch targets for small buttons */
+.btn-sm {
+  min-height: 36px;
+  min-width: 36px;
+  padding: var(--space-2) var(--space-4);
+}
+
+/* Better spacing for touch on mobile */
+@media (max-width: 640px) {
+  /* Increase spacing between interactive elements */
+  .btn + .btn,
+  button + button {
+    margin-top: var(--space-2);
+  }
+
+  /* Larger form inputs on mobile */
+  input,
+  textarea,
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: var(--space-4);
+  }
+
+  /* Better tap targets */
+  .checkbox-group,
+  .radio-group {
+    min-height: 44px;
+    padding: var(--space-4);
+  }
+
+  /* Larger preset buttons */
+  .preset-btn {
+    min-height: 44px;
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-base);
+  }
+
+  /* Better modal on mobile */
+  .modal {
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .modal-content {
+    border-radius: 0;
+    padding: var(--space-6);
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+
+  /* Full-width buttons on mobile */
+  .modal-buttons .btn {
+    width: 100%;
+  }
+
+  /* Better card padding on mobile */
+  .card {
+    padding: var(--space-6);
+  }
+
+  /* Improve text readability */
+  body {
+    font-size: var(--text-base);
+    line-height: var(--leading-relaxed);
+  }
+
+  /* Better header spacing */
+  .header {
+    margin-bottom: var(--space-6);
+  }
+
+  .logo {
+    font-size: var(--text-3xl);
+  }
+
+  /* Better section spacing */
+  .section {
+    margin-bottom: var(--space-6);
+  }
+
+  /* Improve output display on mobile */
+  .output-url {
+    flex-direction: column;
+  }
+
+  .output-url input {
+    font-size: var(--text-sm);
+  }
+
+  /* Better chat on mobile */
+  .chat-messages {
+    max-height: 300px;
+    font-size: var(--text-sm);
+  }
+
+  .chat-input-row {
+    flex-direction: column;
+  }
+
+  .chat-send-button {
+    width: 100%;
+    margin-top: var(--space-2);
+  }
+}
+
+/* Landscape mobile optimizations */
+@media (max-width: 640px) and (orientation: landscape) {
+  .chat-messages {
+    max-height: 200px;
+  }
+
+  .modal-content {
+    max-height: 90vh;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  .logo {
+    font-size: var(--text-2xl);
+  }
+
+  .card {
+    padding: var(--space-4);
+  }
+
+  .modal-content {
+    padding: var(--space-4);
+  }
+}
+
+/* Prevent text size adjustment on iOS */
+@media screen and (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Improve scrolling on mobile */
+@media (max-width: 640px) {
+  * {
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  /* Better scrollbar on mobile */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(var(--space-4), env(safe-area-inset-left));
+    padding-right: max(var(--space-4), env(safe-area-inset-right));
+  }
+
+  .version-display {
+    bottom: max(var(--space-4), env(safe-area-inset-bottom));
+    right: max(var(--space-4), env(safe-area-inset-right));
+  }
+}
+
+/* Improve focus visibility on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch devices - larger focus indicators */
+  *:focus-visible {
+    outline-width: 3px;
+    outline-offset: 3px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .btn:hover:not(:focus-visible),
+  a:hover:not(:focus-visible) {
+    transform: none;
+  }
+}
+
+/* Better loading indicator on mobile */
+@media (max-width: 640px) {
+  .loading-indicator {
+    max-width: 90vw;
+    padding: var(--space-6);
+  }
+}
