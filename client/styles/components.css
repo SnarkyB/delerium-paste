@@ -290,6 +290,7 @@ textarea {
   width: 1em;
   height: 1em;
   vertical-align: middle;
+  overflow: visible;
 }
 
 .tooltip:hover::after,
@@ -307,12 +308,13 @@ textarea {
   font-weight: var(--font-normal);
   white-space: normal;
   max-width: 250px;
+  min-width: 120px;
   width: max-content;
   z-index: var(--z-tooltip);
   box-shadow: var(--shadow-lg);
   pointer-events: none;
-  opacity: 0;
-  animation: tooltipFadeIn var(--transition-base) ease-out forwards;
+  opacity: 1;
+  animation: tooltipFadeIn var(--transition-base) ease-out;
 }
 
 .tooltip:hover::before,
@@ -327,9 +329,9 @@ textarea {
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
   border-top: 5px solid var(--text);
-  z-index: var(--z-tooltip);
-  opacity: 0;
-  animation: tooltipFadeIn var(--transition-base) ease-out forwards;
+  z-index: calc(var(--z-tooltip) + 1);
+  pointer-events: none;
+  opacity: 1;
 }
 
 @keyframes tooltipFadeIn {
@@ -343,17 +345,12 @@ textarea {
   }
 }
 
-/* Ensure tooltip is visible and not cut off */
-.tooltip {
-  overflow: visible;
-}
-
 /* Better tooltip positioning on mobile - show on tap */
 @media (hover: none) and (pointer: coarse) {
   .tooltip:active::after,
   .tooltip:active::before {
     opacity: 1;
-    animation: tooltipFadeIn var(--transition-base) ease-out forwards;
+    display: block;
   }
 }
 
