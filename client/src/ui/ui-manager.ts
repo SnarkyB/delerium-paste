@@ -5,6 +5,7 @@
  */
 
 import { removeDeleteToken } from '../utils/storage.js';
+import { showLoading as showLoadingIndicator, hideLoading as hideLoadingIndicator, updateLoading } from '../presentation/components/loading-indicator.js';
 
 /**
  * Extended Window interface for UI helper functions
@@ -22,6 +23,15 @@ export interface WindowWithUI extends Window {
  */
 export function showLoading(show: boolean, message?: string): void {
   const win = window as WindowWithUI;
+  
+  // Show/hide global loading indicator
+  if (show) {
+    showLoadingIndicator(message || 'Processing...');
+  } else {
+    hideLoadingIndicator();
+  }
+  
+  // Update button loading state
   if (typeof win.setButtonLoading === 'function') {
     win.setButtonLoading(show, message);
   } else {
