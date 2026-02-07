@@ -12,7 +12,6 @@ import { safeDisplayContent, secureClear, getSafeErrorMessage } from '../../secu
 import { WindowWithUI } from '../../ui/ui-manager.js';
 import type { PasteMetadata } from '../../core/models/paste.js';
 import { isFailure } from '../../core/models/result.js';
-import { getPasswordModal } from './password-modal.js';
 
 /**
  * Paste viewer view component
@@ -150,24 +149,32 @@ export class PasteViewerView {
     try {
       if (updateStatus) updateStatus(true, 'Fetching paste...');
 
-      // Get modal instance for managing retries
-      const { getPasswordModal } = await import('./password-modal.js');
-      const modal = getPasswordModal();
-
       // Prompt for password with retry logic using modal
       const passwordPrompt = async (attempt: number, remaining: number): Promise<string | null> => {
+        // Dynamically import modal to avoid unused import warning
+        const { getPasswordModal } = await import('./password-modal.js');
+        const modal = getPasswordModal();
+        
         const message = attempt === 0
           ? 'This paste is protected. Enter the password or PIN to decrypt it.'
           : undefined;
         
         // Show/update modal with retry info
-        return modal.show({
+        const password = await modal.show({
           title: 'Password Required',
           message,
           attempt,
           remainingAttempts: remaining,
           placeholder: 'Enter password or PIN'
         });
+
+        // Close modal after getting password (success or cancel)
+        // If password is wrong, modal will be shown again on next retry
+        if (password) {
+          modal.closeOnSuccess();
+        }
+
+        return password;
       };
 
       // Execute use case
@@ -180,10 +187,6 @@ export class PasteViewerView {
         },
         passwordPrompt
       );
-
-      // Always close modal after use case completes (success or failure)
-      // If it failed, the error will be shown on the page, not in modal
-      modal.closeOnSuccess();
 
       if (isFailure(result)) {
         throw new Error(result.error);
