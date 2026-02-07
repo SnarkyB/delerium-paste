@@ -28,12 +28,12 @@ export class ViewPasteUseCase {
    * Execute paste viewing workflow
    * 
    * @param command View paste command
-   * @param onPasswordPrompt Callback to prompt for password (returns password or null)
+   * @param onPasswordPrompt Callback to prompt for password (returns password or null, can be async)
    * @returns Result containing decrypted paste data or error
    */
   async execute(
     command: ViewPasteCommand,
-    onPasswordPrompt: (attempt: number, remaining: number) => string | null
+    onPasswordPrompt: (attempt: number, remaining: number) => string | null | Promise<string | null>
   ): Promise<Result<PasteViewResult, string>> {
     try {
       // 1. Retrieve paste from API
@@ -50,7 +50,8 @@ export class ViewPasteUseCase {
 
       while (attempts < MAX_PASSWORD_ATTEMPTS && !content) {
         const attemptsRemaining = MAX_PASSWORD_ATTEMPTS - attempts;
-        const password = onPasswordPrompt(attempts, attemptsRemaining);
+        const passwordResult = onPasswordPrompt(attempts, attemptsRemaining);
+        const password = passwordResult instanceof Promise ? await passwordResult : passwordResult;
         
         if (!password) {
           return failure('A password or PIN is required to decrypt this content.');
