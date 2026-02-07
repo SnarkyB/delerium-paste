@@ -611,116 +611,144 @@
     </style>
   </head>
   <body>
+    <a href="#main-content" class="sr-only">Skip to main content</a>
     <div class="container">
       <!-- Header -->
-      <div class="header">
-        <div class="logo">Delirium Paste</div>
-        <div class="tagline">Secure, Zero-Knowledge Paste Sharing</div>
-        <div class="security-badge">
-          <span>🔒</span>
+      <header class="header" role="banner">
+        <h1 class="logo">Delirium Paste</h1>
+        <p class="tagline">Secure, Zero-Knowledge Paste Sharing</p>
+        <div class="security-badge" role="status" aria-label="Security status">
+          <span aria-hidden="true">🔒</span>
           <span>End-to-End Encrypted</span>
         </div>
-      </div>
+      </header>
 
       <!-- Main Card -->
-      <div class="card">
+      <main class="card" id="main-content" role="main">
         <!-- Paste Content -->
-        <div class="section">
-          <div class="section-title">Your Content</div>
+        <section class="section" aria-labelledby="content-title">
+          <h2 class="section-title" id="content-title">Your Content</h2>
           <div class="textarea-wrapper">
+            <label for="paste" class="sr-only">Paste content</label>
             <textarea 
               id="paste"
               name="paste"
               placeholder="Type or paste your text here... It will be encrypted in your browser before upload."
               maxlength="1048576"
+              aria-describedby="charCounter paste-help"
+              aria-required="false"
             ></textarea>
-            <div class="char-counter" id="charCounter">0 / 1,048,576</div>
+            <div class="char-counter" id="charCounter" role="status" aria-live="polite">0 / 1,048,576</div>
+            <div id="paste-help" class="sr-only">Maximum 1,048,576 characters allowed</div>
           </div>
-        </div>
+        </section>
 
         <!-- Expiration Options -->
-        <div class="section">
-          <div class="section-title">Expiration</div>
+        <section class="section" aria-labelledby="expiration-title">
+          <h2 class="section-title" id="expiration-title">Expiration</h2>
           <div class="option-group">
             <label for="mins">
               Expire after (minutes)
-              <span class="tooltip" data-tooltip="How long before the paste is automatically deleted">ℹ️</span>
+              <span class="tooltip" data-tooltip="How long before the paste is automatically deleted" aria-label="Expiration help">ℹ️</span>
             </label>
-            <input type="number" id="mins" name="mins" value="60" min="1" max="10080">
-            <div class="presets">
-              <button class="preset-btn" type="button" data-mins="60">1 hour</button>
-              <button class="preset-btn" type="button" data-mins="1440">1 day</button>
-              <button class="preset-btn" type="button" data-mins="10080">1 week</button>
+            <input 
+              type="number" 
+              id="mins" 
+              name="mins" 
+              value="60" 
+              min="1" 
+              max="10080"
+              aria-describedby="expiration-help"
+            >
+            <div id="expiration-help" class="sr-only">Enter number of minutes before paste expires (1 to 10080)</div>
+            <div class="presets" role="group" aria-label="Quick expiration presets">
+              <button class="preset-btn" type="button" data-mins="60" aria-label="Set expiration to 1 hour">1 hour</button>
+              <button class="preset-btn" type="button" data-mins="1440" aria-label="Set expiration to 1 day">1 day</button>
+              <button class="preset-btn" type="button" data-mins="10080" aria-label="Set expiration to 1 week">1 week</button>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Security Options -->
-        <div class="section">
-          <div class="section-title">Security Options</div>
+        <section class="section" aria-labelledby="security-title">
+          <h2 class="section-title" id="security-title">Security Options</h2>
 
           <div class="option-group">
             <div class="checkbox-group">
-              <input type="checkbox" id="allowChat" name="allowChat">
+              <input type="checkbox" id="allowChat" name="allowChat" aria-describedby="allowChat-help">
               <label for="allowChat" class="checkbox-label">
                 Enable anonymous chat for this paste
               </label>
             </div>
+            <div id="allowChat-help" class="sr-only">When enabled, viewers can post encrypted messages on this paste</div>
           </div>
 
           <div class="option-group">
             <div class="checkbox-group">
-              <input type="checkbox" id="allowKeyCaching" name="allowKeyCaching">
+              <input type="checkbox" id="allowKeyCaching" name="allowKeyCaching" aria-describedby="allowKeyCaching-help">
               <label for="allowKeyCaching" class="checkbox-label">
-                💬 Convenient chat mode
-                <span class="tooltip" data-tooltip="Viewers can cache decryption key for easier chat refreshes (less secure)">ℹ️</span>
+                <span aria-hidden="true">💬</span> Convenient chat mode
+                <span class="tooltip" data-tooltip="Viewers can cache decryption key for easier chat refreshes (less secure)" aria-label="Key caching help">ℹ️</span>
               </label>
             </div>
-            <div style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.25rem; padding-left: 1.5rem;">
+            <div id="allowKeyCaching-help" style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.25rem; padding-left: 1.5rem;">
               When enabled, viewers won't need to re-enter password for each chat refresh
             </div>
           </div>
 
           <div id="passwordGroup">
             <div class="option-group">
-              <label for="password">Password or PIN (required)</label>
-              <input type="password" id="password" name="password" placeholder="Enter a password or 4-12 digit PIN" autocomplete="new-password" required>
+              <label for="password">Password or PIN <span aria-label="required">*</span></label>
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                placeholder="Enter a password or 4-12 digit PIN" 
+                autocomplete="new-password" 
+                required
+                aria-describedby="password-help"
+                aria-required="true"
+              >
+              <div id="password-help" class="sr-only">Required: Enter a password or 4-12 digit PIN to encrypt your paste</div>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Submit Button -->
-        <button id="save" class="btn-primary" type="button">
+        <button id="save" class="btn-primary" type="button" aria-describedby="save-help">
           <span class="btn-text">
-            <span class="btn-icon">🔒</span>
+            <span class="btn-icon" aria-hidden="true">🔒</span>
             <span id="btnText">Encrypt & Upload</span>
           </span>
         </button>
+        <div id="save-help" class="sr-only">Click to encrypt your content and upload it to the server</div>
 
         <!-- Output -->
-        <div id="output" class="output">
+        <div id="output" class="output" role="status" aria-live="polite" aria-atomic="true">
           <div class="output-title" id="outputTitle">Success! Your paste is ready</div>
           <div id="outputMessage"></div>
           <div class="output-url">
-            <label style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">Share URL:</label>
-            <input type="text" id="pasteUrl" name="pasteUrl" readonly>
-            <button class="btn-copy" id="copyBtn">Copy Link</button>
-            <button class="btn-view" id="viewBtn" style="display: none;">View Paste</button>
+            <label for="pasteUrl" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">Share URL:</label>
+            <input type="text" id="pasteUrl" name="pasteUrl" readonly aria-label="Share URL">
+            <button class="btn-copy" id="copyBtn" aria-label="Copy share URL">Copy Link</button>
+            <button class="btn-view" id="viewBtn" style="display: none;" aria-label="View paste">View Paste</button>
           </div>
           <div class="output-url" id="deleteUrlContainer" style="display: none; margin-top: 0.75rem;">
-            <label style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">🗑️ Delete URL (save this to delete later):</label>
-            <input type="text" id="deleteUrl" name="deleteUrl" readonly style="font-size: 0.85rem;">
-            <button class="btn-copy" id="copyDeleteBtn">Copy</button>
+            <label for="deleteUrl" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">
+              <span aria-hidden="true">🗑️</span> Delete URL (save this to delete later):
+            </label>
+            <input type="text" id="deleteUrl" name="deleteUrl" readonly style="font-size: 0.85rem;" aria-label="Delete URL">
+            <button class="btn-copy" id="copyDeleteBtn" aria-label="Copy delete URL">Copy</button>
           </div>
         </div>
-      </div>
+      </main>
 
       <!-- Footer -->
-      <div class="footer">
+      <footer class="footer" role="contentinfo">
         <p style="margin-top: 0.5rem; font-size: 0.85rem;">
           Your content is encrypted in your browser. We never see your data.
         </p>
-      </div>
+      </footer>
     </div>
 
     <!-- Version Display -->
