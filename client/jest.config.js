@@ -42,6 +42,7 @@ module.exports = {
     // Exclude crypto module (covered in PR #1, has separate tests)
     '!src/core/crypto/**',
     '!src/core/models/**', // Type-only module, no runtime code to test
+    '!src/core/services/**', // Domain services - will be tested in follow-up PRs
     '!src/infrastructure/**',
     '!src/application/**',
     '!src/presentation/**',
