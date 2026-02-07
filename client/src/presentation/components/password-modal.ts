@@ -41,13 +41,16 @@ export class PasswordModal {
    */
   show(options: PasswordModalOptions = {}): Promise<string | null> {
     return new Promise((resolve) => {
-      // If modal is already open, update it instead of creating new one
+      // If modal is already open, update it and wait for next submission
       if (this._isOpen && this.modalElement) {
         this.updateModal(options);
         // Set new resolve callback for next submission
+        // The promise will resolve when user submits again
         this.resolveCallback = (result) => {
           resolve(result.cancelled ? null : result.password);
         };
+        // Don't return - we need to wait for the user to submit again
+        // The promise stays pending until handleSubmit is called
         return;
       }
 
