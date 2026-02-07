@@ -9,7 +9,7 @@
 
 import { EncryptionService } from '../../core/services/encryption-service.js';
 import type { ChatMessage, DecryptedChatMessage } from '../../core/services/encryption-service.js';
-import type { ChatMessagesResult, SendChatMessageCommand } from '../dtos/paste-dtos.js';
+import type { SendChatMessageCommand } from '../dtos/paste-dtos.js';
 import { encodeBase64Url } from '../../core/crypto/encoding.js';
 
 /**
@@ -78,7 +78,7 @@ export class ChatUseCase {
           username: decrypted.username,
           timestamp: msg.timestamp
         });
-      } catch (e) {
+      } catch {
         decryptedMessages.push({
           text: '[Decryption failed - wrong password?]',
           timestamp: msg.timestamp

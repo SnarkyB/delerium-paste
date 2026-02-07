@@ -139,7 +139,7 @@ export class ChatView {
     if (!messagesDiv) return;
 
     // Determine if we can use cached key
-    let key: CryptoKey | undefined = this.context.allowKeyCaching ? this.context.cachedKey : undefined;
+    const key: CryptoKey | undefined = this.context.allowKeyCaching ? this.context.cachedKey : undefined;
     let pwd = password;
 
     // If no cached key and no password provided, prompt for password
@@ -220,7 +220,7 @@ export class ChatView {
     const username = usernameInput?.value.trim() || this.context.currentUsername || generateRandomUsername();
 
     // Determine if we can use cached key
-    let key: CryptoKey | undefined = this.context.allowKeyCaching ? this.context.cachedKey : undefined;
+    const key: CryptoKey | undefined = this.context.allowKeyCaching ? this.context.cachedKey : undefined;
     let password: string | undefined;
 
     // If no cached key, prompt for password
