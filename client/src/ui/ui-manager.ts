@@ -5,7 +5,7 @@
  */
 
 import { removeDeleteToken } from '../utils/storage.js';
-import { showLoading as showLoadingIndicator, hideLoading as hideLoadingIndicator, updateLoading } from '../presentation/components/loading-indicator.js';
+import { showLoading as showLoadingIndicator, hideLoading as hideLoadingIndicator } from '../presentation/components/loading-indicator.js';
 
 /**
  * Extended Window interface for UI helper functions
