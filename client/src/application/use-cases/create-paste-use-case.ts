@@ -16,7 +16,6 @@ import { PasteService } from '../../core/services/paste-service.js';
 import type { CreatePasteCommand, PasteCreated } from '../dtos/paste-dtos.js';
 import type { Result } from '../../core/models/result.js';
 import { success, failure, isFailure } from '../../core/models/result.js';
-import { encodeBase64Url } from '../../core/crypto/encoding.js';
 
 /**
  * Use case for creating a paste

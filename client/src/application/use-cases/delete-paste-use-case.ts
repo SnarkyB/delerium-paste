@@ -29,15 +29,7 @@ export class DeletePasteUseCase {
         return { success: true };
       } else {
         // Password-based deletion (anyone with password)
-        // Derive deleteAuth from password
-        const { EncryptionService } = await import('../../core/services/encryption-service.js');
-        const encryptionService = new EncryptionService();
-        
-        // We need the salt from the paste to derive deleteAuth
-        // This should be retrieved from the paste metadata or URL
-        // For now, we'll need to fetch the paste first to get the salt
-        // This is a limitation - we'll handle it in the presentation layer
-        
+        // Note: deleteAuth is derived in the presentation layer and passed here
         // Call the delete endpoint with password-derived auth
         const response = await fetch(`/api/pastes/${encodeURIComponent(command.pasteId)}/delete`, {
           method: 'POST',

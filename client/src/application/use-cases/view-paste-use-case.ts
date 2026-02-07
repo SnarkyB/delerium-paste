@@ -72,7 +72,7 @@ export class ViewPasteUseCase {
             password,
             saltArray
           );
-        } catch (error) {
+        } catch {
           attempts++;
           if (attempts >= MAX_PASSWORD_ATTEMPTS) {
             return failure('Maximum password attempts exceeded. Incorrect password or PIN.');
