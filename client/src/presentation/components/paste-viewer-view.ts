@@ -12,7 +12,7 @@ import { safeDisplayContent, secureClear, getSafeErrorMessage } from '../../secu
 import { WindowWithUI } from '../../ui/ui-manager.js';
 import type { PasteMetadata } from '../../core/models/paste.js';
 import { isFailure } from '../../core/models/result.js';
-import { showPasswordModal } from './password-modal.js';
+import { getPasswordModal } from './password-modal.js';
 
 /**
  * Paste viewer view component
