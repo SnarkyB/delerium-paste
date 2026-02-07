@@ -102,6 +102,28 @@ Changes to these areas require extra care and 100% test coverage:
 3. ✅ DO fix test/consumer to match actual API contract
 4. ✅ DO understand WHY the API was designed that way
 
+## Pre-Commit Checklist
+
+**Before every commit**, run ESLint and type check:
+
+```bash
+cd client && npm run lint        # Check for lint errors
+cd client && npm run typecheck   # Check TypeScript types
+```
+
+**Or use the pre-commit hook** (automatically runs on commit):
+- Pre-commit hook at `.husky/pre-commit` runs:
+  1. ESLint autofix
+  2. ESLint check
+  3. TypeScript type check
+  4. Unit tests
+
+**To install the hook:**
+```bash
+cd client && npm install  # Runs "prepare" script which sets up Husky
+```
+
+
 ## Pre-PR Checklist
 
 Before creating/updating a PR, run:
