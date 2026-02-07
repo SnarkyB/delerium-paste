@@ -150,12 +150,18 @@ export class PasteViewerView {
     try {
       if (updateStatus) updateStatus(true, 'Fetching paste...');
 
+      // Get modal instance for managing retries
+      const { getPasswordModal } = await import('./password-modal.js');
+      const modal = getPasswordModal();
+
       // Prompt for password with retry logic using modal
       const passwordPrompt = async (attempt: number, remaining: number): Promise<string | null> => {
         const message = attempt === 0
           ? 'This paste is protected. Enter the password or PIN to decrypt it.'
           : undefined;
-        return showPasswordModal({
+        
+        // Show/update modal with retry info
+        return modal.show({
           title: 'Password Required',
           message,
           attempt,
@@ -174,6 +180,11 @@ export class PasteViewerView {
         },
         passwordPrompt
       );
+
+      // Close modal on success
+      if (!isFailure(result)) {
+        modal.closeOnSuccess();
+      }
 
       if (isFailure(result)) {
         throw new Error(result.error);
