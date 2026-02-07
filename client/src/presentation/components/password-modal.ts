@@ -402,7 +402,7 @@ export class PasswordModal {
       }
     });
 
-    this.isOpen = true;
+    this._isOpen = true;
   }
 
   /**
