@@ -181,10 +181,9 @@ export class PasteViewerView {
         passwordPrompt
       );
 
-      // Close modal on success
-      if (!isFailure(result)) {
-        modal.closeOnSuccess();
-      }
+      // Always close modal after use case completes (success or failure)
+      // If it failed, the error will be shown on the page, not in modal
+      modal.closeOnSuccess();
 
       if (isFailure(result)) {
         throw new Error(result.error);

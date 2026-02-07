@@ -108,7 +108,7 @@ export class PasswordModal {
       titleElement.textContent = options.title;
     }
 
-    // Update retry message
+    // Update retry message - show error for retries
     const retryElement = this.modalElement.querySelector('.modal-retry') as HTMLElement | null;
     if (retryElement) {
       if (options.attempt && options.attempt > 0 && options.remainingAttempts !== undefined) {
@@ -124,13 +124,13 @@ export class PasswordModal {
       this.inputElement.placeholder = options.placeholder;
     }
 
-    // Clear input and focus
+    // Clear input and focus for retry
     if (this.inputElement) {
       this.inputElement.value = '';
       this.inputElement.focus();
     }
 
-    // Clear any previous errors
+    // Clear any previous errors (will be shown via retry message)
     const errorElement = this.modalElement.querySelector('#modal-error') as HTMLElement | null;
     if (errorElement) {
       errorElement.style.display = 'none';
@@ -339,13 +339,13 @@ export class PasswordModal {
     };
 
     const callback = this.resolveCallback;
-    // Clear resolveCallback temporarily - it will be set again if retry is needed
+    // Clear resolveCallback - caller will set it again if retry is needed
     this.resolveCallback = null;
 
-    // Clear input for next attempt
+    // Clear input for next attempt (but keep modal open)
     this.inputElement.value = '';
 
-    // Resolve the promise
+    // Resolve the promise (modal stays open until caller closes it)
     callback(result);
   }
 
