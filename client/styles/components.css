@@ -281,16 +281,22 @@ textarea {
 /* Tooltips */
 .tooltip {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: help;
   color: var(--text-light);
   margin-left: var(--space-1);
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
 }
 
-.tooltip:hover::after {
+.tooltip:hover::after,
+.tooltip:focus::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: 100%;
+  bottom: calc(100% + var(--space-2));
   left: 50%;
   transform: translateX(-50%);
   padding: var(--space-2) var(--space-3);
@@ -298,10 +304,57 @@ textarea {
   color: white;
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
-  white-space: nowrap;
+  font-weight: var(--font-normal);
+  white-space: normal;
+  max-width: 250px;
+  width: max-content;
   z-index: var(--z-tooltip);
-  margin-bottom: var(--space-2);
   box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  opacity: 0;
+  animation: tooltipFadeIn var(--transition-base) ease-out forwards;
+}
+
+.tooltip:hover::before,
+.tooltip:focus::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + var(--space-1));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--text);
+  z-index: var(--z-tooltip);
+  opacity: 0;
+  animation: tooltipFadeIn var(--transition-base) ease-out forwards;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Ensure tooltip is visible and not cut off */
+.tooltip {
+  overflow: visible;
+}
+
+/* Better tooltip positioning on mobile - show on tap */
+@media (hover: none) and (pointer: coarse) {
+  .tooltip:active::after,
+  .tooltip:active::before {
+    opacity: 1;
+    animation: tooltipFadeIn var(--transition-base) ease-out forwards;
+  }
 }
 
 /* Sections */
