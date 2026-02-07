@@ -26,14 +26,14 @@ export class PasswordModal {
   private backdropElement: HTMLDivElement | null = null;
   private inputElement: HTMLInputElement | null = null;
   private resolveCallback: ((result: PasswordModalResult) => void) | null = null;
-  private isOpen = false;
+  private _isOpen = false;
   private currentOptions: PasswordModalOptions | null = null;
 
   /**
    * Check if modal is currently open
    */
   isOpen(): boolean {
-    return this.isOpen;
+    return this._isOpen;
   }
 
   /**
@@ -42,7 +42,7 @@ export class PasswordModal {
   show(options: PasswordModalOptions = {}): Promise<string | null> {
     return new Promise((resolve) => {
       // If modal is already open, update it instead of creating new one
-      if (this.isOpen && this.modalElement) {
+      if (this._isOpen && this.modalElement) {
         this.updateModal(options);
         // Set new resolve callback for next submission
         this.resolveCallback = (result) => {
@@ -62,10 +62,26 @@ export class PasswordModal {
   }
 
   /**
+   * Show password modal and return promise that resolves with PasswordModalResult (for backward compatibility)
+   */
+  showModal(options: PasswordModalOptions = {}): Promise<PasswordModalResult> {
+    return new Promise((resolve) => {
+      // If modal is already open, close it first
+      if (this._isOpen) {
+        this.close();
+      }
+
+      this.resolveCallback = resolve;
+      this.createModal(options);
+      this.open();
+    });
+  }
+
+  /**
    * Close the modal
    */
   close(): void {
-    if (!this.isOpen) return;
+    if (!this._isOpen) return;
 
     // Resolve with cancelled if still open
     if (this.resolveCallback) {
@@ -74,7 +90,7 @@ export class PasswordModal {
     }
 
     this.removeModal();
-    this.isOpen = false;
+    this._isOpen = false;
     this.currentOptions = null;
   }
 
@@ -93,7 +109,7 @@ export class PasswordModal {
     }
 
     // Update retry message
-    const retryElement = this.modalElement.querySelector('.modal-retry');
+    const retryElement = this.modalElement.querySelector('.modal-retry') as HTMLElement | null;
     if (retryElement) {
       if (options.attempt && options.attempt > 0 && options.remainingAttempts !== undefined) {
         retryElement.textContent = `Incorrect password. ${options.remainingAttempts} attempt${options.remainingAttempts !== 1 ? 's' : ''} remaining.`;
@@ -167,13 +183,14 @@ export class PasswordModal {
       modalContent.appendChild(messageElement);
     }
 
-    // Retry message if attempt > 0
+    // Retry message container (will be shown/hidden dynamically)
+    const retryElement = document.createElement('p');
+    retryElement.className = 'modal-retry';
+    retryElement.style.display = attempt > 0 ? 'block' : 'none';
     if (attempt > 0) {
-      const retryElement = document.createElement('p');
-      retryElement.className = 'modal-retry';
       retryElement.textContent = `Incorrect password. ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} remaining.`;
-      modalContent.appendChild(retryElement);
     }
+    modalContent.appendChild(retryElement);
 
     // Input wrapper
     const inputWrapper = document.createElement('div');
@@ -338,7 +355,7 @@ export class PasswordModal {
   closeOnSuccess(): void {
     this.resolveCallback = null;
     this.removeModal();
-    this.isOpen = false;
+    this._isOpen = false;
     this.currentOptions = null;
   }
 
@@ -437,6 +454,5 @@ export function getPasswordModal(): PasswordModal {
  */
 export async function showPasswordModal(options: PasswordModalOptions = {}): Promise<string | null> {
   const modal = getPasswordModal();
-  const result = await modal.show(options);
-  return result.cancelled ? null : result.password;
+  return modal.show(options);
 }
