@@ -362,74 +362,78 @@
     </style>
   </head>
   <body>
+    <a href="#main-content" class="sr-only">Skip to main content</a>
     <div class="container">
       <!-- Header -->
-      <div class="header">
-        <div class="logo">Secure Paste</div>
-        <div class="status-badge loading" id="statusBadge">
-          <span class="spinner"></span>
+      <header class="header" role="banner">
+        <h1 class="logo">Secure Paste</h1>
+        <div class="status-badge loading" id="statusBadge" role="status" aria-live="polite" aria-atomic="true">
+          <span class="spinner" aria-hidden="true"></span>
           <span id="statusText">Decrypting...</span>
         </div>
-      </div>
+      </header>
 
       <!-- Main Card -->
-      <div class="card">
-        <pre id="content" class="loading">Decrypting your secure paste...</pre>
+      <main class="card" id="main-content" role="main">
+        <pre id="content" class="loading" role="article" aria-label="Paste content">Decrypting your secure paste...</pre>
 
-          <div class="actions">
-            <button class="btn btn-primary" id="copyBtn">
-              <span>📋</span>
+          <div class="actions" role="toolbar" aria-label="Paste actions">
+            <button class="btn btn-primary" id="copyBtn" aria-label="Copy paste content to clipboard">
+              <span aria-hidden="true">📋</span>
               <span id="copyText">Copy to Clipboard</span>
             </button>
-            <button class="btn btn-secondary" id="newPasteBtn" type="button">
-              <span>➕</span>
+            <button class="btn btn-secondary" id="newPasteBtn" type="button" aria-label="Create a new paste">
+              <span aria-hidden="true">➕</span>
               <span>Create New Paste</span>
             </button>
-            <button class="btn btn-danger" id="destroyBtn" style="display: none;">
-              <span>🗑️</span>
+            <button class="btn btn-danger" id="destroyBtn" style="display: none;" aria-label="Permanently delete this paste">
+              <span aria-hidden="true">🗑️</span>
               <span id="destroyText">Destroy Paste</span>
             </button>
           </div>
 
-        <div class="info-bar" id="infoBar" style="display: none;">
+        <div class="info-bar" id="infoBar" style="display: none;" role="complementary" aria-label="Paste information">
           <div class="info-item">
-            <span>⏰</span>
-            <span><strong>Expires:</strong> <span id="expiresInfo">-</span></span>
+            <span aria-hidden="true">⏰</span>
+            <span><strong>Expires:</strong> <span id="expiresInfo" aria-live="polite">-</span></span>
           </div>
           <div class="info-item">
-            <span>🔒</span>
+            <span aria-hidden="true">🔒</span>
             <span><strong>Encrypted:</strong> AES-256-GCM</span>
           </div>
         </div>
-      </div>
+      </main>
 
       <!-- Chat Section -->
-      <div class="card chat-section" id="chatSection" style="display: none;">
+      <section class="card chat-section" id="chatSection" style="display: none;" aria-labelledby="chat-title">
         <div class="chat-header">
-          <h3 class="chat-title">Anonymous Chat</h3>
-          <span class="chat-limit">50 message limit</span>
+          <h2 class="chat-title" id="chat-title">Anonymous Chat</h2>
+          <span class="chat-limit" aria-label="Message limit">50 message limit</span>
         </div>
 
         <div style="margin-bottom: var(--space-4);">
-          <button class="btn btn-primary btn-full" id="refreshMessagesBtn">
-            <span>🔄</span>
+          <button class="btn btn-primary btn-full" id="refreshMessagesBtn" aria-label="Refresh chat messages">
+            <span aria-hidden="true">🔄</span>
             <span>Refresh Messages</span>
           </button>
-          <div id="keyStatus" class="chat-key-status" style="display: none;">
-            <span id="keyStatusText" class="chat-key-status-text">🔓 Key cached - refresh without password</span>
-            <button id="forgetKeyBtn" class="chat-forget-key-button">
+          <div id="keyStatus" class="chat-key-status" style="display: none;" role="status" aria-live="polite">
+            <span id="keyStatusText" class="chat-key-status-text">
+              <span aria-hidden="true">🔓</span> Key cached - refresh without password
+            </span>
+            <button id="forgetKeyBtn" class="chat-forget-key-button" aria-label="Forget cached encryption key">
               Forget
             </button>
           </div>
         </div>
 
-        <div id="chatMessages" class="chat-messages">
+        <div id="chatMessages" class="chat-messages" role="log" aria-label="Chat messages" aria-live="polite" aria-atomic="false">
           <div class="chat-empty">
             Click "Refresh Messages" to load chat (password required)
           </div>
         </div>
 
         <div class="chat-input-area">
+          <label for="usernameInput" class="sr-only">Chat username</label>
           <input
             type="text"
             id="usernameInput"
@@ -440,6 +444,7 @@
           />
 
           <div class="chat-input-row">
+            <label for="chatInput" class="sr-only">Chat message</label>
             <input
               type="text"
               id="chatInput"
@@ -447,25 +452,27 @@
               placeholder="Type your message..."
               maxlength="1000"
               aria-label="Chat message"
+              aria-describedby="chat-char-limit"
             />
-            <button class="btn btn-primary chat-send-button" id="sendMessageBtn">
-              <span>📤</span>
+            <span id="chat-char-limit" class="sr-only">Maximum 1000 characters</span>
+            <button class="btn btn-primary chat-send-button" id="sendMessageBtn" aria-label="Send chat message">
+              <span aria-hidden="true">📤</span>
               <span>Send</span>
             </button>
           </div>
         </div>
 
-        <div id="chatInfoText" class="chat-info">
-          💡 Messages are encrypted with your paste password.
+        <div id="chatInfoText" class="chat-info" role="note">
+          <span aria-hidden="true">💡</span> Messages are encrypted with your paste password.
         </div>
-      </div>
+      </section>
 
       <!-- Footer -->
-      <div class="footer">
+      <footer class="footer" role="contentinfo">
         <p style="margin-top: 0.5rem; font-size: 0.85rem;">
           This paste was encrypted in the sender's browser. Zero-knowledge security.
         </p>
-      </div>
+      </footer>
     </div>
 
     <!-- Version Display -->
