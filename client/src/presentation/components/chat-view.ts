@@ -1,0 +1,379 @@
+/**
+ * Chat View Component
+ * 
+ * Presentation layer component for anonymous chat functionality.
+ * Handles DOM manipulation and delegates business logic to use cases.
+ */
+
+import { ChatUseCase } from '../../application/use-cases/chat-use-case.js';
+import { secureClear } from '../../security.js';
+
+/**
+ * Escape HTML to prevent XSS attacks
+ */
+export function escapeHtml(text: string): string {
+  if (text == null) {
+    return '';
+  }
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/**
+ * Debug flag for verbose error logging
+ */
+const DEBUG_MODE = typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production';
+
+/**
+ * Chat context with optional key caching support
+ */
+interface ChatContext {
+  pasteId: string;
+  salt: Uint8Array;
+  allowKeyCaching: boolean;
+  cachedKey?: CryptoKey;
+  currentUsername?: string;
+}
+
+/**
+ * Generate a random username in format: anon-XXXX (4 hex characters)
+ */
+export function generateRandomUsername(): string {
+  const hex = Array.from(crypto.getRandomValues(new Uint8Array(2)))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+  return `anon-${hex}`;
+}
+
+/**
+ * Chat view component
+ */
+export class ChatView {
+  private context: ChatContext | null = null;
+
+  constructor(private useCase: ChatUseCase) {}
+
+  /**
+   * Update the key status indicator UI
+   */
+  private updateKeyIndicator(hasKey: boolean, allowed: boolean): void {
+    const keyStatus = document.getElementById('keyStatus');
+    if (!keyStatus) return;
+
+    if (allowed && hasKey) {
+      keyStatus.style.display = 'block';
+    } else {
+      keyStatus.style.display = 'none';
+    }
+  }
+
+  /**
+   * Forget (clear) the cached key
+   */
+  private forgetKey(): void {
+    if (this.context) {
+      this.context.cachedKey = undefined;
+      this.updateKeyIndicator(false, this.context.allowKeyCaching);
+    }
+  }
+
+  /**
+   * Display decrypted messages in the chat UI
+   */
+  private displayMessages(messages: Array<{ text: string; username?: string; timestamp?: number }>): void {
+    const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+
+    if (messages.length === 0) {
+      messagesDiv.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-light);">No messages yet. Be the first to chat!</div>';
+      return;
+    }
+
+    let html = '';
+    for (const msg of messages) {
+      const date = new Date(msg.timestamp * 1000);
+      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const username = msg.username || 'Anonymous';
+
+      html += `
+        <div style="margin-bottom: 0.75rem; padding: 0.5rem; background: var(--bg-card); border-radius: 0.375rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">
+            <span style="font-weight: 600;">${escapeHtml(username)}</span>
+            <span>${escapeHtml(timeStr)}</span>
+          </div>
+          <div style="color: var(--text); word-wrap: break-word;">
+            ${escapeHtml(msg.text)}
+          </div>
+        </div>
+      `;
+    }
+
+    messagesDiv.innerHTML = html;
+
+    // Scroll to bottom
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  /**
+   * Show an error message in the chat UI
+   */
+  private showChatError(message: string): void {
+    const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+
+    messagesDiv.innerHTML = `
+      <div style="text-align: center; padding: 2rem; color: var(--danger);">
+        ⚠️ ${escapeHtml(message)}
+      </div>
+    `;
+  }
+
+  /**
+   * Handle refreshing chat messages
+   */
+  private async handleRefreshMessages(password?: string): Promise<void> {
+    if (!this.context) return;
+
+    const messagesDiv = document.getElementById('chatMessages');
+    if (!messagesDiv) return;
+
+    // Determine if we can use cached key
+    let key: CryptoKey | undefined = this.context.allowKeyCaching ? this.context.cachedKey : undefined;
+    let pwd = password;
+
+    // If no cached key and no password provided, prompt for password
+    if (!key && !pwd) {
+      pwd = prompt('Enter the paste password to decrypt messages:');
+      if (!pwd) {
+        this.showChatError('Password is required to decrypt messages');
+        return;
+      }
+    }
+
+    try {
+      messagesDiv.innerHTML = '<div style="text-align: center; padding: 1rem; color: var(--text-light);">Loading messages...</div>';
+
+      // Call use case
+      const result = await this.useCase.refreshMessages(
+        this.context.pasteId,
+        pwd || '',
+        this.context.salt,
+        key,
+        this.context.allowKeyCaching
+      );
+
+      // Update cached key if returned
+      if (result.key && this.context.allowKeyCaching) {
+        this.context.cachedKey = result.key;
+        this.updateKeyIndicator(true, true);
+      }
+
+      // If decryption failed and we were using cached key, clear it and re-prompt
+      const hasDecryptionFailure = result.messages.some(m => m.text.includes('[Decryption failed'));
+      if (hasDecryptionFailure && this.context.cachedKey && !pwd) {
+        this.forgetKey();
+        messagesDiv.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--warning);">Cached key failed. Please re-enter password.</div>';
+        return;
+      }
+
+      // Display messages
+      this.displayMessages(result.messages);
+
+      // Clear password after use
+      if (pwd && !password) {
+        secureClear(pwd);
+      }
+    } catch (error) {
+      if (DEBUG_MODE) {
+        console.error('Error refreshing messages:', error);
+      } else {
+        console.error('Error refreshing messages');
+      }
+      this.showChatError(error instanceof Error ? error.message : 'Failed to load messages');
+      if (pwd && !password) {
+        secureClear(pwd);
+      }
+    }
+  }
+
+  /**
+   * Handle sending a new chat message
+   */
+  private async handleSendMessage(input: HTMLInputElement): Promise<void> {
+    if (!this.context) return;
+
+    const message = input.value.trim();
+
+    if (!message) {
+      return;
+    }
+
+    // Client-side validation: 1000 character limit
+    if (message.length > 1000) {
+      this.showChatError('Message too long (max 1000 characters)');
+      return;
+    }
+
+    // Get username from input field or context
+    const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
+    const username = usernameInput?.value.trim() || this.context.currentUsername || generateRandomUsername();
+
+    // Determine if we can use cached key
+    let key: CryptoKey | undefined = this.context.allowKeyCaching ? this.context.cachedKey : undefined;
+    let password: string | undefined;
+
+    // If no cached key, prompt for password
+    if (!key) {
+      password = prompt('Enter the paste password to send message:') ?? undefined;
+      if (!password) {
+        this.showChatError('Password is required to encrypt message');
+        return;
+      }
+    }
+
+    try {
+      // Disable input and button while sending
+      input.disabled = true;
+      const sendBtn = document.getElementById('sendMessageBtn') as HTMLButtonElement;
+      if (sendBtn) sendBtn.disabled = true;
+
+      // Call use case
+      const result = await this.useCase.sendMessage(
+        {
+          pasteId: this.context.pasteId,
+          message,
+          username,
+          password: password || '',
+          cachedKey: key
+        },
+        this.context.salt,
+        this.context.allowKeyCaching
+      );
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to send message');
+      }
+
+      // Update cached key if returned
+      if (result.key && this.context.allowKeyCaching) {
+        this.context.cachedKey = result.key;
+        this.updateKeyIndicator(true, true);
+      }
+
+      // Clear input and refresh messages
+      input.value = '';
+      await this.handleRefreshMessages(password);
+
+      // Clear password after use
+      if (password) {
+        secureClear(password);
+      }
+    } catch (error) {
+      if (DEBUG_MODE) {
+        console.error('Error sending message:', error);
+      } else {
+        console.error('Error sending message');
+      }
+      this.showChatError(error instanceof Error ? error.message : 'Failed to send message');
+      if (password) {
+        secureClear(password);
+      }
+    } finally {
+      input.disabled = false;
+      const sendBtn = document.getElementById('sendMessageBtn') as HTMLButtonElement;
+      if (sendBtn) sendBtn.disabled = false;
+    }
+  }
+
+  /**
+   * Initialize chat functionality on view page
+   */
+  setup(pasteId: string, salt: Uint8Array, allowKeyCaching: boolean = false): void {
+    const chatSection = document.getElementById('chatSection');
+    const refreshBtn = document.getElementById('refreshMessagesBtn');
+    const sendBtn = document.getElementById('sendMessageBtn');
+    const chatInput = document.getElementById('chatInput') as HTMLInputElement;
+    const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
+    const forgetKeyBtn = document.getElementById('forgetKeyBtn');
+    const chatInfoText = document.getElementById('chatInfoText');
+
+    if (!chatSection || !refreshBtn || !sendBtn || !chatInput) {
+      console.warn('Chat UI elements not found');
+      return;
+    }
+
+    // Guard against duplicate initialization
+    if (refreshBtn.dataset.chatInitialized === 'true') {
+      console.warn('Chat already initialized, skipping duplicate setup');
+      return;
+    }
+
+    // Show chat section
+    chatSection.style.display = 'block';
+
+    // Store context
+    this.context = {
+      pasteId,
+      salt,
+      allowKeyCaching,
+      currentUsername: generateRandomUsername()
+    };
+
+    // Set auto-generated username in input field if it exists
+    if (usernameInput) {
+      usernameInput.value = this.context.currentUsername;
+      // Update context when user edits username
+      usernameInput.addEventListener('input', () => {
+        if (this.context) {
+          this.context.currentUsername = usernameInput.value.trim() || generateRandomUsername();
+        }
+      });
+    }
+
+    // Update info text based on key caching setting
+    if (chatInfoText) {
+      if (allowKeyCaching) {
+        chatInfoText.textContent = '💡 Messages are encrypted with your paste password. Key can be cached after first entry.';
+      } else {
+        chatInfoText.textContent = '💡 Messages are encrypted with your paste password. Password required for each action.';
+      }
+    }
+
+    // Setup forget key button if key caching is allowed
+    if (forgetKeyBtn && allowKeyCaching) {
+      forgetKeyBtn.addEventListener('click', () => {
+        this.forgetKey();
+      });
+    }
+
+    // Clear key on page unload for security
+    if (allowKeyCaching) {
+      window.addEventListener('beforeunload', () => {
+        if (this.context) {
+          this.context.cachedKey = undefined;
+        }
+      });
+    }
+
+    // Refresh messages handler
+    refreshBtn.addEventListener('click', () => {
+      void this.handleRefreshMessages();
+    });
+
+    // Send message handler
+    sendBtn.addEventListener('click', () => {
+      void this.handleSendMessage(chatInput);
+    });
+
+    // Allow Enter key to send message
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        void this.handleSendMessage(chatInput);
+      }
+    });
+
+    // Mark as initialized to prevent duplicate listeners
+    refreshBtn.dataset.chatInitialized = 'true';
+  }
+}
