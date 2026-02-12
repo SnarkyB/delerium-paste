@@ -27,8 +27,8 @@ export class PasteViewerView {
   /**
    * Check if chat should be initialized for this paste
    */
-  shouldInitChat(meta: PasteMetadata): boolean {
-    return meta.allowChat === true;
+  shouldInitChat(_meta: PasteMetadata): boolean {
+    return true;
   }
 
   /**

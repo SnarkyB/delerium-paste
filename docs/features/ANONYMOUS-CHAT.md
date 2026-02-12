@@ -255,6 +255,8 @@ Located below the paste content, visible only after successful paste decryption.
 
 ### For End Users
 
+Anonymous chat is **always enabled** for every paste; there is no option to turn it off.
+
 1. **Create a password-protected paste** at `/index.html`
 2. **Share the view URL** with other users
 3. **Decrypt the paste** by entering the password

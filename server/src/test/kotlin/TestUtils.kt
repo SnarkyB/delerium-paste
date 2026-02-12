@@ -99,7 +99,7 @@ fun createTestKeyManager(rotationDays: Long = 3650): DataKeyManager {
  * @param iv IV (default: valid 12-byte base64url string)
  * @param expireTs Expiration timestamp (default: 1 hour from now)
  * @param mime MIME type (default: "text/plain")
- * @param allowChat If true, chat is enabled for this paste (default: null = disabled)
+ * @param allowChat If true, chat is enabled for this paste (default: true = chat always enabled)
  * @param allowKeyCaching If true, viewers can cache key for chat (default: null)
  * @param pow Optional PoW submission
  * @param deleteAuth Optional password-derived delete authorization
@@ -109,7 +109,7 @@ fun createTestPasteRequest(
     iv: String = "dGVzdC1pdi0xMjM",
     expireTs: Long = Instant.now().epochSecond + 3600,
     mime: String? = "text/plain",
-    allowChat: Boolean? = null,
+    allowChat: Boolean? = true,
     allowKeyCaching: Boolean? = null,
     pow: PowSubmission? = null,
     deleteAuth: String? = null

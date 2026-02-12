@@ -114,16 +114,9 @@ describe('paste-viewer deleteAuth security', () => {
   });
 });
 
-describe('paste-viewer allowChat (shouldInitChat)', () => {
-  it('returns true when meta.allowChat is true', () => {
-    expect(shouldInitChat({ expireTs: 1, mime: 'text/plain', allowChat: true })).toBe(true);
-  });
-
-  it('returns false when meta.allowChat is false', () => {
-    expect(shouldInitChat({ expireTs: 1, mime: 'text/plain', allowChat: false })).toBe(false);
-  });
-
-  it('returns false when meta.allowChat is undefined', () => {
-    expect(shouldInitChat({ expireTs: 1, mime: 'text/plain' })).toBe(false);
+describe('paste-viewer shouldInitChat', () => {
+  it('returns true so chat is always initialized when viewing a paste', () => {
+    expect(shouldInitChat({ expireTs: 1, mime: 'text/plain' })).toBe(true);
+    expect(shouldInitChat({ expireTs: 1, mime: 'text/plain', allowChat: false })).toBe(true);
   });
 });

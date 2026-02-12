@@ -47,7 +47,7 @@ object Pastes : Table("pastes") {
     val deleteAuthHash = varchar("delete_auth_hash", 128).nullable()  // Password-derived delete authorization
     val createdAt = long("created_at")
     val allowKeyCaching = bool("allow_key_caching").default(false)
-    val allowChat = bool("allow_chat").default(false)
+    val allowChat = bool("allow_chat").default(true)
 }
 
 /**
@@ -116,7 +116,7 @@ class PasteRepo(private val db: Database, private val pepper: String, private va
                 it[Pastes.deleteAuthHash] = rawDeleteAuth?.let { auth -> hashToken(auth) }
                 it[Pastes.createdAt] = now
                 it[Pastes.allowKeyCaching] = meta.allowKeyCaching ?: false
-                it[Pastes.allowChat] = meta.allowChat ?: false
+                it[Pastes.allowChat] = meta.allowChat ?: true
             }
         }
     }

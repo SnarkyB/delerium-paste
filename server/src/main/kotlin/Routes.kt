@@ -195,10 +195,8 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             val id = call.parameters["id"] ?: return@post call.respond(HttpStatusCode.BadRequest)
 
             // Check if paste exists and is not expired
-            val row = repo.getIfAvailable(id) ?: return@post call.respond(
+            repo.getIfAvailable(id) ?: return@post call.respond(
                 HttpStatusCode.NotFound, ErrorResponse("paste_not_found"))
-            if (!row[Pastes.allowChat]) return@post call.respond(
-                HttpStatusCode.Forbidden, ErrorResponse("forbidden"))
 
             // Rate limiting
             if (rl != null) {
@@ -240,10 +238,8 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest)
 
             // Check if paste exists and is not expired
-            val row = repo.getIfAvailable(id) ?: return@get call.respond(
+            repo.getIfAvailable(id) ?: return@get call.respond(
                 HttpStatusCode.NotFound, ErrorResponse("paste_not_found"))
-            if (!row[Pastes.allowChat]) return@get call.respond(
-                HttpStatusCode.Forbidden, ErrorResponse("forbidden"))
 
             try {
                 val messages = repo.getChatMessages(id)
