@@ -17,7 +17,7 @@ RUN ARCH=$(uname -m) && \
         aarch64|arm64) BAZELISK_ARCH="arm64" ;; \
         *) echo "Unsupported architecture: $ARCH"; exit 1 ;; \
     esac && \
-    curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-${BAZELISK_ARCH}" && \
+    curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.28.1/bazelisk-linux-${BAZELISK_ARCH}" && \
     chmod +x "bazelisk-linux-${BAZELISK_ARCH}" && \
     mv "bazelisk-linux-${BAZELISK_ARCH}" /usr/local/bin/bazel
 
