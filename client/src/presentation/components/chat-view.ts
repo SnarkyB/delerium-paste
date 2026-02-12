@@ -302,8 +302,10 @@ export class ChatView {
 
   /**
    * Initialize chat functionality on view page
+   *
+   * @param initialKey When convenient chat is enabled, key from paste decryption so chat does not prompt again
    */
-  setup(pasteId: string, salt: Uint8Array, allowKeyCaching: boolean = false): void {
+  setup(pasteId: string, salt: Uint8Array, allowKeyCaching: boolean = false, initialKey?: CryptoKey): void {
     const chatSection = document.getElementById('chatSection');
     const refreshBtn = document.getElementById('refreshMessagesBtn');
     const sendBtn = document.getElementById('sendMessageBtn');
@@ -326,13 +328,18 @@ export class ChatView {
     // Show chat section
     chatSection.style.display = 'block';
 
-    // Store context
+    // Store context; when convenient chat is on, reuse key from paste decryption so we don't prompt again
     this.context = {
       pasteId,
       salt,
       allowKeyCaching,
+      cachedKey: allowKeyCaching && initialKey ? initialKey : undefined,
       currentUsername: generateRandomUsername()
     };
+
+    if (this.context.cachedKey && allowKeyCaching) {
+      this.updateKeyIndicator(true, true);
+    }
 
     // Set auto-generated username in input field if it exists
     if (usernameInput) {
