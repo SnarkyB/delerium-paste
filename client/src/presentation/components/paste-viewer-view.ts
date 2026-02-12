@@ -125,7 +125,7 @@ export class PasteViewerView {
   /**
    * Handle paste viewing
    */
-  async handleView(): Promise<{ pasteId: string; metadata: PasteMetadata; deleteAuth: string; salt: Uint8Array } | null> {
+  async handleView(): Promise<{ pasteId: string; metadata: PasteMetadata; deleteAuth: string; salt: Uint8Array; cachedKey?: CryptoKey } | null> {
     if (!location.pathname.endsWith('view.html')) return null;
 
     const parsed = this.pasteService.parseViewUrl(new URL(window.location.href));
@@ -222,7 +222,8 @@ export class PasteViewerView {
         pasteId,
         metadata: result.value.metadata,
         deleteAuth: result.value.deleteAuth,
-        salt: saltArray
+        salt: saltArray,
+        cachedKey: result.value.cachedKey
       };
     } catch (e) {
       if (content) {

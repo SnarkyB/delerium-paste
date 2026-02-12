@@ -46,6 +46,8 @@ export interface PasteViewResult {
   content: string;
   metadata: PasteMetadata;
   deleteAuth: string;
+  /** When convenient chat is enabled, key derived during decryption for chat reuse */
+  cachedKey?: CryptoKey;
 }
 
 /**
