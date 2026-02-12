@@ -43,5 +43,5 @@ export async function viewPaste(): Promise<void> {
  * Setup paste viewing (backward compatibility wrapper)
  */
 export function setupPasteViewing(): void {
-  view.setup();
+  void viewPaste();
 }
