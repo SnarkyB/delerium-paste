@@ -445,15 +445,15 @@
 
           <div class="chat-input-row">
             <label for="chatInput" class="sr-only">Chat message</label>
-            <input
-              type="text"
+            <textarea
               id="chatInput"
               class="chat-message-input"
-              placeholder="Type your message..."
+              placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
               maxlength="1000"
+              rows="3"
               aria-label="Chat message"
               aria-describedby="chat-char-limit"
-            />
+            ></textarea>
             <span id="chat-char-limit" class="sr-only">Maximum 1000 characters</span>
             <button class="btn btn-primary chat-send-button" id="sendMessageBtn" aria-label="Send chat message">
               <span aria-hidden="true">📤</span>

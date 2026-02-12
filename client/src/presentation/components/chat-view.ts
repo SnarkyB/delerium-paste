@@ -210,7 +210,7 @@ export class ChatView {
   /**
    * Handle sending a new chat message
    */
-  private async handleSendMessage(input: HTMLInputElement): Promise<void> {
+  private async handleSendMessage(input: HTMLInputElement | HTMLTextAreaElement): Promise<void> {
     if (!this.context) return;
 
     const message = input.value.trim();
@@ -309,7 +309,7 @@ export class ChatView {
     const chatSection = document.getElementById('chatSection');
     const refreshBtn = document.getElementById('refreshMessagesBtn');
     const sendBtn = document.getElementById('sendMessageBtn');
-    const chatInput = document.getElementById('chatInput') as HTMLInputElement;
+    const chatInput = document.getElementById('chatInput') as HTMLInputElement | HTMLTextAreaElement;
     const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
     const forgetKeyBtn = document.getElementById('forgetKeyBtn');
     const chatInfoText = document.getElementById('chatInfoText');
@@ -387,9 +387,10 @@ export class ChatView {
       void this.handleSendMessage(chatInput);
     });
 
-    // Allow Enter key to send message
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
+    // Enter to send; Shift+Enter for new line (textarea)
+    chatInput.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
         void this.handleSendMessage(chatInput);
       }
     });
