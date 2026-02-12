@@ -187,6 +187,7 @@ fun Application.module() {
     val repo = PasteRepo(db, appCfg.deletionPepper, keyManager)
     val rl = if (appCfg.rlEnabled) TokenBucket(appCfg.rlCapacity, appCfg.rlRefill) else null
     val pow = if (appCfg.powEnabled) PowService(appCfg.powDifficulty, appCfg.powTtl) else null
+    val failedAttemptTracker = FailedAttemptTracker(maxAttempts = 10, windowSeconds = 300)
 
     // Start background task to clean up expired pastes periodically
     val cleanupScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -233,7 +234,22 @@ fun Application.module() {
         }
     }
 
+    // Add periodic cleanup of failed attempt tracker entries
+    cleanupScope.launch {
+        while (true) {
+            delay(TimeUnit.HOURS.toMillis(1))
+            try {
+                val cleaned = failedAttemptTracker.cleanupExpired()
+                if (cleaned > 0) {
+                    environment.log.info("🧹 Cleaned up $cleaned expired failed attempt entries")
+                }
+            } catch (e: Exception) {
+                environment.log.error("Error during failed attempt tracker cleanup", e)
+            }
+        }
+    }
+
     routing {
-        apiRoutes(repo, rl, pow, appCfg)
+        apiRoutes(repo, rl, pow, appCfg, failedAttemptTracker)
     }
 }

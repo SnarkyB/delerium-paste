@@ -90,6 +90,19 @@ class PasteRepo(private val db: Database, private val pepper: String, private va
     }
 
     /**
+     * Constant-time comparison for hash verification
+     * Prevents timing attacks by ensuring comparison takes the same time
+     * regardless of how many characters match
+     * 
+     * @param stored The hash stored in the database
+     * @param computed The hash computed from user input
+     * @return true if hashes match, false otherwise
+     */
+    private fun constantTimeEquals(stored: String, computed: String): Boolean {
+        return MessageDigest.isEqual(stored.toByteArray(Charsets.UTF_8), computed.toByteArray(Charsets.UTF_8))
+    }
+
+    /**
      * Create a new paste in the database
      * 
      * @param id Unique paste identifier
@@ -154,7 +167,7 @@ class PasteRepo(private val db: Database, private val pepper: String, private va
     fun deleteIfTokenMatches(id: String, rawToken: String): Boolean = transaction(db) {
         val hash = hashToken(rawToken)
         val row = Pastes.selectAll().where { Pastes.id eq id }.singleOrNull() ?: return@transaction false
-        if (row[Pastes.deleteTokenHash] != hash) return@transaction false
+        if (!constantTimeEquals(row[Pastes.deleteTokenHash], hash)) return@transaction false
         Pastes.deleteWhere { Pastes.id eq id } > 0
     }
 
@@ -170,7 +183,7 @@ class PasteRepo(private val db: Database, private val pepper: String, private va
         val hash = hashToken(rawAuth)
         val row = Pastes.selectAll().where { Pastes.id eq id }.singleOrNull() ?: return@transaction false
         val storedHash = row[Pastes.deleteAuthHash] ?: return@transaction false  // No auth hash means feature disabled
-        if (storedHash != hash) return@transaction false
+        if (!constantTimeEquals(storedHash, hash)) return@transaction false
         Pastes.deleteWhere { Pastes.id eq id } > 0
     }
 
@@ -192,6 +205,21 @@ class PasteRepo(private val db: Database, private val pepper: String, private va
     fun deleteExpired(): Int = transaction(db) {
         val now = Instant.now().epochSecond
         Pastes.deleteWhere { Pastes.expireTs lessEq now }
+    }
+
+    /**
+     * Check database health by performing a simple query
+     * 
+     * @return true if database is healthy and responding, false otherwise
+     */
+    fun checkHealth(): Boolean = try {
+        transaction(db) {
+            // Simple count query to verify database connectivity
+            Pastes.selectAll().limit(1).count()
+            true
+        }
+    } catch (_: Exception) {
+        false
     }
 
     /**
