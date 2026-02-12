@@ -1,5 +1,5 @@
 /**
- * paste-creator.test.ts - Tests for paste creation (allowChat in meta)
+ * paste-creator.test.ts - Tests for paste creation (meta includes allowChat)
  */
 
 import * as pasteCreator from '../../../src/features/paste-creator.js';
@@ -40,32 +40,23 @@ describe('paste-creator allowChat', () => {
     jest.restoreAllMocks();
   });
 
-  function setupForm(allowChatChecked: boolean, allowKeyCachingChecked = false) {
+  function setupForm(allowKeyCachingChecked = false) {
     jest.spyOn(document, 'getElementById').mockImplementation((id: string) => {
       const els: Record<string, Partial<HTMLInputElement & HTMLTextAreaElement>> = {
         paste: { value: 'hello' },
         mins: { value: '60' },
         password: { value: 'pass123' },
-        allowChat: { checked: allowChatChecked },
         allowKeyCaching: { checked: allowKeyCachingChecked }
       };
       return els[id] as HTMLElement ?? null;
     });
   }
 
-  it('should send allowChat true in meta when checkbox is checked', async () => {
-    setupForm(true);
+  it('should send allowChat true in meta when creating a paste', async () => {
+    setupForm();
     await (pasteCreator as { createPaste: () => Promise<void> }).createPaste();
     expect(createPasteSpy).toHaveBeenCalled();
     const call = createPasteSpy.mock.calls[0][0];
     expect(call.meta.allowChat).toBe(true);
-  });
-
-  it('should send allowChat false in meta when checkbox is unchecked', async () => {
-    setupForm(false);
-    await (pasteCreator as { createPaste: () => Promise<void> }).createPaste();
-    expect(createPasteSpy).toHaveBeenCalled();
-    const call = createPasteSpy.mock.calls[0][0];
-    expect(call.meta.allowChat).toBe(false);
   });
 });

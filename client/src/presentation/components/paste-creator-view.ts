@@ -25,19 +25,18 @@ export class PasteCreatorView {
     const text = (document.getElementById('paste') as HTMLTextAreaElement)?.value || '';
     const mins = parseInt((document.getElementById('mins') as HTMLInputElement)?.value || '60', 10);
     const password = (document.getElementById('password') as HTMLInputElement)?.value || '';
-    const allowChat = (document.getElementById('allowChat') as HTMLInputElement)?.checked ?? false;
     const allowKeyCaching = (document.getElementById('allowKeyCaching') as HTMLInputElement)?.checked ?? false;
 
     // Show loading state
     showLoading(true, 'Preparing...');
 
     try {
-      // Execute use case
+      // Execute use case (chat is always enabled)
       const result = await this.useCase.execute({
         content: text,
         expirationMinutes: mins,
         password,
-        allowChat,
+        allowChat: true,
         allowKeyCaching
       });
 
