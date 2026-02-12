@@ -67,6 +67,7 @@ class HealthRouteTest {
         assertTrue("Timestamp should be positive", status.timestampMs > 0)
         assertTrue("PoW should be reported as enabled", status.powEnabled)
         assertTrue("Rate limiting should be reported as enabled", status.rateLimitingEnabled)
+        assertTrue("Database should be reported as healthy", status.databaseHealthy)
     }
 
     @Test
@@ -81,6 +82,7 @@ class HealthRouteTest {
         val status = mapper.readValue<HealthStatus>(response.bodyAsText())
         assertFalse("PoW should be reported as disabled", status.powEnabled)
         assertFalse("Rate limiting should be reported as disabled", status.rateLimitingEnabled)
+        assertTrue("Database should be reported as healthy", status.databaseHealthy)
     }
 
     @Test

@@ -153,6 +153,8 @@ export function getSafeErrorMessage(error: unknown, context: string = 'operation
 /**
  * Derive encryption key from password using PBKDF2
  * 
+ * Clears password buffer from memory after key derivation for security.
+ * 
  * @param password User-provided password
  * @param salt Random salt for key derivation (Uint8Array or ArrayBuffer)
  * @returns Promise resolving to derived key
@@ -160,34 +162,39 @@ export function getSafeErrorMessage(error: unknown, context: string = 'operation
 export async function deriveKeyFromPassword(password: string, salt: Uint8Array | ArrayBuffer): Promise<CryptoKey> {
   const passwordBuffer = new TextEncoder().encode(password);
   
-  // Import password as key material
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    passwordBuffer,
-    'PBKDF2',
-    false,
-    ['deriveKey']
-  );
-  
-  // Ensure salt is in the right format - convert ArrayBuffer to Uint8Array if needed
-  const saltBuffer = salt instanceof Uint8Array ? salt : new Uint8Array(salt);
-  
-  // Derive key using PBKDF2
-  return crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt: saltBuffer as BufferSource,
-      iterations: 100000, // High iteration count for security
-      hash: 'SHA-256'
-    },
-    keyMaterial,
-    {
-      name: 'AES-GCM',
-      length: 256
-    },
-    false,
-    ['encrypt', 'decrypt']
-  );
+  try {
+    // Import password as key material
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      passwordBuffer,
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+    
+    // Ensure salt is in the right format - convert ArrayBuffer to Uint8Array if needed
+    const saltBuffer = salt instanceof Uint8Array ? salt : new Uint8Array(salt);
+    
+    // Derive key using PBKDF2
+    return await crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: saltBuffer as BufferSource,
+        iterations: 100000, // High iteration count for security
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      {
+        name: 'AES-GCM',
+        length: 256
+      },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  } finally {
+    // Clear password buffer from memory (best effort)
+    secureClearBuffer(passwordBuffer.buffer);
+  }
 }
 
 /**
@@ -239,6 +246,8 @@ export async function encryptWithPassword(content: string, password: string): Pr
 /**
  * Decrypt content with password-based encryption
  * 
+ * Clears decrypted data buffer from memory after decoding for security.
+ * 
  * @param encryptedData Encrypted content
  * @param password User password
  * @param salt Salt used for key derivation
@@ -265,7 +274,13 @@ export async function decryptWithPassword(
     encryptedData
   );
   
-  return new TextDecoder().decode(decryptedData);
+  try {
+    return new TextDecoder().decode(decryptedData);
+  } finally {
+    // Clear decrypted data buffer from memory (best effort)
+    // The plaintext string can't be cleared, but we can clear the buffer
+    secureClearBuffer(decryptedData);
+  }
 }
 
 // ============================================================================
@@ -279,6 +294,8 @@ export async function decryptWithPassword(
  * Uses a different derivation than the encryption key (by appending "delete" to salt)
  * to ensure the delete auth cannot be used for decryption and vice versa.
  * 
+ * Clears sensitive buffers from memory after use for security.
+ * 
  * @param password User-provided password
  * @param salt Salt from the paste (same as encryption salt)
  * @returns Promise resolving to base64url-encoded delete authorization string
@@ -291,28 +308,41 @@ export async function deriveDeleteAuth(password: string, salt: Uint8Array): Prom
   deleteSalt.set(deleteMarker, salt.length);
   
   const passwordBuffer = new TextEncoder().encode(password);
-  const importedKey = await crypto.subtle.importKey(
-    'raw',
-    passwordBuffer,
-    { name: 'PBKDF2' },
-    false,
-    ['deriveKey']
-  );
-  // Derive a 256-bit key then export raw bytes (avoids deriveBits CryptoKey issues in some envs)
-  const derivedKey = await crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt: deleteSalt,
-      iterations: 100000,
-      hash: 'SHA-256'
-    },
-    importedKey,
-    { name: 'AES-GCM', length: 256 },
-    true, // extractable so we can export raw bytes for delete auth
-    ['encrypt']
-  );
-  const rawBytes = await crypto.subtle.exportKey('raw', derivedKey);
-  const { encodeBase64Url } = await import('./core/crypto/encoding.js');
-  return encodeBase64Url(rawBytes);
+  
+  try {
+    const importedKey = await crypto.subtle.importKey(
+      'raw',
+      passwordBuffer,
+      { name: 'PBKDF2' },
+      false,
+      ['deriveKey']
+    );
+    // Derive a 256-bit key then export raw bytes (avoids deriveBits CryptoKey issues in some envs)
+    const derivedKey = await crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: deleteSalt,
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      importedKey,
+      { name: 'AES-GCM', length: 256 },
+      true, // extractable so we can export raw bytes for delete auth
+      ['encrypt']
+    );
+    const rawBytes = await crypto.subtle.exportKey('raw', derivedKey);
+    
+    try {
+      const { encodeBase64Url } = await import('./core/crypto/encoding.js');
+      return encodeBase64Url(rawBytes);
+    } finally {
+      // Clear the raw key bytes from memory
+      secureClearBuffer(rawBytes);
+    }
+  } finally {
+    // Clear password buffer and delete salt from memory
+    secureClearBuffer(passwordBuffer.buffer);
+    secureClearBuffer(deleteSalt.buffer);
+  }
 }
 

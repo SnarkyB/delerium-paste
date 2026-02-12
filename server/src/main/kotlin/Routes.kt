@@ -32,6 +32,7 @@ import io.ktor.server.application.ApplicationCall
  * @param rl Optional token bucket rate limiter
  * @param pow Optional proof-of-work service
  * @param cfg Application configuration
+ * @param failedAttemptTracker Tracker for brute-force protection on password-based deletion
  */
 private val trustedProxyIps: Set<String> =
     System.getenv("TRUSTED_PROXY_IPS")
@@ -53,18 +54,25 @@ private fun clientIp(call: ApplicationCall): String {
         ?: remoteHost
 }
 
-fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: AppConfig) {
+fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: AppConfig, failedAttemptTracker: FailedAttemptTracker? = null) {
     route("/api") {
         /**
          * GET /api/health
-         * Basic health check endpoint for orchestrators and monitors
+         * Health check endpoint for orchestrators and monitors
+         * 
+         * Returns status "ok" if all systems are healthy, "degraded" if database is unhealthy.
+         * Includes database connectivity check to verify persistence layer is working.
          */
         route("/health") {
             get {
+                val dbHealthy = repo.checkHealth()
+                val status = if (dbHealthy) "ok" else "degraded"
                 call.respond(
                     HealthStatus(
+                        status = status,
                         powEnabled = cfg.powEnabled && pow != null,
-                        rateLimitingEnabled = rl != null
+                        rateLimitingEnabled = rl != null,
+                        databaseHealthy = dbHealthy
                     )
                 )
             }
@@ -161,11 +169,20 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
          * This allows anyone who knows the paste password to delete it.
          * The deleteAuth is derived client-side from the password.
          *
+         * Brute-force protection: After 10 failed attempts within 5 minutes,
+         * the paste ID is temporarily blocked from further attempts.
+         *
+         * Returns 429 Too Many Requests if brute-force protection triggered.
          * Returns 403 Forbidden if the auth doesn't match or feature is disabled.
          * Returns 204 No Content on successful deletion.
          */
         post("/pastes/{id}/delete") {
             val id = call.parameters["id"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+            
+            // Check if this paste is blocked due to too many failed attempts
+            if (failedAttemptTracker != null && failedAttemptTracker.isBlocked(id)) {
+                call.respond(HttpStatusCode.TooManyRequests, ErrorResponse("too_many_attempts")); return@post
+            }
             
             val body = try { call.receive<DeleteWithAuthRequest>() } catch (_: Exception) {
                 call.respond(HttpStatusCode.BadRequest, ErrorResponse("invalid_json")); return@post
@@ -176,8 +193,15 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             }
             
             val ok = repo.deleteIfAuthMatches(id, body.deleteAuth)
-            if (!ok) call.respond(HttpStatusCode.Forbidden, ErrorResponse("invalid_auth"))
-            else call.respond(HttpStatusCode.NoContent)
+            if (!ok) {
+                // Record the failed attempt
+                failedAttemptTracker?.recordFailure(id)
+                call.respond(HttpStatusCode.Forbidden, ErrorResponse("invalid_auth"))
+            } else {
+                // Clear any failed attempts on success
+                failedAttemptTracker?.recordSuccess(id)
+                call.respond(HttpStatusCode.NoContent)
+            }
         }
         /**
          * POST /api/pastes/{id}/messages
