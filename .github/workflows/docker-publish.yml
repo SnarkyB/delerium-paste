@@ -71,7 +71,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha,prefix=sha-
-            type=raw,value=latest,enable={{is_default_branch || startsWith(github.ref, 'refs/tags/')}}
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/') }}
             type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       # Extract metadata for Docker Hub (only on tags/workflow_dispatch)
@@ -82,7 +82,7 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch || startsWith(github.ref, 'refs/tags/')}}
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/') }}
             type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       # Build and push to GHCR (by digest for manifest merging)
@@ -180,7 +180,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha,prefix=sha-
-            type=raw,value=latest,enable={{is_default_branch || startsWith(github.ref, 'refs/tags/')}}
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/') }}
             type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Create GHCR manifest list and push
@@ -222,7 +222,7 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch || startsWith(github.ref, 'refs/tags/')}}
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/') }}
             type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Create Docker Hub manifest list and push
