@@ -137,6 +137,19 @@ kt_jvm_test(
     ],
 )
 
+# Failed attempt tracker tests
+kt_jvm_test(
+    name = "failed_attempt_tracker_test",
+    size = "small",
+    srcs = ["src/test/kotlin/FailedAttemptTrackerTest.kt"],
+    test_class = "FailedAttemptTrackerTest",
+    deps = [
+        ":delerium_server_lib",
+        "@maven//:junit_junit",
+        "@maven//:org_jetbrains_kotlin_kotlin_test_junit",
+    ],
+)
+
 # Test suite - run all tests
 test_suite(
     name = "all_tests",
@@ -146,5 +159,6 @@ test_suite(
         ":delete_auth_tests",
         ":integration_tests",
         ":storage_test",
+        ":failed_attempt_tracker_test",
     ],
 )

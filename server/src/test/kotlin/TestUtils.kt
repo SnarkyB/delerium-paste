@@ -22,6 +22,7 @@ import CreatePasteRequest
 import PowSubmission
 import PowService
 import TokenBucket
+import FailedAttemptTracker
 import AppConfig
 
 /**
@@ -195,12 +196,19 @@ fun createBase64UrlString(decodedSize: Int): String {
 /**
  * Configure application module for testing
  * Helper function to set up ContentNegotiation and routing in testApplication blocks
+ * 
+ * @param repo Paste repository
+ * @param rl Optional rate limiter
+ * @param pow Optional PoW service
+ * @param cfg Application configuration
+ * @param failedAttemptTracker Optional brute-force tracker for password-based deletion
  */
 fun Application.testModule(
     repo: PasteRepo,
     rl: TokenBucket?,
     pow: PowService?,
-    cfg: AppConfig
+    cfg: AppConfig,
+    failedAttemptTracker: FailedAttemptTracker? = null
 ) {
     install(ContentNegotiation) {
         jackson()
@@ -217,6 +225,6 @@ fun Application.testModule(
         call.response.headers.append("Permissions-Policy", "accelerometer=(), geolocation=(), camera=(), microphone=(), payment=(), usb=()")
     }
     routing {
-        apiRoutes(repo, rl, pow, cfg)
+        apiRoutes(repo, rl, pow, cfg, failedAttemptTracker)
     }
 }

@@ -9,7 +9,8 @@ import {
   encryptWithPassword,
   decryptWithPassword,
   deriveDeleteAuth,
-  deriveKeyFromPassword
+  deriveKeyFromPassword,
+  secureClearBuffer
 } from '../../security.js';
 import { encodeBase64Url, decodeBase64Url } from '../crypto/encoding.js';
 import type { EncryptedData } from '../models/paste.js';
@@ -134,6 +135,8 @@ export class EncryptionService {
    * Decrypt a chat message using a pre-derived CryptoKey
    * Handles both new JSON format { text, username } and old plain text format
    * 
+   * Clears decrypted data buffer from memory after use for security.
+   * 
    * @param msg Encrypted chat message
    * @param key Pre-derived decryption key
    * @returns Promise resolving to decrypted message with text and optional username
@@ -159,24 +162,29 @@ export class EncryptionService {
       ctBuffer
     );
 
-    const decryptedText = new TextDecoder().decode(decryptedData);
-
-    // Try to parse as JSON (new format with username)
     try {
-      const parsed = JSON.parse(decryptedText);
-      // Validate it has the expected structure
-      if (parsed && typeof parsed.text === 'string') {
-        return {
-          text: parsed.text,
-          username: parsed.username
-        };
-      }
-    } catch {
-      // Not JSON or invalid format, fall through to plain text handling
-    }
+      const decryptedText = new TextDecoder().decode(decryptedData);
 
-    // Backward compatibility: treat as plain text (old format)
-    return { text: decryptedText, username: undefined };
+      // Try to parse as JSON (new format with username)
+      try {
+        const parsed = JSON.parse(decryptedText);
+        // Validate it has the expected structure
+        if (parsed && typeof parsed.text === 'string') {
+          return {
+            text: parsed.text,
+            username: parsed.username
+          };
+        }
+      } catch {
+        // Not JSON or invalid format, fall through to plain text handling
+      }
+
+      // Backward compatibility: treat as plain text (old format)
+      return { text: decryptedText, username: undefined };
+    } finally {
+      // Clear decrypted data buffer from memory (best effort)
+      secureClearBuffer(decryptedData);
+    }
   }
 
   /**
