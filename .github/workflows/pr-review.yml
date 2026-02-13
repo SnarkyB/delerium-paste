@@ -76,7 +76,7 @@ jobs:
       - name: Generate AI review
         id: review
         env:
-          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PR_TITLE: ${{ steps.pr-info.outputs.pr_title }}
           PR_AUTHOR: ${{ steps.pr-info.outputs.pr_author }}
           BASE_BRANCH: ${{ steps.pr-info.outputs.base_branch }}
@@ -111,12 +111,12 @@ jobs:
           Focus on: Security (zero-knowledge architecture), Code Quality, Testing (85% coverage), Potential Issues, Documentation.
           Provide specific, actionable feedback."
           
-          # Use Cursor API (OpenAI-compatible endpoint)
-          REVIEW_RESPONSE=$(curl -s https://api.cursor.com/v1/chat/completions \
-            -H "Authorization: Bearer ${CURSOR_API_KEY}" \
+          # Use OpenAI API
+          REVIEW_RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
+            -H "Authorization: Bearer ${OPENAI_API_KEY}" \
             -H "content-type: application/json" \
             -d "{
-              \"model\": \"claude-3.5-sonnet\",
+              \"model\": \"gpt-4o\",
               \"max_tokens\": 4000,
               \"messages\": [
                 {
@@ -126,7 +126,7 @@ jobs:
               ]
             }")
           
-          # Extract from OpenAI-compatible response format
+          # Extract from OpenAI response format
           REVIEW_TEXT=$(echo "$REVIEW_RESPONSE" | jq -r '.choices[0].message.content' 2>/dev/null || echo "")
           
           if [ -z "$REVIEW_TEXT" ] || [ "$REVIEW_TEXT" = "null" ]; then
