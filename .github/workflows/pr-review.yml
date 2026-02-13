@@ -26,11 +26,11 @@ jobs:
       - name: Get PR details
         id: pr-info
         run: |
-          PR_TITLE=$(gh pr view ${{ github.event.pull_request.number }} --json title --jq -r '.title')
-          PR_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body --jq -r '.body')
-          PR_AUTHOR=$(gh pr view ${{ github.event.pull_request.number }} --json author --jq -r '.author.login')
-          BASE_BRANCH=$(gh pr view ${{ github.event.pull_request.number }} --json baseRefName --jq -r '.baseRefName')
-          HEAD_BRANCH=$(gh pr view ${{ github.event.pull_request.number }} --json headRefName --jq -r '.headRefName')
+          PR_TITLE=$(gh pr view ${{ github.event.pull_request.number }} --json title --jq '.title')
+          PR_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body --jq '.body')
+          PR_AUTHOR=$(gh pr view ${{ github.event.pull_request.number }} --json author --jq '.author.login')
+          BASE_BRANCH=$(gh pr view ${{ github.event.pull_request.number }} --json baseRefName --jq '.baseRefName')
+          HEAD_BRANCH=$(gh pr view ${{ github.event.pull_request.number }} --json headRefName --jq '.headRefName')
           
           echo "pr_title<<EOF" >> $GITHUB_OUTPUT
           echo "$PR_TITLE" >> $GITHUB_OUTPUT
