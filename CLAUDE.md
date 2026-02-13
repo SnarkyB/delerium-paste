@@ -796,6 +796,16 @@ All CI checks must pass:
 3. AI commits changes with descriptive commit message
 4. AI pushes to remote immediately after each commit
 
+### GitHub Operations
+- **Use `gh` CLI**: For all GitHub operations (PRs, issues, etc.), use the `gh` command-line tool
+- **Do NOT use GitKraken tools**: Always prefer `gh` over GitKraken MCP tools
+- **Common commands**:
+  - `gh pr create` - Create pull request
+  - `gh pr view` - View PR details
+  - `gh pr list` - List pull requests
+  - `gh issue list` - List issues
+  - `gh issue view` - View issue details
+
 ## Deployment
 
 ### Docker Compose

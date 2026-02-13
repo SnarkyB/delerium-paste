@@ -35,6 +35,17 @@ Cursor automatically reads all `.md` files in `.cursor/rules/`. Reference rules 
 
 **Note**: Pre-commit hook at `.husky/pre-commit` runs ESLint automatically. If hook is not installed, run `cd client && npm install` to set it up.
 
+## GitHub Operations
+
+- ✅ **Use `gh` CLI**: For all GitHub operations (PRs, issues, etc.), use the `gh` command-line tool
+- ❌ **Do NOT use GitKraken tools**: Always prefer `gh` over GitKraken MCP tools
+- **Common commands**:
+  - `gh pr create` - Create pull request
+  - `gh pr view` - View PR details
+  - `gh pr list` - List pull requests
+  - `gh issue list` - List issues
+  - `gh issue view` - View issue details
+
 ## Commit Message Format
 
 Format: `<type>: <description>`

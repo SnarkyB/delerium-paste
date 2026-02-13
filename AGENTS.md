@@ -109,6 +109,10 @@ GET    /health                  # Health check
 - **Never push directly to main/master**: Always use feature branches and pull requests
 - **Push after each commit**: AI pushes to remote immediately after each commit
 
+### GitHub Operations
+- **Use `gh` CLI**: For all GitHub operations (PRs, issues, etc.), use the `gh` command-line tool
+- **Do NOT use GitKraken tools**: Always prefer `gh` over GitKraken MCP tools
+
 ## Documentation Rules
 
 - **Change documentation** (fix summaries, migration notes) must go in `docs/prs/PR-XXX-<description>/`
