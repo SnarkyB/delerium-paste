@@ -799,6 +799,7 @@ All CI checks must pass:
 ### GitHub Operations
 - **Use `gh` CLI**: For all GitHub operations (PRs, issues, etc.), use the `gh` command-line tool
 - **Do NOT use GitKraken tools**: Always prefer `gh` over GitKraken MCP tools
+- **No "Made with Cursor" tags**: Do not include "Made with Cursor" or similar tags in PR descriptions
 - **Common commands**:
   - `gh pr create` - Create pull request
   - `gh pr view` - View PR details
