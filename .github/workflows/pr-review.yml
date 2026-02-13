@@ -2,20 +2,51 @@ name: PR Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
-  ai-review:
+  review:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: AI Code Review
-        uses: github/copilot-code-review-action@v1
         with:
-          model: gpt-4o
+          fetch-depth: 0
+
+      - name: Get PR diff stats
+        id: diff
+        run: |
+          echo "## PR Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get changed files
+          FILES=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
+          FILE_COUNT=$(echo "$FILES" | wc -l)
+          
+          echo "### Changed Files ($FILE_COUNT)" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$FILES" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get diff stats
+          STATS=$(gh pr diff ${{ github.event.pull_request.number }} --stat | tail -1)
+          echo "### Stats" >> $GITHUB_STEP_SUMMARY
+          echo "$STATS" >> $GITHUB_STEP_SUMMARY
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Security check reminder
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Review Checklist" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] No secrets or keys in code" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Encryption keys stay client-side (URL fragments only)" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] No sensitive data logged" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Tests cover new code" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Coverage maintained at 85%+" >> $GITHUB_STEP_SUMMARY
