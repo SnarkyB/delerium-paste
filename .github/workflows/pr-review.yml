@@ -76,7 +76,7 @@ jobs:
       - name: Generate AI review
         id: review
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           PR_TITLE: ${{ steps.pr-info.outputs.pr_title }}
           PR_AUTHOR: ${{ steps.pr-info.outputs.pr_author }}
           BASE_BRANCH: ${{ steps.pr-info.outputs.base_branch }}
@@ -111,12 +111,12 @@ jobs:
           Focus on: Security (zero-knowledge architecture), Code Quality, Testing (85% coverage), Potential Issues, Documentation.
           Provide specific, actionable feedback."
           
-          REVIEW_RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
-            -H "x-api-key: ${ANTHROPIC_API_KEY}" \
-            -H "anthropic-version: 2023-06-01" \
+          # Use Cursor API (OpenAI-compatible endpoint)
+          REVIEW_RESPONSE=$(curl -s https://api.cursor.com/v1/chat/completions \
+            -H "Authorization: Bearer ${CURSOR_API_KEY}" \
             -H "content-type: application/json" \
             -d "{
-              \"model\": \"claude-sonnet-4-20250514\",
+              \"model\": \"claude-3.5-sonnet\",
               \"max_tokens\": 4000,
               \"messages\": [
                 {
@@ -126,7 +126,8 @@ jobs:
               ]
             }")
           
-          REVIEW_TEXT=$(echo "$REVIEW_RESPONSE" | jq -r '.content[0].text' 2>/dev/null || echo "")
+          # Extract from OpenAI-compatible response format
+          REVIEW_TEXT=$(echo "$REVIEW_RESPONSE" | jq -r '.choices[0].message.content' 2>/dev/null || echo "")
           
           if [ -z "$REVIEW_TEXT" ] || [ "$REVIEW_TEXT" = "null" ]; then
             echo "Error: Failed to get review from API"
