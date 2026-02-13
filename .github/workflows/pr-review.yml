@@ -2,9 +2,6 @@ name: PR Review
 
 on:
   pull_request:
-    branches:
-      - main
-      - '**'
     types: [opened, synchronize]
 
 jobs:
@@ -52,7 +49,6 @@ jobs:
       - name: Get PR diff
         id: pr-diff
         run: |
-          # Get diff and truncate if too long (API has limits)
           DIFF=$(gh pr diff ${{ github.event.pull_request.number }} | head -c 50000)
           echo "diff<<EOF" >> $GITHUB_OUTPUT
           echo "$DIFF" >> $GITHUB_OUTPUT
@@ -79,88 +75,48 @@ jobs:
 
       - name: Generate AI review
         id: review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PR_TITLE: ${{ steps.pr-info.outputs.pr_title }}
+          PR_AUTHOR: ${{ steps.pr-info.outputs.pr_author }}
+          BASE_BRANCH: ${{ steps.pr-info.outputs.base_branch }}
+          HEAD_BRANCH: ${{ steps.pr-info.outputs.head_branch }}
+          PR_BODY: ${{ steps.pr-info.outputs.pr_body }}
+          CHANGED_FILES: ${{ steps.pr-diff.outputs.changed_files }}
+          GUIDELINES: ${{ steps.guidelines.outputs.content }}
+          DIFF: ${{ steps.pr-diff.outputs.diff }}
         run: |
-          # Build review prompt (Cursor Agent style)
-          PROMPT=$(cat <<'PROMPT_EOF'
-You are Cursor Agent, an AI code reviewer integrated into GitHub Actions. You review pull requests with the same intelligence and style as Cursor's built-in AI assistant.
-
-You are reviewing a pull request for a zero-knowledge encrypted paste system. This is a security-critical application where all encryption happens client-side.
-
-**PR Details:**
-- Title: ${{ steps.pr-info.outputs.pr_title }}
-- Author: ${{ steps.pr-info.outputs.pr_author }}
-- Base: ${{ steps.pr-info.outputs.base_branch }} → Head: ${{ steps.pr-info.outputs.head_branch }}
-
-**PR Description:**
-${{ steps.pr-info.outputs.pr_body }}
-
-**Changed Files:**
-${{ steps.pr-diff.outputs.changed_files }}
-
-**Repository Guidelines:**
-${{ steps.guidelines.outputs.content }}
-
-**Code Diff:**
-```
-${{ steps.pr-diff.outputs.diff }}
-```
-
-Please provide a comprehensive code review focusing on:
-
-1. **Security (CRITICAL - Zero-Knowledge Architecture):**
-   - Encryption/decryption correctness (AES-256-GCM)
-   - Key handling (must NEVER be sent to server - only in URL fragments)
-   - Password handling and PBKDF2 derivation
-   - Input validation
-   - Error messages that might leak sensitive data
-   - Logging of sensitive information (keys, passwords, plaintext)
-   - Zero-knowledge compliance
-
-2. **Code Quality:**
-   - Adherence to project conventions (see CLAUDE.md)
-   - TypeScript strict mode compliance
-   - Code organization and structure
-   - SOLID principles
-
-3. **Testing:**
-   - Test coverage (minimum 85% overall, 100% for security-critical code)
-   - Edge cases covered (Unicode, empty strings, max sizes, etc.)
-   - Security-critical paths tested
-   - Integration and E2E tests where appropriate
-
-4. **Potential Issues:**
-   - Bugs or logic errors
-   - Race conditions
-   - Performance concerns
-   - Breaking changes or API contract violations
-   - Backward compatibility
-
-5. **Documentation:**
-   - Code comments and JSDoc
-   - PR description completeness
-   - Change documentation in docs/prs/ if needed
-
-6. **Project-Specific:**
-   - API contract preservation (never break existing contracts)
-   - Coverage threshold maintenance (no drops >5%)
-   - Small PR size (100-300 lines preferred)
-   - Change documentation organization (docs/prs/PR-XXX-*/)
-
-Provide specific, actionable feedback. Be constructive and helpful. Focus on security first, then code quality, then testing.
-
-Format your review as a clear, well-structured comment that can be posted directly to the PR.
-PROMPT_EOF
-)
+          echo "Generating AI review..."
           
-          # Call Anthropic API (same model Cursor Agent uses)
-          echo "🤖 Cursor Agent reviewing PR..."
+          # Build prompt using environment variables
+          PROMPT="You are an AI code reviewer. Review this PR for a zero-knowledge encrypted paste system.
+
+          PR Details:
+          - Title: ${PR_TITLE}
+          - Author: ${PR_AUTHOR}
+          - Base: ${BASE_BRANCH} -> Head: ${HEAD_BRANCH}
+
+          PR Description:
+          ${PR_BODY}
+
+          Changed Files:
+          ${CHANGED_FILES}
+
+          Repository Guidelines:
+          ${GUIDELINES}
+
+          Code Diff:
+          ${DIFF}
+
+          Focus on: Security (zero-knowledge architecture), Code Quality, Testing (85% coverage), Potential Issues, Documentation.
+          Provide specific, actionable feedback."
           
           REVIEW_RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
-            -H "x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}" \
+            -H "x-api-key: ${ANTHROPIC_API_KEY}" \
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
             -d "{
-              \"model\": \"claude-3-5-sonnet-20241022\",
+              \"model\": \"claude-sonnet-4-20250514\",
               \"max_tokens\": 4000,
               \"messages\": [
                 {
@@ -170,11 +126,10 @@ PROMPT_EOF
               ]
             }")
           
-          # Extract review text
           REVIEW_TEXT=$(echo "$REVIEW_RESPONSE" | jq -r '.content[0].text' 2>/dev/null || echo "")
           
           if [ -z "$REVIEW_TEXT" ] || [ "$REVIEW_TEXT" = "null" ]; then
-            echo "❌ Error: Failed to get review from API"
+            echo "Error: Failed to get review from API"
             echo "Response: $REVIEW_RESPONSE"
             exit 1
           fi
@@ -183,7 +138,7 @@ PROMPT_EOF
           echo "$REVIEW_TEXT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-          echo "✅ Review generated successfully"
+          echo "Review generated successfully"
 
       - name: Post review as PR comment
         run: |
@@ -193,8 +148,5 @@ PROMPT_EOF
 
       - name: Summary
         run: |
-          echo "✅ PR Review completed!"
+          echo "PR Review completed!"
           echo "Review posted to PR #${{ github.event.pull_request.number }}"
-          echo ""
-          echo "Review preview:"
-          echo "${{ steps.review.outputs.review_text }}" | head -20
