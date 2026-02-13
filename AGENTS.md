@@ -104,10 +104,10 @@ GET    /health                  # Health check
 - **Run `make ci-check` before pushing**
 
 ### AI Commit & Push Control
-- **Always ask before commit/push**: AI must confirm with user before committing or pushing
-- **Feature branches allowed**: Commits and pushes to feature branches are permitted with user confirmation
+- **Feature branches allowed**: Commits and pushes to feature branches are permitted
 - **Protect main/master**: If on main or master, MUST create a new feature branch before committing
 - **Never push directly to main/master**: Always use feature branches and pull requests
+- **Push after each commit**: AI pushes to remote immediately after each commit
 
 ## Documentation Rules
 
