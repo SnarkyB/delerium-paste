@@ -1,6 +1,6 @@
 # Delirium Documentation
 
-Welcome to the Delirium documentation! This index will help you navigate and find what you need.
+Welcome to Delirium documentation! This index will help you navigate and find what you need.
 
 ## Getting Started
 
