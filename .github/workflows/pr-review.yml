@@ -1,4 +1,4 @@
-name: Cursor Agent Code Review
+name: PR Review
 
 on:
   pull_request:
@@ -190,7 +190,7 @@ PROMPT_EOF
 
       - name: Summary
         run: |
-          echo "✅ Cursor Agent review completed!"
+          echo "✅ PR Review completed!"
           echo "Review posted to PR #${{ github.event.pull_request.number }}"
           echo ""
           echo "Review preview:"
