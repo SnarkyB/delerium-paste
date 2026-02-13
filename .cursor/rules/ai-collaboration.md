@@ -14,27 +14,27 @@ Cursor automatically reads all `.md` files in `.cursor/rules/`. Reference rules 
 - **One concern per PR**: Single feature, bug fix, or refactor
 - **Atomic changes**: Each PR independently deployable
 - **Clear scope**: Easy to review, test, understand
+- **Logical commits**: Break large work into separate commits for each major chunk
+- **Atomic commits**: Each commit should be independently understandable and reviewable
 
 ## Commit & Push Control
 
-**CRITICAL: NEVER auto-commit or auto-push**
-
-- ❌ **NEVER auto-commit**: AI must NOT automatically commit changes
-- ❌ **NEVER auto-push**: AI must NOT automatically push to remote
-- ✅ **Manual review required**: Developer reviews all changes before commit
-- ✅ **Explicit confirmation**: Only commit/push when developer explicitly asks
+- ✅ **Always ask before commit/push**: AI must confirm with user before committing or pushing
+- ✅ **Feature branches allowed**: Commits and pushes to feature branches are permitted with user confirmation
+- ✅ **Protect main/master**: If on main or master branch, MUST create a new feature branch before committing
+- ❌ **Never push directly to main/master**: Always use feature branches and pull requests
 
 ## Workflow
 
 1. AI makes changes (editing files)
-2. **Run ESLint before committing**: `cd client && npm run lint`
-3. Developer reviews changes
-4. Developer explicitly asks: "commit these changes"
-5. AI suggests commit message
-6. Developer approves or modifies
+2. If on main/master, AI creates a new feature branch first
+3. **Run ESLint before committing**: `cd client && npm run lint`
+4. AI asks user: "Ready to commit these changes?" and suggests commit message
+5. User approves, modifies, or asks for more changes
+6. AI commits when user confirms
 7. **Pre-commit hook runs automatically** (ESLint, typecheck, tests)
-8. Developer explicitly asks: "push to remote"
-9. AI pushes only when told
+8. AI asks user: "Ready to push to remote?"
+9. AI pushes when user confirms
 
 **Note**: Pre-commit hook at `.husky/pre-commit` runs ESLint automatically. If hook is not installed, run `cd client && npm install` to set it up.
 
@@ -76,5 +76,5 @@ Branch: draft/security-ux-bundle
 
 - **NEVER push directly to main** - Always create feature branch and PR
 - All changes must go through pull requests
-- Use descriptive branch names: `feature/`, `fix/`, `docs/`, `refactor/`
+- Use descriptive branch names: `feature/`, `fix/`, `docs/`, `refactor/`, `draft/`
 - Ask before bypassing branch protection rules
