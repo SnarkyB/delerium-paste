@@ -785,19 +785,16 @@ All CI checks must pass:
 - **Atomic commits**: Each commit should be independently understandable and reviewable
 
 ### Commit & Push Control
-- **Always ask before commit/push**: AI must confirm with user before committing or pushing
-- **Feature branches allowed**: Commits and pushes to feature branches are permitted with user confirmation
+- **Feature branches allowed**: Commits and pushes to feature branches are permitted
 - **Protect main/master**: If on main or master branch, MUST create a new feature branch before committing
 - **Never push directly to main/master**: Always use feature branches and pull requests
+- **Push after each commit**: AI pushes to remote immediately after each commit
 
 ### Workflow
 1. AI makes changes (editing files)
 2. If on main/master, AI creates a new feature branch first
-3. AI asks user: "Ready to commit these changes?" and suggests commit message
-4. User approves, modifies, or asks for more changes
-5. AI commits when user confirms
-6. AI asks user: "Ready to push to remote?"
-7. AI pushes when user confirms
+3. AI commits changes with descriptive commit message
+4. AI pushes to remote immediately after each commit
 
 ## Deployment
 

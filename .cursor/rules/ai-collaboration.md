@@ -19,22 +19,19 @@ Cursor automatically reads all `.md` files in `.cursor/rules/`. Reference rules 
 
 ## Commit & Push Control
 
-- ✅ **Always ask before commit/push**: AI must confirm with user before committing or pushing
-- ✅ **Feature branches allowed**: Commits and pushes to feature branches are permitted with user confirmation
+- ✅ **Feature branches allowed**: Commits and pushes to feature branches are permitted
 - ✅ **Protect main/master**: If on main or master branch, MUST create a new feature branch before committing
 - ❌ **Never push directly to main/master**: Always use feature branches and pull requests
+- ✅ **Push after each commit**: AI pushes to remote immediately after each commit
 
 ## Workflow
 
 1. AI makes changes (editing files)
 2. If on main/master, AI creates a new feature branch first
 3. **Run ESLint before committing**: `cd client && npm run lint`
-4. AI asks user: "Ready to commit these changes?" and suggests commit message
-5. User approves, modifies, or asks for more changes
-6. AI commits when user confirms
-7. **Pre-commit hook runs automatically** (ESLint, typecheck, tests)
-8. AI asks user: "Ready to push to remote?"
-9. AI pushes when user confirms
+4. AI commits changes with descriptive commit message
+5. **Pre-commit hook runs automatically** (ESLint, typecheck, tests)
+6. AI pushes to remote immediately after each commit
 
 **Note**: Pre-commit hook at `.husky/pre-commit` runs ESLint automatically. If hook is not installed, run `cd client && npm install` to set it up.
 
