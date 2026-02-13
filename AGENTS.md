@@ -99,12 +99,15 @@ GET    /health                  # Health check
 ### PR Philosophy
 - **Small PRs**: 100-300 lines, focused changes
 - **One concern per PR**: Single feature, bug fix, or refactor
+- **Logical commits**: Break large work into separate commits for each major chunk
+- **Atomic commits**: Each commit should be independently understandable and reviewable
 - **Run `make ci-check` before pushing**
 
 ### AI Commit & Push Control
-- **NEVER auto-commit**: AI must NOT automatically commit changes
-- **NEVER auto-push**: AI must NOT automatically push to remote
-- **Explicit confirmation required**: Only commit/push when developer explicitly asks
+- **Always ask before commit/push**: AI must confirm with user before committing or pushing
+- **Feature branches allowed**: Commits and pushes to feature branches are permitted with user confirmation
+- **Protect main/master**: If on main or master, MUST create a new feature branch before committing
+- **Never push directly to main/master**: Always use feature branches and pull requests
 
 ## Documentation Rules
 
