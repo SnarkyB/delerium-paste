@@ -551,6 +551,12 @@ server/
 - Suspend functions for async operations
 - Immutable properties preferred
 
+### HTML
+- **Unique IDs across all HTML files**: Element IDs must be unique not just within a single file, but across ALL HTML files (`index.html`, `view.html`, etc.) to avoid browser autofill warnings
+- Use page-specific prefixes for IDs that serve similar purposes: e.g., `copyBtn` (index) vs `copyContentBtn` (view)
+- Semantic HTML elements with proper ARIA attributes
+- All form inputs must have associated labels
+
 ### File Organization Rules
 - **Source code**: Prefer reading `.ts` files in `client/src/`, NOT compiled `.js` files in `client/js/`
 - **Change documentation**: Must go in `docs/prs/PR-XXX-<description>/` folders, NOT repository root
@@ -884,6 +890,7 @@ Pastes can be deleted by: time-based expiration (automatic cleanup), creator del
 8. **Logging sensitive data**: Never log keys, passwords, or plaintext
 9. **Using `any` in TypeScript**: Use explicit types
 10. **Reading compiled `.js` files**: Read source `.ts` files instead
+11. **Duplicate HTML IDs across pages**: Use unique IDs across all HTML files to avoid browser warnings
 
 ## Performance Considerations
 
