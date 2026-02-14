@@ -47,7 +47,6 @@ export class ViewPasteUseCase {
       let attempts = 0;
       let content = '';
       let deleteAuth: string | null = null;
-      let cachedKey: CryptoKey | undefined;
 
       while (attempts < MAX_PASSWORD_ATTEMPTS && !content) {
         const attemptsRemaining = MAX_PASSWORD_ATTEMPTS - attempts;
@@ -74,11 +73,6 @@ export class ViewPasteUseCase {
             password,
             saltArray
           );
-
-          // When convenient chat is enabled, derive chat key once so chat can reuse it
-          if (meta.allowKeyCaching) {
-            cachedKey = await this.encryptionService.deriveKeyFromPassword(password, saltArray);
-          }
         } catch {
           attempts++;
           if (attempts >= MAX_PASSWORD_ATTEMPTS) {
@@ -95,8 +89,7 @@ export class ViewPasteUseCase {
       return success({
         content,
         metadata: meta,
-        deleteAuth,
-        cachedKey
+        deleteAuth
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

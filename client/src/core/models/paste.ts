@@ -45,8 +45,6 @@ export interface PasteMetadata {
   expireTs: number;
   /** MIME type hint */
   mime: string;
-  /** Allow viewers to cache decryption key for chat convenience */
-  allowKeyCaching?: boolean;
   /** If true, anonymous chat is enabled for this paste */
   allowChat?: boolean;
 }

@@ -27,13 +27,11 @@ export function escapeHtml(text: string): string {
 const DEBUG_MODE = typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production';
 
 /**
- * Chat context with optional key caching support
+ * Chat context
  */
 interface ChatContext {
   pasteId: string;
   salt: Uint8Array;
-  allowKeyCaching: boolean;
-  cachedKey?: CryptoKey;
   currentUsername?: string;
 }
 
@@ -54,30 +52,6 @@ export class ChatView {
   private context: ChatContext | null = null;
 
   constructor(private useCase: ChatUseCase) {}
-
-  /**
-   * Update the key status indicator UI
-   */
-  private updateKeyIndicator(hasKey: boolean, allowed: boolean): void {
-    const keyStatus = document.getElementById('keyStatus');
-    if (!keyStatus) return;
-
-    if (allowed && hasKey) {
-      keyStatus.style.display = 'block';
-    } else {
-      keyStatus.style.display = 'none';
-    }
-  }
-
-  /**
-   * Forget (clear) the cached key
-   */
-  private forgetKey(): void {
-    if (this.context) {
-      this.context.cachedKey = undefined;
-      this.updateKeyIndicator(false, this.context.allowKeyCaching);
-    }
-  }
 
   /**
    * Display decrypted messages in the chat UI
@@ -144,12 +118,10 @@ export class ChatView {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
 
-    // Determine if we can use cached key
-    const key: CryptoKey | undefined = this.context.allowKeyCaching ? this.context.cachedKey : undefined;
     let pwd = password;
 
-    // If no cached key and no password provided, prompt for password
-    if (!key && !pwd) {
+    // Prompt for password if not provided
+    if (!pwd) {
       pwd = await showPasswordModal({
         title: 'Password Required',
         message: 'Enter the paste password to decrypt messages.',
@@ -167,25 +139,9 @@ export class ChatView {
       // Call use case
       const result = await this.useCase.refreshMessages(
         this.context.pasteId,
-        pwd || '',
-        this.context.salt,
-        key,
-        this.context.allowKeyCaching
+        pwd,
+        this.context.salt
       );
-
-      // Update cached key if returned
-      if (result.key && this.context.allowKeyCaching) {
-        this.context.cachedKey = result.key;
-        this.updateKeyIndicator(true, true);
-      }
-
-      // If decryption failed and we were using cached key, clear it and re-prompt
-      const hasDecryptionFailure = result.messages.some(m => m.text.includes('[Decryption failed'));
-      if (hasDecryptionFailure && this.context.cachedKey && !pwd) {
-        this.forgetKey();
-        messagesDiv.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--warning);">Cached key failed. Please re-enter password.</div>';
-        return;
-      }
 
       // Display messages
       this.displayMessages(result.messages);
@@ -229,21 +185,15 @@ export class ChatView {
     const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
     const username = usernameInput?.value.trim() || this.context.currentUsername || generateRandomUsername();
 
-    // Determine if we can use cached key
-    const key: CryptoKey | undefined = this.context.allowKeyCaching ? this.context.cachedKey : undefined;
-    let password: string | undefined;
-
-    // If no cached key, prompt for password
-    if (!key) {
-      password = await showPasswordModal({
-        title: 'Password Required',
-        message: 'Enter the paste password to encrypt and send your message.',
-        placeholder: 'Enter password or PIN'
-      }) ?? undefined;
-      if (!password) {
-        this.showChatError('Password is required to encrypt message');
-        return;
-      }
+    // Always prompt for password
+    const password = await showPasswordModal({
+      title: 'Password Required',
+      message: 'Enter the paste password to encrypt and send your message.',
+      placeholder: 'Enter password or PIN'
+    }) ?? undefined;
+    if (!password) {
+      this.showChatError('Password is required to encrypt message');
+      return;
     }
 
     try {
@@ -258,21 +208,13 @@ export class ChatView {
           pasteId: this.context.pasteId,
           message,
           username,
-          password: password || '',
-          cachedKey: key
+          password
         },
-        this.context.salt,
-        this.context.allowKeyCaching
+        this.context.salt
       );
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to send message');
-      }
-
-      // Update cached key if returned
-      if (result.key && this.context.allowKeyCaching) {
-        this.context.cachedKey = result.key;
-        this.updateKeyIndicator(true, true);
       }
 
       // Clear input and refresh messages
@@ -280,9 +222,7 @@ export class ChatView {
       await this.handleRefreshMessages(password);
 
       // Clear password after use
-      if (password) {
-        secureClear(password);
-      }
+      secureClear(password);
     } catch (error) {
       if (DEBUG_MODE) {
         console.error('Error sending message:', error);
@@ -290,9 +230,7 @@ export class ChatView {
         console.error('Error sending message');
       }
       this.showChatError(error instanceof Error ? error.message : 'Failed to send message');
-      if (password) {
-        secureClear(password);
-      }
+      secureClear(password);
     } finally {
       input.disabled = false;
       const sendBtn = document.getElementById('sendMessageBtn') as HTMLButtonElement;
@@ -302,16 +240,13 @@ export class ChatView {
 
   /**
    * Initialize chat functionality on view page
-   *
-   * @param initialKey When convenient chat is enabled, key from paste decryption so chat does not prompt again
    */
-  setup(pasteId: string, salt: Uint8Array, allowKeyCaching: boolean = false, initialKey?: CryptoKey): void {
+  setup(pasteId: string, salt: Uint8Array): void {
     const chatSection = document.getElementById('chatSection');
     const refreshBtn = document.getElementById('refreshMessagesBtn');
     const sendBtn = document.getElementById('sendMessageBtn');
     const chatInput = document.getElementById('chatInput') as HTMLInputElement | HTMLTextAreaElement;
     const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
-    const forgetKeyBtn = document.getElementById('forgetKeyBtn');
     const chatInfoText = document.getElementById('chatInfoText');
 
     if (!chatSection || !refreshBtn || !sendBtn || !chatInput) {
@@ -328,18 +263,12 @@ export class ChatView {
     // Show chat section
     chatSection.style.display = 'block';
 
-    // Store context; when convenient chat is on, reuse key from paste decryption so we don't prompt again
+    // Store context
     this.context = {
       pasteId,
       salt,
-      allowKeyCaching,
-      cachedKey: allowKeyCaching && initialKey ? initialKey : undefined,
       currentUsername: generateRandomUsername()
     };
-
-    if (this.context.cachedKey && allowKeyCaching) {
-      this.updateKeyIndicator(true, true);
-    }
 
     // Set auto-generated username in input field if it exists
     if (usernameInput) {
@@ -352,29 +281,9 @@ export class ChatView {
       });
     }
 
-    // Update info text based on key caching setting
+    // Update info text
     if (chatInfoText) {
-      if (allowKeyCaching) {
-        chatInfoText.textContent = '💡 Messages are encrypted with your paste password. Key can be cached after first entry.';
-      } else {
-        chatInfoText.textContent = '💡 Messages are encrypted with your paste password. Password required for each action.';
-      }
-    }
-
-    // Setup forget key button if key caching is allowed
-    if (forgetKeyBtn && allowKeyCaching) {
-      forgetKeyBtn.addEventListener('click', () => {
-        this.forgetKey();
-      });
-    }
-
-    // Clear key on page unload for security
-    if (allowKeyCaching) {
-      window.addEventListener('beforeunload', () => {
-        if (this.context) {
-          this.context.cachedKey = undefined;
-        }
-      });
+      chatInfoText.textContent = '💡 Messages are encrypted with your paste password. Password required for each action.';
     }
 
     // Refresh messages handler

@@ -37,9 +37,7 @@ export async function viewPaste(): Promise<void> {
   if (result && shouldInitChat(result.metadata)) {
     setupPasteChat(
       result.pasteId,
-      result.salt,
-      result.metadata.allowKeyCaching ?? false,
-      result.cachedKey
+      result.salt
     );
   }
 }

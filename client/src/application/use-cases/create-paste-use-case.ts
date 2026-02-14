@@ -89,8 +89,7 @@ export class CreatePasteUseCase {
         meta: {
           expireTs,
           mime: 'text/plain',
-          allowChat: command.allowChat ?? true,
-          allowKeyCaching: command.allowKeyCaching ?? false
+          allowChat: command.allowChat ?? true
         },
         pow,
         deleteAuth
