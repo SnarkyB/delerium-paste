@@ -3,6 +3,7 @@ name: PR Review
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    branches: [main]
 
 permissions:
   contents: read
@@ -17,36 +18,109 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get PR diff stats
-        id: diff
-        run: |
-          echo "## PR Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Get changed files
-          FILES=$(gh pr diff ${{ github.event.pull_request.number }} --name-only)
-          FILE_COUNT=$(echo "$FILES" | wc -l)
-          
-          echo "### Changed Files ($FILE_COUNT)" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "$FILES" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Get diff stats
-          STATS=$(gh pr diff ${{ github.event.pull_request.number }} --stat | tail -1)
-          echo "### Stats" >> $GITHUB_STEP_SUMMARY
-          echo "$STATS" >> $GITHUB_STEP_SUMMARY
+      - name: AI Code Review
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Security check reminder
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Review Checklist" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- [ ] No secrets or keys in code" >> $GITHUB_STEP_SUMMARY
-          echo "- [ ] Encryption keys stay client-side (URL fragments only)" >> $GITHUB_STEP_SUMMARY
-          echo "- [ ] No sensitive data logged" >> $GITHUB_STEP_SUMMARY
-          echo "- [ ] Tests cover new code" >> $GITHUB_STEP_SUMMARY
-          echo "- [ ] Coverage maintained at 85%+" >> $GITHUB_STEP_SUMMARY
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+
+          # Get PR body
+          PR_BODY=$(gh pr view "$PR_NUMBER" --json body --jq -r '.body // ""')
+
+          # Get diff (truncate to ~50KB to stay within API limits)
+          PR_DIFF=$(gh pr diff "$PR_NUMBER" | head -c 51200)
+          CHANGED_FILES=$(gh pr diff "$PR_NUMBER" --name-only | head -20)
+
+          # Read repository guidelines (first 150 lines)
+          GUIDELINES=""
+          if [ -f "CLAUDE.md" ]; then
+            GUIDELINES=$(head -150 CLAUDE.md)
+          fi
+
+          REVIEW_PROMPT="You are reviewing a pull request for a zero-knowledge encrypted paste system.
+
+          **PR Details:**
+          - Title: $PR_TITLE
+          - Author: $PR_AUTHOR
+          - Base: $BASE_BRANCH → Head: $HEAD_BRANCH
+
+          **PR Description:**
+          $PR_BODY
+
+          **Changed Files:**
+          $CHANGED_FILES
+
+          **Repository Guidelines (excerpt):**
+          $GUIDELINES
+
+          **Code Diff:**
+          \`\`\`
+          $PR_DIFF
+          \`\`\`
+
+          Please provide a comprehensive code review focusing on:
+
+          1. **Security (CRITICAL):**
+             - Encryption/decryption correctness
+             - Key handling (must never be sent to server — keys live only in URL fragments)
+             - Password handling and memory clearing
+             - Input validation
+             - Error messages that might leak data
+             - Logging of sensitive information
+
+          2. **Code Quality:**
+             - Adherence to project conventions
+             - Code organization and clarity
+             - Best practices
+
+          3. **Testing:**
+             - Test coverage (minimum 85%, 100% for security-critical code)
+             - Edge cases covered
+             - Security-critical paths tested
+
+          4. **Potential Issues:**
+             - Bugs or logic errors
+             - Race conditions
+             - Performance concerns
+             - Breaking changes
+
+          5. **Documentation:**
+             - Code comments where needed
+             - PR description completeness
+
+          Provide specific, actionable feedback. Be constructive and helpful. If there are no issues in a category, say so briefly."
+
+          # Build JSON safely with jq (handles quotes, newlines, special chars)
+          JSON_PAYLOAD=$(jq -n \
+            --arg content "$REVIEW_PROMPT" \
+            '{model: "claude-opus-4-6", max_tokens: 4000, messages: [{role: "user", content: $content}]}')
+
+          echo "Calling Claude API..."
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "$JSON_PAYLOAD")
+
+          REVIEW_TEXT=$(echo "$RESPONSE" | jq -r '.content[0].text // empty')
+
+          if [ -z "$REVIEW_TEXT" ]; then
+            echo "API error response: $RESPONSE"
+            echo "⚠️ Could not generate AI review (check ANTHROPIC_API_KEY secret)" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          # Post review as PR comment
+          gh pr comment "$PR_NUMBER" --body "## 🤖 AI Code Review
+
+          $REVIEW_TEXT
+
+          ---
+          *Reviewed by Claude (claude-opus-4-6)*"
+
+          echo "✅ Review posted to PR #$PR_NUMBER"
