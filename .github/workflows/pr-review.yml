@@ -115,12 +115,10 @@ jobs:
             exit 0
           fi
 
-          # Post review as PR comment
-          gh pr comment "$PR_NUMBER" --body "## 🤖 AI Code Review
+          # Write to file to avoid shell quoting/splitting issues with --body
+          printf '## 🤖 AI Code Review\n\n%s\n\n---\n*Reviewed by Claude (claude-opus-4-6)*' \
+            "$REVIEW_TEXT" > /tmp/pr-review.md
 
-          $REVIEW_TEXT
-
-          ---
-          *Reviewed by Claude (claude-opus-4-6)*"
+          gh pr comment "$PR_NUMBER" --body-file /tmp/pr-review.md
 
           echo "✅ Review posted to PR #$PR_NUMBER"
