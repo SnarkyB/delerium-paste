@@ -16,6 +16,7 @@ import io.ktor.server.routing.routing
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import apiRoutes
+import internalRoutes
 import PasteRepo
 import PasteMeta
 import CreatePasteRequest
@@ -226,5 +227,20 @@ fun Application.testModule(
     }
     routing {
         apiRoutes(repo, rl, pow, cfg, failedAttemptTracker)
+        internalRoutes(repo)
     }
+}
+
+/**
+ * Simplified test module for basic tests
+ * Creates a minimal configuration with no rate limiting or PoW
+ * 
+ * @param db Database connection
+ * @param pepper Deletion token pepper
+ */
+fun Application.testModule(db: Database, pepper: String) {
+    val keyManager = createTestKeyManager()
+    val repo = PasteRepo(db, pepper, keyManager)
+    val cfg = createTestAppConfig(powEnabled = false, rlEnabled = false)
+    testModule(repo, null, null, cfg, null)
 }

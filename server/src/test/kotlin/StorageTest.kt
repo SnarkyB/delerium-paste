@@ -692,4 +692,57 @@ class StorageTest {
         val messagesAfter = repo.getChatMessages(pasteId)
         assertTrue("All chat messages must be deleted when expired paste is cleaned up", messagesAfter.isEmpty())
     }
+
+    // ========================================
+    // Aggregate Statistics Tests (for metrics)
+    // ========================================
+
+    @Test
+    fun testGetActivePasteCount_ReturnsOnlyActivePastes() {
+        val now = Instant.now().epochSecond
+        val futureExpiry = now + 3600
+        val pastExpiry = now - 100
+
+        // Create active pastes
+        repo.create("active1", "ct1", "iv1", PasteMeta(expireTs = futureExpiry), "token1")
+        repo.create("active2", "ct2", "iv2", PasteMeta(expireTs = futureExpiry), "token2")
+        repo.create("active3", "ct3", "iv3", PasteMeta(expireTs = futureExpiry), "token3")
+
+        // Create expired pastes
+        repo.create("expired1", "ct4", "iv4", PasteMeta(expireTs = pastExpiry), "token4")
+        repo.create("expired2", "ct5", "iv5", PasteMeta(expireTs = pastExpiry), "token5")
+
+        val count = repo.getActivePasteCount()
+        assertEquals("Should count only active (non-expired) pastes", 3L, count)
+    }
+
+    @Test
+    fun testGetActivePasteCount_EmptyDatabase() {
+        val count = repo.getActivePasteCount()
+        assertEquals("Empty database should return 0", 0L, count)
+    }
+
+    @Test
+    fun testGetTotalChatMessageCount_CountsAllMessages() {
+        val now = Instant.now().epochSecond
+        val futureExpiry = now + 3600
+
+        // Create two pastes with chat messages
+        repo.create("paste1", "ct1", "iv1", PasteMeta(expireTs = futureExpiry), "token1")
+        repo.create("paste2", "ct2", "iv2", PasteMeta(expireTs = futureExpiry), "token2")
+
+        // Add messages to both pastes
+        repo.addChatMessage("paste1", "msg1-ct", "msg1-iv")
+        repo.addChatMessage("paste1", "msg2-ct", "msg2-iv")
+        repo.addChatMessage("paste2", "msg3-ct", "msg3-iv")
+
+        val count = repo.getTotalChatMessageCount()
+        assertEquals("Should count all chat messages across pastes", 3L, count)
+    }
+
+    @Test
+    fun testGetTotalChatMessageCount_EmptyDatabase() {
+        val count = repo.getTotalChatMessageCount()
+        assertEquals("Empty database should return 0", 0L, count)
+    }
 }

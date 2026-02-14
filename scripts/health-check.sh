@@ -118,6 +118,11 @@ echo "   Frontend: http://localhost:8080"
 echo "   API:      http://localhost:8080/api"
 echo "   Health:   http://localhost:8080/api/health"
 echo "   PoW:      http://localhost:8080/api/pow"
+
+# Check if metrics sidecar is running
+if docker compose ps 2>/dev/null | grep -q "metrics.*Up"; then
+    echo "   Metrics:  http://localhost:9090/metrics (requires auth)"
+fi
 echo ""
 echo "📋 Useful commands:"
 echo "   make logs     - View service logs"
