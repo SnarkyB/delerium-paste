@@ -45,7 +45,8 @@ export function setupCharCounter(maxCharacters: number): void {
  */
 export function setupViewCopyButton(): void {
   if (typeof document === 'undefined') return;
-  const copyBtn = document.getElementById('copyBtn') as HTMLButtonElement | null;
+  // Use copyContentBtn (view page) or fall back to copyBtn for backwards compatibility
+  const copyBtn = (document.getElementById('copyContentBtn') || document.getElementById('copyBtn')) as HTMLButtonElement | null;
   const copyText = document.getElementById('copyText');
   const content = document.getElementById('content');
   if (!copyBtn || !copyText || !content) return;
