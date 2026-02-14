@@ -40,13 +40,12 @@ describe('paste-creator allowChat', () => {
     jest.restoreAllMocks();
   });
 
-  function setupForm(allowKeyCachingChecked = false) {
+  function setupForm() {
     jest.spyOn(document, 'getElementById').mockImplementation((id: string) => {
       const els: Record<string, Partial<HTMLInputElement & HTMLTextAreaElement>> = {
         paste: { value: 'hello' },
         mins: { value: '60' },
-        password: { value: 'pass123' },
-        allowKeyCaching: { checked: allowKeyCachingChecked }
+        password: { value: 'pass123' }
       };
       return els[id] as HTMLElement ?? null;
     });

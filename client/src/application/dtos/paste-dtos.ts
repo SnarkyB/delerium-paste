@@ -16,7 +16,6 @@ export interface CreatePasteCommand {
   expirationMinutes: number;
   password: string;
   allowChat?: boolean;
-  allowKeyCaching?: boolean;
 }
 
 /**
@@ -46,8 +45,6 @@ export interface PasteViewResult {
   content: string;
   metadata: PasteMetadata;
   deleteAuth: string;
-  /** When convenient chat is enabled, key derived during decryption for chat reuse */
-  cachedKey?: CryptoKey;
 }
 
 /**
@@ -74,5 +71,4 @@ export interface SendChatMessageCommand {
   message: string;
   username: string;
   password: string;
-  cachedKey?: CryptoKey;
 }

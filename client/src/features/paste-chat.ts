@@ -22,16 +22,12 @@ export { generateRandomUsernameFromView as generateRandomUsername };
  *
  * @param pasteId The paste ID
  * @param salt The salt from the paste URL for key derivation
- * @param allowKeyCaching Whether to allow caching the derived key for convenience
- * @param initialKey When convenient chat is enabled, key already derived from paste decryption (avoids re-prompting)
  */
 export function setupPasteChat(
   pasteId: string,
-  salt: Uint8Array,
-  allowKeyCaching: boolean = false,
-  initialKey?: CryptoKey
+  salt: Uint8Array
 ): void {
-  chatView.setup(pasteId, salt, allowKeyCaching, initialKey);
+  chatView.setup(pasteId, salt);
 }
 
 /**
