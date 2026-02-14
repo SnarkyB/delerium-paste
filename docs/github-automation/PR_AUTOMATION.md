@@ -154,7 +154,7 @@ on:
 - `.github/workflows/claude-code-review.yml` - Claude Code review (disabled, commented out)
 - `.github/pull_request_template.md` - PR template with bot markers
 - `scripts/generate-pr-description.sh` - Description generation script
-- `scripts/review-pr-with-ai.sh` - Local script to review PRs with AI (can be used with Cursor)
+- `scripts/review-pr-with-ai.sh` - Local script to review PRs with Claude AI (requires `ANTHROPIC_API_KEY`)
 - `CLAUDE.md` - Repository guidelines for AI reviewers
 
 ## Why Cursor Agent?
