@@ -30,7 +30,7 @@ jobs:
           HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
 
           # Get PR body
-          PR_BODY=$(gh pr view "$PR_NUMBER" --json body --jq -r '.body // ""')
+          PR_BODY=$(gh pr view "$PR_NUMBER" --json body --jq '.body // ""')
 
           # Get diff (truncate to ~50KB to stay within API limits)
           PR_DIFF=$(gh pr diff "$PR_NUMBER" | head -c 51200)

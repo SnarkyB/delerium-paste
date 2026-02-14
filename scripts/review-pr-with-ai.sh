@@ -25,11 +25,11 @@ fi
 
 echo "🔍 Fetching PR #$PR_NUMBER..."
 
-PR_TITLE=$(gh pr view "$PR_NUMBER" --json title --jq -r '.title')
-PR_BODY=$(gh pr view "$PR_NUMBER" --json body --jq -r '.body')
-PR_AUTHOR=$(gh pr view "$PR_NUMBER" --json author --jq -r '.author.login')
-BASE_BRANCH=$(gh pr view "$PR_NUMBER" --json baseRefName --jq -r '.baseRefName')
-HEAD_BRANCH=$(gh pr view "$PR_NUMBER" --json headRefName --jq -r '.headRefName')
+PR_TITLE=$(gh pr view "$PR_NUMBER" --json title --jq '.title')
+PR_BODY=$(gh pr view "$PR_NUMBER" --json body --jq '.body')
+PR_AUTHOR=$(gh pr view "$PR_NUMBER" --json author --jq '.author.login')
+BASE_BRANCH=$(gh pr view "$PR_NUMBER" --json baseRefName --jq '.baseRefName')
+HEAD_BRANCH=$(gh pr view "$PR_NUMBER" --json headRefName --jq '.headRefName')
 
 echo "📝 Getting PR diff..."
 PR_DIFF=$(gh pr diff "$PR_NUMBER")
