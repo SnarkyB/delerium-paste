@@ -133,6 +133,18 @@ if [ "$USE_EXISTING" != "true" ]; then
             echo ""
             read_with_default "Email for Let's Encrypt" "" "LETSENCRYPT_EMAIL"
         fi
+        
+        echo ""
+        echo -e "${BOLD}?? Metrics Configuration (Optional)${NC}"
+        echo "Enable Prometheus metrics endpoint for monitoring."
+        echo ""
+        read_with_default "Enable metrics endpoint? (yes/no)" "no" "ENABLE_METRICS"
+        
+        if [ "$ENABLE_METRICS" = "yes" ] || [ "$ENABLE_METRICS" = "y" ]; then
+            METRICS_USER="metrics"
+            METRICS_PASS=$(generate_secret | head -c 32)
+            echo -e "${GREEN}? Generated metrics credentials${NC}"
+        fi
     fi
     
     # Create .env file
@@ -165,6 +177,16 @@ EOF
 
 # Let's Encrypt configuration
 LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+EOF
+    fi
+    
+    if [ -n "$METRICS_USER" ]; then
+        cat >> .env << EOF
+
+# Metrics authentication (for Prometheus monitoring)
+# Use: docker compose --profile monitoring up -d
+METRICS_USER=${METRICS_USER}
+METRICS_PASS=${METRICS_PASS}
 EOF
     fi
     

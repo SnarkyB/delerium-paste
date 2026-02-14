@@ -29,8 +29,15 @@ while true; do
     fi
 
     # Check API health
-    if ! curl -s -f http://localhost:8080/health > /dev/null 2>&1; then
+    if ! curl -s -f http://localhost:8080/api/health > /dev/null 2>&1; then
         log "⚠️  API health check failed"
+    fi
+    
+    # Check metrics sidecar if running
+    if docker compose ps 2>/dev/null | grep -q "metrics.*Up"; then
+        if ! curl -s -f http://localhost:9090/health > /dev/null 2>&1; then
+            log "⚠️  Metrics sidecar health check failed"
+        fi
     fi
 
     # Check disk space

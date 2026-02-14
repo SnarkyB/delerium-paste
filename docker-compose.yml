@@ -40,6 +40,29 @@ services:
       - app-network
     command: sh -c "rm -f /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
 
+  # Metrics sidecar for Prometheus monitoring (optional)
+  # Exposes aggregate, privacy-safe metrics on port 9090
+  # Requires basic auth - set METRICS_USER and METRICS_PASS in .env
+  metrics:
+    build:
+      context: ./metrics-sidecar
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      server:
+        condition: service_healthy
+    environment:
+      - SERVER_URL=http://server:8080
+      - PORT=9090
+      - METRICS_USER=${METRICS_USER}
+      - METRICS_PASS=${METRICS_PASS}
+    ports:
+      - "9090:9090"
+    networks:
+      - app-network
+    profiles:
+      - monitoring
+
 volumes:
   server-data:
     driver: local

@@ -130,3 +130,22 @@ data class GetChatMessagesResponse(val messages: List<ChatMessage>)
  * @property deleteAuth Password-derived delete authorization
  */
 data class DeleteWithAuthRequest(val deleteAuth: String)
+
+/**
+ * Internal statistics for metrics sidecar
+ * 
+ * All data is aggregate only - no personal data, paste content, IPs,
+ * or identifiable information is exposed. This preserves zero-knowledge
+ * privacy guarantees.
+ * 
+ * @property activePasteCount Current number of non-expired pastes
+ * @property totalChatMessages Total chat messages in database
+ * @property databaseHealthy Database health status
+ * @property timestampMs Server timestamp in milliseconds
+ */
+data class InternalStats(
+    val activePasteCount: Long,
+    val totalChatMessages: Long,
+    val databaseHealthy: Boolean,
+    val timestampMs: Long = System.currentTimeMillis()
+)
