@@ -125,7 +125,7 @@ export class PasteViewerView {
   /**
    * Handle paste viewing
    */
-  async handleView(): Promise<{ pasteId: string; metadata: PasteMetadata; deleteAuth: string; salt: Uint8Array } | null> {
+  async handleView(): Promise<{ pasteId: string; metadata: PasteMetadata; deleteAuth: string; salt: Uint8Array; initialPassword?: string } | null> {
     if (!location.pathname.endsWith('view.html')) return null;
 
     const parsed = this.pasteService.parseViewUrl(new URL(window.location.href));
@@ -150,6 +150,7 @@ export class PasteViewerView {
       if (updateStatus) updateStatus(true, 'Fetching paste...');
 
       // Prompt for password with retry logic using modal
+      let lastPassword: string | null = null;
       const passwordPrompt = async (attempt: number, remaining: number): Promise<string | null> => {
         // Dynamically import modal to avoid unused import warning
         const { getPasswordModal } = await import('./password-modal.js');
@@ -172,6 +173,7 @@ export class PasteViewerView {
         // If password is wrong, modal will be shown again on next retry
         if (password) {
           modal.closeOnSuccess();
+          lastPassword = password; // Capture for chat (avoids repeated prompts)
         }
 
         return password;
@@ -211,18 +213,24 @@ export class PasteViewerView {
         secureClear(result.value.deleteAuth);
       }
 
-      // Return metadata for chat initialization
+      // Return metadata for chat initialization (include password to avoid repeated prompts)
       const saltArray = new Uint8Array(
         await import('../../core/crypto/encoding.js').then(m => 
           new Uint8Array(m.decodeBase64Url(salt))
         )
       );
 
+      const chatPassword = lastPassword ?? undefined;
+      if (lastPassword) {
+        lastPassword = null; // Clear reference before return
+      }
+
       return {
         pasteId,
         metadata: result.value.metadata,
         deleteAuth: result.value.deleteAuth,
-        salt: saltArray
+        salt: saltArray,
+        initialPassword: chatPassword
       };
     } catch (e) {
       if (content) {

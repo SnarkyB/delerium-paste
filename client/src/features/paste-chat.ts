@@ -22,12 +22,14 @@ export { generateRandomUsernameFromView as generateRandomUsername };
  *
  * @param pasteId The paste ID
  * @param salt The salt from the paste URL for key derivation
+ * @param initialPassword Optional password from paste view - avoids repeated prompts for refresh/send
  */
 export function setupPasteChat(
   pasteId: string,
-  salt: Uint8Array
+  salt: Uint8Array,
+  initialPassword?: string
 ): void {
-  chatView.setup(pasteId, salt);
+  chatView.setup(pasteId, salt, initialPassword);
 }
 
 /**

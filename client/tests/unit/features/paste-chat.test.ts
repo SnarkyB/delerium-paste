@@ -7,6 +7,15 @@
 import { deriveKeyFromPassword, generateSalt } from '../../../src/security.js';
 import { encodeBase64Url, decodeBase64Url } from '../../../src/core/crypto/encoding.js';
 import { setupPasteChat, escapeHtml, generateRandomUsername, encryptMessageWithKey } from '../../../src/features/paste-chat.js';
+import { showPasswordModal } from '../../../src/presentation/components/password-modal.js';
+
+jest.mock('../../../src/presentation/components/password-modal.js', () => ({
+  showPasswordModal: jest.fn(),
+  getPasswordModal: jest.fn(() => ({
+    show: jest.fn().mockResolvedValue('test-password'),
+    closeOnSuccess: jest.fn()
+  }))
+}));
 
 // ============================================================================
 // CHAT ENCRYPTION/DECRYPTION TESTS
@@ -380,7 +389,33 @@ describe('Chat UX Improvements', () => {
   let container: HTMLElement;
   let messagesDiv: HTMLElement;
   let originalFetch: typeof fetch;
-  let originalPrompt: typeof prompt;
+
+  function setupChatDOM(): void {
+    const chatSection = document.createElement('div');
+    chatSection.id = 'chatSection';
+    chatSection.style.display = 'none';
+    container.appendChild(chatSection);
+
+    const refreshBtn = document.createElement('button');
+    refreshBtn.id = 'refreshMessagesBtn';
+    container.appendChild(refreshBtn);
+
+    const sendBtn = document.createElement('button');
+    sendBtn.id = 'sendMessageBtn';
+    container.appendChild(sendBtn);
+
+    const chatInput = document.createElement('input');
+    chatInput.id = 'chatInput';
+    container.appendChild(chatInput);
+
+    const usernameInput = document.createElement('input');
+    usernameInput.id = 'usernameInput';
+    container.appendChild(usernameInput);
+
+    const chatInfoText = document.createElement('div');
+    chatInfoText.id = 'chatInfoText';
+    container.appendChild(chatInfoText);
+  }
 
   beforeEach(() => {
     // Setup DOM
@@ -395,49 +430,79 @@ describe('Chat UX Improvements', () => {
     originalFetch = global.fetch;
     global.fetch = jest.fn();
 
-    // Mock prompt
-    originalPrompt = window.prompt;
-    window.prompt = jest.fn();
+    // Reset password modal mock
+    jest.mocked(showPasswordModal).mockReset();
   });
 
   afterEach(() => {
     // Cleanup
     document.body.removeChild(container);
     global.fetch = originalFetch;
-    window.prompt = originalPrompt;
     jest.restoreAllMocks();
   });
 
-  it('should allow password to be passed to refresh (avoiding double prompt)', async () => {
-    // This test documents the behavior: when password is passed to handleRefreshMessages,
-    // it should not prompt again. Since handleRefreshMessages is not exported, we test
-    // the behavior indirectly by verifying the setup allows this pattern.
+  it('should NOT prompt for password when initialPassword is passed and user clicks Refresh', async () => {
+    // Arrange - Setup full chat DOM
+    setupChatDOM();
 
-    // Arrange - Mock successful fetch response
+    const pasteId = 'test-paste-123';
+    const salt = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+    const initialPassword = 'paste-password-456';
+
+    // Mock successful messages fetch
     const mockMessages = {
       messages: [
         { ct: 'encrypted1', iv: 'iv1', timestamp: 1000 },
         { ct: 'encrypted2', iv: 'iv2', timestamp: 2000 }
       ]
     };
-
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => mockMessages
     });
 
-    // The actual password passing happens in handleSendMessage -> handleRefreshMessages
-    // This test verifies the pattern is supported by checking the function signature
-    // and documenting the expected behavior
+    // Act - Setup chat WITH initialPassword (from paste view), then click Refresh
+    setupPasteChat(pasteId, salt, initialPassword);
+    const refreshBtn = document.getElementById('refreshMessagesBtn');
+    expect(refreshBtn).not.toBeNull();
+    refreshBtn!.click();
 
-    // Assert - Verify fetch was called (would be called by handleRefreshMessages)
-    // Since we can't directly test handleRefreshMessages, we document the expected behavior:
-    // 1. handleRefreshMessages accepts optional password parameter
-    // 2. When password is provided, prompt() should not be called
-    // 3. Password is used directly for decryption
+    // Wait for async fetch
+    await new Promise(resolve => setTimeout(resolve, 50));
 
-    expect(true).toBe(true); // Placeholder - actual test would require exporting function
+    // Assert - showPasswordModal should NOT have been called (cached password used)
+    expect(showPasswordModal).not.toHaveBeenCalled();
+  });
+
+  it('should prompt for password when no initialPassword and user clicks Refresh', async () => {
+    // Arrange - Setup full chat DOM
+    setupChatDOM();
+
+    const pasteId = 'test-paste-789';
+    const salt = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+
+    // Mock modal to return password
+    jest.mocked(showPasswordModal).mockResolvedValue('user-entered-password');
+
+    // Mock successful messages fetch
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ messages: [] })
+    });
+
+    // Act - Setup chat WITHOUT initialPassword, then click Refresh
+    setupPasteChat(pasteId, salt);
+    const refreshBtn = document.getElementById('refreshMessagesBtn');
+    expect(refreshBtn).not.toBeNull();
+    refreshBtn!.click();
+
+    // Wait for async modal + fetch
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // Assert - showPasswordModal SHOULD have been called
+    expect(showPasswordModal).toHaveBeenCalled();
   });
 });
 
