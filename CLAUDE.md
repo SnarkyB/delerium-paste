@@ -790,6 +790,31 @@ All CI checks must pass:
 - **Logical commits**: Break large work into separate commits for each major chunk
 - **Atomic commits**: Each commit should be independently understandable and reviewable
 
+### Pull Request Description (REQUIRED)
+
+Every PR created with `gh pr create` MUST include a thorough description. Use this format:
+
+```
+## Summary
+
+[1-3 sentences explaining what this PR does and why]
+
+## Changes
+
+[Bulleted list of what changed, grouped by area (e.g. Server, Client, Infrastructure)]
+
+## Test plan
+
+- [ ] [Specific things to verify manually or via CI]
+- [ ] [Include make/test commands to run]
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+```
+
+- **Never leave the description blank or use a one-liner**
+- **Always include a test plan** with concrete verification steps
+- **Group changes by area** (Server, Client, Infrastructure, etc.) when touching multiple parts of the codebase
+
 ### Commit & Push Control
 - **Feature branches allowed**: Commits and pushes to feature branches are permitted
 - **Protect main/master**: If on main or master branch, MUST create a new feature branch before committing
