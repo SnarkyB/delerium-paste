@@ -107,22 +107,6 @@ kt_jvm_test(
     ],
 )
 
-# Route tests - Internal Stats (for metrics sidecar)
-kt_jvm_test(
-    name = "internal_stats_tests",
-    size = "small",
-    srcs = glob(["src/test/kotlin/routes/*.kt"]),
-    test_class = "routes.InternalStatsRouteTest",
-    deps = [
-        ":delerium_server_lib",
-        ":test_utils",
-        "@maven//:junit_junit",
-        "@maven//:org_jetbrains_kotlin_kotlin_test_junit",
-        "@maven//:io_ktor_ktor_server_test_host_jvm",
-        "@maven//:com_fasterxml_jackson_module_jackson_module_kotlin",
-    ],
-)
-
 # Integration tests
 kt_jvm_test(
     name = "integration_tests",
@@ -173,7 +157,6 @@ test_suite(
         ":routes_tests",
         ":chat_security_tests",
         ":delete_auth_tests",
-        ":internal_stats_tests",
         ":integration_tests",
         ":storage_test",
         ":failed_attempt_tracker_test",

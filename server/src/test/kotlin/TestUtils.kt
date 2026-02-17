@@ -16,7 +16,6 @@ import io.ktor.server.routing.routing
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import apiRoutes
-import internalRoutes
 import PasteRepo
 import PasteMeta
 import CreatePasteRequest
@@ -227,7 +226,6 @@ fun Application.testModule(
     }
     routing {
         apiRoutes(repo, rl, pow, cfg, failedAttemptTracker)
-        internalRoutes(repo)
     }
 }
 

@@ -223,39 +223,6 @@ class PasteRepo(private val db: Database, private val pepper: String, private va
     }
 
     /**
-     * Get count of active (non-expired) pastes
-     * 
-     * This is an aggregate metric only - no paste content or IDs are returned.
-     * Used for operational statistics dashboard.
-     * 
-     * @return Number of pastes that have not yet expired
-     */
-    fun getActivePasteCount(): Long = try {
-        transaction(db) {
-            val now = Instant.now().epochSecond
-            Pastes.selectAll().where { Pastes.expireTs greater now }.count()
-        }
-    } catch (_: Exception) {
-        0L
-    }
-
-    /**
-     * Get total count of chat messages across all pastes
-     * 
-     * This is an aggregate metric only - no message content is accessed.
-     * Used for operational statistics dashboard.
-     * 
-     * @return Total number of chat messages in the database
-     */
-    fun getTotalChatMessageCount(): Long = try {
-        transaction(db) {
-            ChatMessages.selectAll().count()
-        }
-    } catch (_: Exception) {
-        0L
-    }
-
-    /**
      * Convert a database row to an API response payload
      *
      * @param row Database row

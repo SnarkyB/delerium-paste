@@ -33,13 +33,6 @@ while true; do
         log "⚠️  API health check failed"
     fi
     
-    # Check metrics sidecar if running
-    if docker compose ps 2>/dev/null | grep -q "metrics.*Up"; then
-        if ! curl -s -f http://localhost:9090/health > /dev/null 2>&1; then
-            log "⚠️  Metrics sidecar health check failed"
-        fi
-    fi
-
     # Check disk space
     DISK_USAGE=$(df -h . | tail -1 | awk '{print $5}' | sed 's/%//')
     if [ "$DISK_USAGE" -gt 90 ]; then
