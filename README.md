@@ -1,86 +1,19 @@
-# Delirium Documentation
+# Delirium
 
-Welcome to the Delirium documentation! This index will help you navigate and find what you need.
+Zero-knowledge encrypted paste system. All encryption happens client-side; the server never sees plaintext or keys.
 
-## Getting Started
+## Quick Deploy
 
-- **[Setup Guide](docs/getting-started/SETUP.md)** - Configure secrets and get started locally.
+```bash
+./deploy.sh local                              # Local (http://localhost:8080)
+./deploy.sh vps-setup example.com admin@example.com  # VPS + SSL
+./deploy.sh production                         # Production
+```
 
-## Deployment
+## Documentation
 
-- **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Deploy to production VPS with options for SSL, monitoring, and backups.
-- **[Multi-Architecture Deployment](docs/deployment/multi-architecture.md)** - Build for AMD64 and ARM64 with CI/CD integration.
-- **[Automated Deployment](docs/deployment/AUTO_DEPLOYMENT.md)** - Setup CI/CD with GitHub Actions.
-
-## Architecture
-
-- **[C4 Architecture Diagrams](docs/architecture/C4-DIAGRAMS.md)** - Detailed system diagrams and code structure.
-
-## Development
-
-- **[PR Guide](docs/prs/README.md)** - Contribution workflow and development steps.
-- **[Testing Guide](client/tests/README.md)** - Details on unit, integration, and end-to-end testing.
-
-## Contributing
-
-- **[Cursor Migration Guide](docs/contributing/CURSOR_MIGRATION.md)** - IDE setup and AI collaboration.
-- **[PR Review Guidelines](docs/contributing/CURSOR-PR-REVIEW.md)** - Code review best practices.
-
-## Quick Links
-
-- **Main README**: [docs/README.md](docs/README.md)
-- **Security Checklist**: [security/CHECKLIST.md](docs/security/CHECKLIST.md)
-
-## ?? Documentation by Role
-
-### For Users
-
-- [Setup Guide](docs/getting-started/SETUP.md) - Get started quickly
-
-### For DevOps/Deployers
-
-- [Deployment Guide](docs/deployment/DEPLOYMENT.md) - Production deployment
-- [SSL Setup Guide](docs/deployment/SSL_SETUP.md) - SSL configuration
-- [Multi-Architecture Deployment](docs/deployment/multi-architecture.md) - Multi-arch builds
-- [Automated Deployment](docs/deployment/AUTO_DEPLOYMENT.md) - CI/CD setup
-
-### For Developers
-
-- [Architecture Diagrams](docs/architecture/C4-DIAGRAMS.md) - System design
-- [PR Guide](docs/prs/README.md) - Contribution workflow
-- [Testing Guide](client/tests/README.md) - Testing practices
-
-### For Contributors
-
-- [Cursor Migration Guide](docs/contributing/CURSOR_MIGRATION.md) - IDE setup
-- [PR Review Guidelines](docs/contributing/CURSOR-PR-REVIEW.md) - Review process
-
-## ?? Finding Documentation
-
-### Need to
-
-- **Set up locally?** ? [Setup Guide](docs/getting-started/SETUP.md)
-- **Deploy to production?** ? [Deployment Guide](docs/deployment/DEPLOYMENT.md)
-- **Configure SSL?** ? [SSL Setup Guide](docs/deployment/SSL_SETUP.md)
-- **Build for ARM/AMD64?** ? [Multi-Architecture Guide](docs/deployment/multi-architecture.md)
-- **Understand the architecture?** ? [C4 Diagrams](docs/architecture/C4-DIAGRAMS.md)
-- **Contribute code?** ? [PR Guide](docs/prs/README.md)
-- **Set up CI/CD?** ? [Automated Deployment](docs/deployment/AUTO_DEPLOYMENT.md)
-
-## ?? Documentation Maintenance
-
-This documentation is maintained alongside the codebase. When making changes:
-
-1. Update relevant documentation files
-2. Update this index if adding new sections
-3. Keep links consistent and working
-4. Add examples where helpful
-
-## ?? Tips
-
-- Use the search function in your editor to find specific topics
-- Check the [main README](docs/README.md) for project overview
-
----
-
-**Questions?** Open an issue on GitHub or check the relevant guide above.
+- [Setup](docs/getting-started/SETUP.md) - Configure secrets
+- [Deployment](docs/deployment/DEPLOYMENT.md) - Full deployment guide
+- [Architecture](docs/architecture/C4-DIAGRAMS.md) - System diagrams
+- [Contributing](docs/prs/README.md) - PR workflow
+- [Docs Index](docs/README.md) - Full documentation

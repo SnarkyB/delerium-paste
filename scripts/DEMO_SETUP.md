@@ -259,14 +259,14 @@ The new setup wizard complements existing scripts:
 - **`scripts/quick-start.sh`** - Fast automated setup (no prompts)
 - **`scripts/setup.sh`** - New! Interactive setup (with prompts)
 - **`scripts/security-setup.sh`** - Enhanced security for production
-- **`scripts/install-headless.sh`** - Headless environment setup
+- **`./deploy.sh vps-setup`** - Headless/VPS setup with SSL
 
 Each serves a different use case:
 
 - Use `quick-start.sh` when you trust defaults
 - Use `setup.sh` when you want to understand & configure
 - Use `security-setup.sh` for production hardening
-- Use `install-headless.sh` for CI/CD pipelines
+- Use `./deploy.sh vps-setup` for VPS/CI-CD pipelines
 
 ## User Feedback Flow
 

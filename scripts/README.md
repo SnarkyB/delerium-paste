@@ -196,23 +196,18 @@ make version-bump-dry-run VERSION=1.0.7
 
 See [Version Bumping Guide](../docs/versioning/VERSION_BUMPING.md) for detailed documentation.
 
-## 📦 Deployment Scripts
+## 📦 Deployment
 
-### vps-deploy.sh
-
-One-command VPS deployment.
+Use the unified deploy script at root:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/marcusb333/delerium-paste/main/scripts/vps-deploy.sh | bash -s your-domain.com your@email.com
+./deploy.sh local              # Local development
+./deploy.sh vps-setup example.com admin@example.com  # VPS setup with SSL
+./deploy.sh production         # Production deployment
+./deploy.sh update             # Update existing deployment
 ```
 
-### setup-vps-from-local.sh
-
-Deploy from local machine to VPS.
-
-```bash
-./scripts/setup-vps-from-local.sh
-```
+See [docs/deployment/DEPLOYMENT.md](../docs/deployment/DEPLOYMENT.md) for details.
 
 ## 🔍 Monitoring Scripts
 
