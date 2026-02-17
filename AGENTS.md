@@ -7,3 +7,4 @@ See **CLAUDE.md** for comprehensive project guidance, security protocol, testing
 - **Deploy:** `./deploy.sh local` | `./deploy.sh vps-setup domain email` | `./deploy.sh production`
 - **Test:** `make ci-check` (run before every PR)
 - **Change docs:** Place in `docs/prs/PR-XXX-<description>/`, never in repo root
+- **No AI attribution:** Do NOT add "Made with Cursor", "Generated with Claude", or any AI/tool attribution to PRs, commits, or docs. Applies to all models and agents.

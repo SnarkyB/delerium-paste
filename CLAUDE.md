@@ -830,7 +830,7 @@ Every PR created with `gh pr create` MUST include a thorough description. Use th
 ### GitHub Operations
 - **Use `gh` CLI**: For all GitHub operations (PRs, issues, etc.), use the `gh` command-line tool
 - **Do NOT use GitKraken tools**: Always prefer `gh` over GitKraken MCP tools
-- **No "Made with Cursor" tags**: Do not include "Made with Cursor" or similar tags in PR descriptions
+- **No AI attribution tags**: Do NOT include any AI/tool attribution in PR descriptions, commits, or docs. This includes but is not limited to: "Made with Cursor", "Generated with Claude", "Powered by [tool]", or similar. Applies to all models and agents.
 - **Common commands**:
   - `gh pr create` - Create pull request
   - `gh pr view` - View PR details
