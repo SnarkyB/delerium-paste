@@ -12,7 +12,7 @@ When a PR is opened or updated, GitHub Actions automatically generates a PR desc
 - Test file detection
 - Security-critical file detection
 
-The description is injected into the PR template between `<!-- BOT_START -->` and `<!-- BOT_END -->` markers.
+The description is generated from git changes and applied to the PR body when opened or updated.
 
 **Workflow:** `.github/workflows/pr-description-bot.yml`
 
@@ -71,7 +71,7 @@ This uses the same AI model and approach as Cursor Agent, providing reviews that
    - Detects change types (frontend/backend/docs)
    - Checks for test files
    - Identifies security-critical changes
-4. Generates description using PR template
+4. Generates full PR description (summary, checklist, security notes)
 5. Updates PR description via GitHub API
 
 ### Code Review
@@ -152,7 +152,6 @@ on:
 - `.github/workflows/pr-description-bot.yml` - PR description workflow
 - `.github/workflows/cursor-agent-review.yml` - Cursor Agent review workflow
 - `.github/workflows/claude-code-review.yml` - Claude Code review (disabled, commented out)
-- `.github/pull_request_template.md` - PR template with bot markers
 - `scripts/generate-pr-description.sh` - Description generation script
 - `scripts/review-pr-with-ai.sh` - Local script to review PRs with Claude AI (requires `ANTHROPIC_API_KEY`)
 - `CLAUDE.md` - Repository guidelines for AI reviewers
