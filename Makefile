@@ -1,7 +1,7 @@
 # Delirium - Zero-Knowledge Paste System
 # Makefile for local development and deployment
 
-.PHONY: help setup start stop restart logs dev clean test build-client build-server build-server-image health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop bazel-setup build-server-bazel test-server-bazel run-server-bazel ci-check ci-quick version-bump version-bump-dry-run start-monitoring stop-monitoring build-metrics
+.PHONY: help setup start stop restart logs dev clean test build-client build-server build-server-image health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop bazel-setup build-server-bazel test-server-bazel run-server-bazel ci-check ci-quick version-bump version-bump-dry-run
 
 # Default target
 help:
@@ -53,9 +53,6 @@ help:
 	@echo "📊 Monitoring:"
 	@echo "  make monitor       - Start service monitoring"
 	@echo "  make backup        - Create data backup"
-	@echo "  make start-monitoring - Start with Prometheus metrics sidecar"
-	@echo "  make stop-monitoring  - Stop monitoring services"
-	@echo "  make build-metrics    - Build metrics sidecar image"
 	@echo ""
 	@echo "🐳 Docker:"
 	@echo "  make build-server-image - Build server Docker image locally (used by make start if not pulled)"
@@ -191,32 +188,6 @@ backup:
 	@echo "💾 Creating backup..."
 	@chmod +x scripts/backup.sh
 	./scripts/backup.sh
-
-# Start with Prometheus metrics sidecar
-start-monitoring: build-client
-	@echo "📈 Starting Delirium with metrics sidecar..."
-	@if ! grep -q "METRICS_USER" .env 2>/dev/null; then \
-		echo "⚠️  METRICS_USER and METRICS_PASS not found in .env"; \
-		echo "   Add these to enable metrics authentication:"; \
-		echo "   METRICS_USER=metrics"; \
-		echo "   METRICS_PASS=your-secure-password"; \
-		exit 1; \
-	fi
-	docker compose --profile monitoring up -d
-	@echo "✅ Services started with metrics!"
-	@echo "📊 Metrics endpoint: http://localhost:9090/metrics (requires auth)"
-
-# Stop monitoring services
-stop-monitoring:
-	@echo "🛑 Stopping all services including metrics..."
-	docker compose --profile monitoring down
-	@echo "✅ All services stopped"
-
-# Build metrics sidecar image
-build-metrics:
-	@echo "🐳 Building metrics sidecar image..."
-	docker compose --profile monitoring build metrics
-	@echo "✅ Metrics sidecar image built"
 
 # Full pipeline: clean, build, test, and deploy
 # Optimized with parallel builds and tests for faster execution

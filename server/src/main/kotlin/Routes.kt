@@ -1,16 +1,13 @@
 /**
  * Routes.kt - HTTP API endpoint definitions
- * 
+ *
  * This file defines all the REST API endpoints for the delerium-paste application:
  * - GET  /api/health - Lightweight service health check
  * - GET  /api/pow - Request a proof-of-work challenge
  * - POST /api/pastes - Create a new encrypted paste
  * - GET  /api/pastes/{id} - Retrieve an encrypted paste
  * - DELETE /api/pastes/{id}?token=... - Delete a paste with deletion token
- * 
- * Internal endpoints (not exposed via nginx):
- * - GET  /internal/stats - Aggregate statistics for metrics sidecar
- * 
+ *
  * All endpoints include appropriate validation and error handling.
  */
 
@@ -278,35 +275,3 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
 	}
 }
 
-/**
- * Configure internal routes (not exposed via nginx)
- * 
- * These endpoints are only accessible within the Docker network
- * and are used by the metrics sidecar container.
- * 
- * @param repo Paste repository for database queries
- */
-fun Routing.internalRoutes(repo: PasteRepo) {
-    route("/internal") {
-        /**
-         * GET /internal/stats
-         * Internal statistics endpoint for metrics sidecar
-         * 
-         * Returns aggregate, privacy-safe statistics in JSON format.
-         * This endpoint is NOT exposed via nginx - only accessible
-         * within the Docker network by the metrics sidecar.
-         * 
-         * All data is aggregate only - no paste content, IDs, or
-         * identifiable information is exposed.
-         */
-        get("/stats") {
-            call.respond(
-                InternalStats(
-                    activePasteCount = repo.getActivePasteCount(),
-                    totalChatMessages = repo.getTotalChatMessageCount(),
-                    databaseHealthy = repo.checkHealth()
-                )
-            )
-        }
-    }
-}

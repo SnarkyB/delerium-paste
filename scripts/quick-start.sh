@@ -118,11 +118,6 @@ echo "   make restart  - Restart services"
 echo "   make dev      - Development mode with hot-reload"
 echo "   make clean    - Clean up everything"
 echo ""
-echo "📈 Optional: Enable Prometheus metrics:"
-echo "   1. Add METRICS_USER and METRICS_PASS to .env"
-echo "   2. Run: docker compose --profile monitoring up -d"
-echo "   3. Access: http://localhost:9090/metrics"
-echo ""
 
 # Check if we're in a headless environment
 if [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ] || [ "$(uname)" = "Darwin" ]; then

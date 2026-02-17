@@ -251,6 +251,5 @@ fun Application.module() {
 
     routing {
         apiRoutes(repo, rl, pow, appCfg, failedAttemptTracker)
-        internalRoutes(repo)
     }
 }
