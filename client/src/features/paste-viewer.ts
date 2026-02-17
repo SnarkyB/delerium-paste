@@ -33,11 +33,12 @@ export async function viewPaste(): Promise<void> {
   
   const result = await view.handleView();
   
-  // Initialize chat if paste was successfully viewed
+  // Initialize chat if paste was successfully viewed (pass password to avoid repeated prompts)
   if (result && shouldInitChat(result.metadata)) {
     setupPasteChat(
       result.pasteId,
-      result.salt
+      result.salt,
+      result.initialPassword
     );
   }
 }

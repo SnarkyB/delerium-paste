@@ -33,6 +33,8 @@ interface ChatContext {
   pasteId: string;
   salt: Uint8Array;
   currentUsername?: string;
+  /** Cached password from paste view - avoids repeated prompts for refresh/send */
+  cachedPassword?: string;
 }
 
 /**
@@ -88,11 +90,13 @@ export class ChatView {
 
     messagesDiv.innerHTML = html;
 
-    // Scroll to bottom smoothly
-    messagesDiv.scrollTo({
-      top: messagesDiv.scrollHeight,
-      behavior: 'smooth'
-    });
+    // Scroll to bottom smoothly (guard for jsdom/test env where scrollTo may be missing)
+    if (typeof messagesDiv.scrollTo === 'function') {
+      messagesDiv.scrollTo({
+        top: messagesDiv.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   }
 
   /**
@@ -118,9 +122,9 @@ export class ChatView {
     const messagesDiv = document.getElementById('chatMessages');
     if (!messagesDiv) return;
 
-    let pwd = password;
+    let pwd = password ?? this.context.cachedPassword;
 
-    // Prompt for password if not provided
+    // Prompt for password if not provided and not cached
     if (!pwd) {
       pwd = await showPasswordModal({
         title: 'Password Required',
@@ -146,8 +150,8 @@ export class ChatView {
       // Display messages
       this.displayMessages(result.messages);
 
-      // Clear password after use
-      if (pwd && !password) {
+      // Clear password after use (only if we prompted for it - not if cached or passed in)
+      if (pwd && !password && pwd !== this.context?.cachedPassword) {
         secureClear(pwd);
       }
     } catch (error) {
@@ -157,7 +161,7 @@ export class ChatView {
         console.error('Error refreshing messages');
       }
       this.showChatError(error instanceof Error ? error.message : 'Failed to load messages');
-      if (pwd && !password) {
+      if (pwd && !password && pwd !== this.context?.cachedPassword) {
         secureClear(pwd);
       }
     }
@@ -185,12 +189,15 @@ export class ChatView {
     const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
     const username = usernameInput?.value.trim() || this.context.currentUsername || generateRandomUsername();
 
-    // Always prompt for password
-    const password = await showPasswordModal({
-      title: 'Password Required',
-      message: 'Enter the paste password to encrypt and send your message.',
-      placeholder: 'Enter password or PIN'
-    }) ?? undefined;
+    // Use cached password from paste view if available, otherwise prompt
+    let password = this.context.cachedPassword;
+    if (!password) {
+      password = await showPasswordModal({
+        title: 'Password Required',
+        message: 'Enter the paste password to encrypt and send your message.',
+        placeholder: 'Enter password or PIN'
+      }) ?? undefined;
+    }
     if (!password) {
       this.showChatError('Password is required to encrypt message');
       return;
@@ -221,8 +228,10 @@ export class ChatView {
       input.value = '';
       await this.handleRefreshMessages(password);
 
-      // Clear password after use
-      secureClear(password);
+      // Clear password after use (only if we prompted - not if it was cached)
+      if (password !== this.context?.cachedPassword) {
+        secureClear(password);
+      }
     } catch (error) {
       if (DEBUG_MODE) {
         console.error('Error sending message:', error);
@@ -230,7 +239,9 @@ export class ChatView {
         console.error('Error sending message');
       }
       this.showChatError(error instanceof Error ? error.message : 'Failed to send message');
-      secureClear(password);
+      if (password !== this.context?.cachedPassword) {
+        secureClear(password);
+      }
     } finally {
       input.disabled = false;
       const sendBtn = document.getElementById('sendMessageBtn') as HTMLButtonElement;
@@ -240,8 +251,11 @@ export class ChatView {
 
   /**
    * Initialize chat functionality on view page
+   * @param pasteId The paste ID
+   * @param salt The salt from the paste URL for key derivation
+   * @param initialPassword Optional password from paste view - avoids repeated prompts for refresh/send
    */
-  setup(pasteId: string, salt: Uint8Array): void {
+  setup(pasteId: string, salt: Uint8Array, initialPassword?: string): void {
     const chatSection = document.getElementById('chatSection');
     const refreshBtn = document.getElementById('refreshMessagesBtn');
     const sendBtn = document.getElementById('sendMessageBtn');
@@ -263,12 +277,25 @@ export class ChatView {
     // Show chat section
     chatSection.style.display = 'block';
 
-    // Store context
+    // Store context (include cached password from paste view to avoid repeated prompts)
     this.context = {
       pasteId,
       salt,
-      currentUsername: generateRandomUsername()
+      currentUsername: generateRandomUsername(),
+      cachedPassword: initialPassword
     };
+
+    // Clear cached password on page unload for security
+    if (initialPassword) {
+      const cleanup = (): void => {
+        if (this.context?.cachedPassword) {
+          secureClear(this.context.cachedPassword);
+          this.context.cachedPassword = undefined;
+        }
+      };
+      window.addEventListener('beforeunload', cleanup);
+      window.addEventListener('pagehide', cleanup);
+    }
 
     // Set auto-generated username in input field if it exists
     if (usernameInput) {
@@ -283,7 +310,9 @@ export class ChatView {
 
     // Update info text
     if (chatInfoText) {
-      chatInfoText.textContent = '💡 Messages are encrypted with your paste password. Password required for each action.';
+      chatInfoText.textContent = initialPassword
+        ? '💡 Messages are encrypted with your paste password.'
+        : '💡 Messages are encrypted with your paste password. Password required for each action.';
     }
 
     // Refresh messages handler
