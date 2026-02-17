@@ -145,10 +145,10 @@ docker compose -f docker-compose.prod.yml logs -f
 
 ## Manual Deployment (Fallback)
 
-If you need to deploy manually, you can still use:
+If you need to deploy manually:
 
 ```bash
-./scripts/vps-deploy.sh your-domain.com your@email.com your-github-username
+./deploy.sh vps-setup your-domain.com your@email.com
 ```
 
 ## Security Notes
