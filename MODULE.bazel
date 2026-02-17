@@ -30,12 +30,13 @@ maven.install(
         "io.ktor:ktor-server-compression-jvm:3.2.0",
         "io.ktor:ktor-server-call-logging-jvm:3.2.0",
         "io.ktor:ktor-server-rate-limit-jvm:3.2.0",
-        # Netty overrides (security: pin latest 4.2.x for CVE fixes)
-        "io.netty:netty-codec-http2:4.2.4.Final",
-        "io.netty:netty-handler:4.2.4.Final",
-        "io.netty:netty-codec:4.2.4.Final",
-        "io.netty:netty-codec-http:4.2.4.Final",
-        "io.netty:netty-common:4.2.4.Final",
+        # Netty overrides (security: 4.2.8.Final fixes CVE-2025-58057, CVE-2025-67735, CVE-2025-58056)
+        "io.netty:netty-codec-http2:4.2.8.Final",
+        "io.netty:netty-handler:4.2.8.Final",
+        "io.netty:netty-codec:4.2.8.Final",
+        "io.netty:netty-codec-http:4.2.8.Final",
+        "io.netty:netty-codec-compression:4.2.8.Final",
+        "io.netty:netty-common:4.2.8.Final",
         # Logging (2.25.3 fixes CVE-2025-68161)
         "org.apache.logging.log4j:log4j-core:2.25.3",
         "org.apache.logging.log4j:log4j-slf4j2-impl:2.25.3",
