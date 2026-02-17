@@ -109,4 +109,13 @@ if echo "$CHANGED_FILES" | grep -qE "(crypto|security|auth|password|encrypt|decr
 - [ ] Keys never sent to server (zero-knowledge principle)"
 fi
 
+# Add checklist
+DESCRIPTION="$DESCRIPTION
+
+## Checklist
+- [ ] Tests pass locally
+- [ ] Added/updated tests (if applicable)
+- [ ] Code follows project style
+- [ ] Self-reviewed"
+
 echo "$DESCRIPTION"
