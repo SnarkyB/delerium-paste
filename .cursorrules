@@ -1,5 +1,11 @@
 # Cursor Rules for Delirium Paste
 
+## AI Attribution (All Models & Agents)
+
+- **Do NOT** add AI or tool attribution to PR descriptions, commits, or documentation.
+- Prohibited examples: "Made with Cursor", "Generated with Claude", "Powered by [tool]", or similar.
+- This rule applies to all AI models and agents working in this repository.
+
 ## Change Documentation Organization
 
 - **Change documentation** (fix summaries, migration notes, analysis documents, regression reports, etc.) must be placed in the `docs/` directory, organized by PR-named folders.
