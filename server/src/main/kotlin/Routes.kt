@@ -54,7 +54,7 @@ private fun clientIp(call: ApplicationCall): String {
         ?: remoteHost
 }
 
-fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: AppConfig, failedAttemptTracker: FailedAttemptTracker? = null) {
+fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: AppConfig, failedAttemptTracker: FailedAttemptTracker? = null, metrics: AppMetrics? = null) {
     route("/api") {
         /**
          * GET /api/health
@@ -84,8 +84,10 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
          * Returns 204 No Content if PoW is disabled
          */
         get("/pow") {
-            if (cfg.powEnabled && pow != null) call.respond(pow.newChallenge())
-            else call.respond(HttpStatusCode.NoContent)
+            if (cfg.powEnabled && pow != null) {
+                metrics?.powChallengesGenerated?.increment()
+                call.respond(pow.newChallenge())
+            } else call.respond(HttpStatusCode.NoContent)
         }
         /**
          * POST /api/pastes
@@ -104,6 +106,7 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             if (rl != null) {
                 val ip = clientIp(call)
                 if (!rl.allow("POST:$ip")) {
+                    metrics?.rateLimitRejections?.increment()
                     call.respond(HttpStatusCode.TooManyRequests, ErrorResponse("rate_limited")); return@post
                 }
             }
@@ -131,6 +134,7 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             val deleteToken = Ids.randomId(24)
             try {
                 repo.create(id, body.ct, body.iv, body.meta, deleteToken, body.deleteAuth)
+                metrics?.pastesCreated?.increment()
                 call.respond(HttpStatusCode.Created, CreatePasteResponse(id, deleteToken))
             } catch (_: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, ErrorResponse("db_error"))
@@ -160,7 +164,10 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
                 HttpStatusCode.BadRequest, ErrorResponse("missing_token"))
             val ok = repo.deleteIfTokenMatches(id, token)
             if (!ok) call.respond(HttpStatusCode.Forbidden, ErrorResponse("invalid_token"))
-            else call.respond(HttpStatusCode.NoContent)
+            else {
+                metrics?.pastesDeletedByToken?.increment()
+                call.respond(HttpStatusCode.NoContent)
+            }
         }
         /**
          * POST /api/pastes/{id}/delete
@@ -200,6 +207,7 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             } else {
                 // Clear any failed attempts on success
                 failedAttemptTracker?.recordSuccess(id)
+                metrics?.pastesDeletedByAuth?.increment()
                 call.respond(HttpStatusCode.NoContent)
             }
         }
@@ -226,6 +234,7 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             if (rl != null) {
                 val ip = clientIp(call)
                 if (!rl.allow("POST_MSG:$ip")) {
+                    metrics?.rateLimitRejections?.increment()
                     call.respond(HttpStatusCode.TooManyRequests, ErrorResponse("rate_limited")); return@post
                 }
             }
@@ -244,6 +253,7 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
 
             try {
                 val count = repo.addChatMessage(id, body.ct, body.iv)
+                metrics?.messagesCreated?.increment()
                 call.respond(HttpStatusCode.Created, PostChatMessageResponse(count))
             } catch (_: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, ErrorResponse("db_error"))

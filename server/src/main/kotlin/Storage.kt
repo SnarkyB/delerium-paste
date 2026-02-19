@@ -208,8 +208,25 @@ class PasteRepo(private val db: Database, private val pepper: String, private va
     }
 
     /**
+     * Count pastes that have not yet expired.
+     * Used by the Prometheus gauge for active paste count.
+     */
+    fun countActive(): Long = transaction(db) {
+        val now = Instant.now().epochSecond
+        Pastes.selectAll().where { Pastes.expireTs greater now }.count()
+    }
+
+    /**
+     * Count all stored chat messages across all pastes.
+     * Used by the Prometheus gauge for active message count.
+     */
+    fun countMessages(): Long = transaction(db) {
+        ChatMessages.selectAll().count()
+    }
+
+    /**
      * Check database health by performing a simple query
-     * 
+     *
      * @return true if database is healthy and responding, false otherwise
      */
     fun checkHealth(): Boolean = try {

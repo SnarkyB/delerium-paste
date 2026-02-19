@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Delerium Ktor server — custom business metrics + JVM + HikariCP + HTTP timing
+  - job_name: delerium-server
+    static_configs:
+      - targets: ['server:8080']
+    metrics_path: /metrics
+
+  # Nginx connection stats via nginx-prometheus-exporter
+  - job_name: nginx
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+
+  # Container-level CPU/memory from cAdvisor
+  - job_name: cadvisor
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metric_relabel_configs:
+      # Drop high-cardinality per-process metrics to keep storage lean
+      - source_labels: [__name__]
+        regex: 'container_tasks_state|container_memory_failures_total'
+        action: drop

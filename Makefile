@@ -1,7 +1,7 @@
 # Delirium - Zero-Knowledge Paste System
 # Makefile for local development and deployment
 
-.PHONY: help setup start stop restart logs dev clean test build-client build-server build-server-image health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop bazel-setup build-server-bazel test-server-bazel run-server-bazel ci-check ci-quick version-bump version-bump-dry-run
+.PHONY: help setup start stop restart logs dev clean test build-client build-server build-server-image health-check quick-start deploy-full security-scan build-multiarch push-multiarch deploy-prod prod-status prod-logs prod-stop bazel-setup build-server-bazel test-server-bazel run-server-bazel ci-check ci-quick version-bump version-bump-dry-run start-with-monitoring stop-monitoring monitoring-logs
 
 # Default target
 help:
@@ -51,7 +51,10 @@ help:
 	@echo "  make security-scan - Run automated vulnerability scanning"
 	@echo ""
 	@echo "📊 Monitoring:"
-	@echo "  make monitor       - Start service monitoring"
+	@echo "  make monitor               - Start service monitoring (scripts/monitor.sh)"
+	@echo "  make start-with-monitoring - Start app + Prometheus + Grafana"
+	@echo "  make stop-monitoring       - Stop app + monitoring stack"
+	@echo "  make monitoring-logs       - Follow monitoring service logs"
 	@echo "  make backup        - Create data backup"
 	@echo ""
 	@echo "🐳 Docker:"
@@ -182,6 +185,25 @@ monitor:
 	@echo "📊 Starting monitoring..."
 	@chmod +x scripts/monitor.sh
 	./scripts/monitor.sh
+
+# Start the full stack with Prometheus + Grafana monitoring overlay
+start-with-monitoring: build-client
+	@echo "🚀 Starting Delirium stack with monitoring..."
+	docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+	@echo "✅ Services started!"
+	@echo "   App:        http://localhost:8080"
+	@echo "   Prometheus: http://localhost:9090"
+	@echo "   Grafana:    http://localhost:3000  (admin / $${GRAFANA_ADMIN_PASSWORD:-changeme})"
+
+# Stop the stack including monitoring services
+stop-monitoring:
+	@echo "🛑 Stopping Delirium stack + monitoring..."
+	docker compose -f docker-compose.yml -f docker-compose.monitoring.yml down
+
+# Follow logs from monitoring services only
+monitoring-logs:
+	@echo "📋 Following monitoring logs (Ctrl+C to exit)..."
+	docker compose -f docker-compose.monitoring.yml logs -f
 
 # Create backup
 backup:

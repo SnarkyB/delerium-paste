@@ -13,6 +13,7 @@
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -22,11 +23,21 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.call
 import io.ktor.server.application.install
+import io.ktor.server.metrics.micrometer.MicrometerMetrics
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.compression.Compression
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
+import io.micrometer.core.instrument.binder.hikaricp.HikariCPMetrics
+import io.micrometer.core.instrument.distribution.DistributionStatisticConfig
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import org.jetbrains.exposed.sql.Database
 import java.security.SecureRandom
 import kotlinx.coroutines.CoroutineScope
@@ -138,6 +149,15 @@ fun Application.module() {
         dataEncMigrateOnStartup = dataEncMigrateOnStartup
     )
 
+    val meterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    install(MicrometerMetrics) {
+        registry = meterRegistry
+        // Enable histogram buckets for accurate p50/p95/p99 percentiles
+        distributionStatisticConfig = DistributionStatisticConfig.Builder()
+            .percentilesHistogram(true)
+            .build()
+    }
+
     install(Compression)
     install(ContentNegotiation) {
         jackson {
@@ -189,6 +209,14 @@ fun Application.module() {
     val pow = if (appCfg.powEnabled) PowService(appCfg.powDifficulty, appCfg.powTtl) else null
     val failedAttemptTracker = FailedAttemptTracker(maxAttempts = 10, windowSeconds = 300)
 
+    // Bind JVM and connection pool metrics to the Prometheus registry
+    JvmGcMetrics().bindTo(meterRegistry)
+    JvmMemoryMetrics().bindTo(meterRegistry)
+    JvmThreadMetrics().bindTo(meterRegistry)
+    HikariCPMetrics(hikari).bindTo(meterRegistry)
+
+    val appMetrics = AppMetrics(meterRegistry, repo)
+
     // Start background task to clean up expired pastes periodically
     val cleanupScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     cleanupScope.launch {
@@ -197,6 +225,7 @@ fun Application.module() {
                 val deleted = repo.deleteExpired()
                 if (deleted > 0) {
                     environment.log.info("🧹 Cleaned up $deleted expired paste(s)")
+                    appMetrics.cleanupExpired.increment(deleted.toDouble())
                 }
             } catch (e: IOException) {
                 environment.log.error("Error during expired paste cleanup", e)
@@ -250,6 +279,13 @@ fun Application.module() {
     }
 
     routing {
-        apiRoutes(repo, rl, pow, appCfg, failedAttemptTracker)
+        // Prometheus metrics endpoint — not under /api/ so Nginx never forwards it externally
+        get("/metrics") {
+            call.respondText(
+                meterRegistry.scrape(),
+                ContentType.parse("text/plain; version=0.0.4; charset=utf-8")
+            )
+        }
+        apiRoutes(repo, rl, pow, appCfg, failedAttemptTracker, appMetrics)
     }
 }
