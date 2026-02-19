@@ -94,9 +94,25 @@ fun generateSecurePepper(lengthBytes: Int = 32): String {
     return bytes.joinToString("") { "%02x".format(it) }
 }
 
+/**
+ * Read a secret value, preferring a Docker secret file over an environment variable.
+ *
+ * When running with docker-compose.secrets.yml (or Docker Swarm), secrets are
+ * mounted as files under /run/secrets/<secretName>. The file is checked first;
+ * if absent or unreadable the named environment variable is used as fallback.
+ *
+ * @param secretName  Filename under /run/secrets/ (e.g. "deletion-token-pepper")
+ * @param envFallback Environment variable name (e.g. "DELETION_TOKEN_PEPPER")
+ */
+fun readSecret(secretName: String, envFallback: String): String? {
+    val file = java.io.File("/run/secrets/$secretName")
+    if (file.canRead()) return file.readText(Charsets.UTF_8).trim().takeIf { it.isNotBlank() }
+    return System.getenv(envFallback)
+}
+
 fun Application.module() {
     val cfg = environment.config
-    val envPepper = System.getenv("DELETION_TOKEN_PEPPER")
+    val envPepper = readSecret("deletion-token-pepper", "DELETION_TOKEN_PEPPER")
     val deletionPepper = if (envPepper != null && envPepper.isNotBlank()) {
         envPepper
     } else {
@@ -178,7 +194,7 @@ fun Application.module() {
         ).joinToString("; ")
     })
     val db = Database.connect(hikari)
-    val seedKeyring = System.getenv("DATA_ENC_KEYRING")
+    val seedKeyring = readSecret("data-enc-keyring", "DATA_ENC_KEYRING")
     val keyManager = DataKeyManager(
         Paths.get(appCfg.dataEncKeyringPath),
         appCfg.dataEncRotationDays,

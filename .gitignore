@@ -6,7 +6,9 @@
 *.key
 *.p12
 *.crt
-secrets/
+secrets/*
+!secrets/.gitkeep
+!secrets/*.example
 .secrets
 
 # Dependencies
