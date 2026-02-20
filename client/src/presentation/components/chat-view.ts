@@ -38,13 +38,10 @@ interface ChatContext {
 }
 
 /**
- * Generate a random username in format: anon-XXXX (4 hex characters)
+ * Return the default username for anonymous chat.
  */
 export function generateRandomUsername(): string {
-  const hex = Array.from(crypto.getRandomValues(new Uint8Array(2)))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-  return `anon-${hex}`;
+  return 'anon';
 }
 
 /**
@@ -303,7 +300,7 @@ export class ChatView {
       // Update context when user edits username
       usernameInput.addEventListener('input', () => {
         if (this.context) {
-          this.context.currentUsername = usernameInput.value.trim() || generateRandomUsername();
+          this.context.currentUsername = usernameInput.value.trim() || 'anon';
         }
       });
     }

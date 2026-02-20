@@ -569,44 +569,23 @@ describe('Chat Password Security', () => {
 // ============================================================================
 
 describe('Username Generation', () => {
-  it('should generate username in format anon-XXXX', () => {
-    // Act
+  it('should return "anon" as the default username', () => {
     const username = generateRandomUsername();
-
-    // Assert - Should match format: anon-[4 hex chars]
-    expect(username).toMatch(/^anon-[0-9a-f]{4}$/);
+    expect(username).toBe('anon');
   });
 
-  it('should generate different usernames each time', () => {
-    // Act - Generate multiple usernames
+  it('should always return the same default value', () => {
     const usernames = new Set();
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 10; i++) {
       usernames.add(generateRandomUsername());
     }
-
-    // Assert - Should have high uniqueness (at least 95 unique out of 100)
-    // With 65536 possible combinations (16^4), collision probability is low
-    expect(usernames.size).toBeGreaterThan(95);
+    // Always returns the same constant — only one unique value
+    expect(usernames.size).toBe(1);
   });
 
-  it('should only use lowercase hexadecimal characters', () => {
-    // Act - Generate many usernames and check characters
-    for (let i = 0; i < 50; i++) {
-      const username = generateRandomUsername();
-      const hexPart = username.substring(5); // Remove "anon-" prefix
-
-      // Assert - Should only contain 0-9 and a-f
-      expect(hexPart).toMatch(/^[0-9a-f]{4}$/);
-      expect(hexPart).not.toMatch(/[A-F]/); // No uppercase
-    }
-  });
-
-  it('should have correct length (9 characters total)', () => {
-    // Act
+  it('should have correct length (4 characters)', () => {
     const username = generateRandomUsername();
-
-    // Assert - "anon-" (5) + 4 hex chars = 9 total
-    expect(username.length).toBe(9);
+    expect(username.length).toBe(4);
   });
 });
 
@@ -892,8 +871,8 @@ describe('Username UI Integration', () => {
     // Act - Setup chat
     setupPasteChat(pasteId, salt);
 
-    // Assert - Username input should have auto-generated value
-    expect(usernameInput.value).toMatch(/^anon-[0-9a-f]{4}$/);
+    // Assert - Username input should default to "anon"
+    expect(usernameInput.value).toBe('anon');
   });
 
   it('should display username in message (escaping HTML)', () => {
