@@ -333,7 +333,7 @@ describe('Chat UI Helpers', () => {
     expect(refreshAddListener.mock.calls.length).toBe(firstCallRefreshCount);
     expect(sendAddListener.mock.calls.length).toBe(firstCallSendCount);
     expect(inputAddListener.mock.calls.length).toBe(firstCallInputCount);
-    expect(refreshBtn.dataset.chatInitialized).toBe('true');
+    expect(chatSection.dataset.chatInitialized).toBe('true');
     expect(consoleWarnSpy).toHaveBeenCalledWith('Chat already initialized, skipping duplicate setup');
 
     // Cleanup
