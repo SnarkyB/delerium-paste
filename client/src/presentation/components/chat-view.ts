@@ -49,6 +49,7 @@ export function generateRandomUsername(): string {
  */
 export class ChatView {
   private context: ChatContext | null = null;
+  private pollInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(private useCase: ChatUseCase) {}
 
@@ -111,9 +112,11 @@ export class ChatView {
   }
 
   /**
-   * Handle refreshing chat messages
+   * Handle refreshing chat messages.
+   * @param password Optional password override
+   * @param silent When true, skip the loading indicator (used during background polling)
    */
-  private async handleRefreshMessages(password?: string): Promise<void> {
+  private async handleRefreshMessages(password?: string, silent = false): Promise<void> {
     if (!this.context) return;
 
     const messagesDiv = document.getElementById('chatMessages');
@@ -135,7 +138,9 @@ export class ChatView {
     }
 
     try {
-      messagesDiv.innerHTML = '<div class="chat-loading">Loading messages...</div>';
+      if (!silent) {
+        messagesDiv.innerHTML = '<div class="chat-loading">Loading messages...</div>';
+      }
 
       // Call use case
       const result = await this.useCase.refreshMessages(
@@ -247,26 +252,26 @@ export class ChatView {
   }
 
   /**
-   * Initialize chat functionality on view page
+   * Initialize chat functionality on view page.
+   * Messages are loaded immediately, then refreshed every 30 seconds.
    * @param pasteId The paste ID
    * @param salt The salt from the paste URL for key derivation
-   * @param initialPassword Optional password from paste view - avoids repeated prompts for refresh/send
+   * @param initialPassword Optional password from paste view — avoids repeated prompts
    */
   setup(pasteId: string, salt: Uint8Array, initialPassword?: string): void {
     const chatSection = document.getElementById('chatSection');
-    const refreshBtn = document.getElementById('refreshMessagesBtn');
     const sendBtn = document.getElementById('sendMessageBtn');
     const chatInput = document.getElementById('chatInput') as HTMLInputElement | HTMLTextAreaElement;
     const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
     const chatInfoText = document.getElementById('chatInfoText');
 
-    if (!chatSection || !refreshBtn || !sendBtn || !chatInput) {
+    if (!chatSection || !sendBtn || !chatInput) {
       console.warn('Chat UI elements not found');
       return;
     }
 
     // Guard against duplicate initialization
-    if (refreshBtn.dataset.chatInitialized === 'true') {
+    if (chatSection.dataset.chatInitialized === 'true') {
       console.warn('Chat already initialized, skipping duplicate setup');
       return;
     }
@@ -282,17 +287,19 @@ export class ChatView {
       cachedPassword: initialPassword
     };
 
-    // Clear cached password on page unload for security
-    if (initialPassword) {
-      const cleanup = (): void => {
-        if (this.context?.cachedPassword) {
-          secureClear(this.context.cachedPassword);
-          this.context.cachedPassword = undefined;
-        }
-      };
-      window.addEventListener('beforeunload', cleanup);
-      window.addEventListener('pagehide', cleanup);
-    }
+    // Clear cached password and stop polling on page unload
+    const cleanup = (): void => {
+      if (this.context?.cachedPassword) {
+        secureClear(this.context.cachedPassword);
+        this.context.cachedPassword = undefined;
+      }
+      if (this.pollInterval !== null) {
+        clearInterval(this.pollInterval);
+        this.pollInterval = null;
+      }
+    };
+    window.addEventListener('beforeunload', cleanup);
+    window.addEventListener('pagehide', cleanup);
 
     // Set auto-generated username in input field if it exists
     if (usernameInput) {
@@ -307,15 +314,8 @@ export class ChatView {
 
     // Update info text
     if (chatInfoText) {
-      chatInfoText.textContent = initialPassword
-        ? '💡 Messages are encrypted with your paste password.'
-        : '💡 Messages are encrypted with your paste password. Password required for each action.';
+      chatInfoText.textContent = '💡 Messages are encrypted with your paste password. Auto-refreshing every 30 seconds.';
     }
-
-    // Refresh messages handler
-    refreshBtn.addEventListener('click', () => {
-      void this.handleRefreshMessages();
-    });
 
     // Send message handler
     sendBtn.addEventListener('click', () => {
@@ -331,6 +331,14 @@ export class ChatView {
     });
 
     // Mark as initialized to prevent duplicate listeners
-    refreshBtn.dataset.chatInitialized = 'true';
+    chatSection.dataset.chatInitialized = 'true';
+
+    // Load messages immediately after paste is decrypted
+    void this.handleRefreshMessages(initialPassword);
+
+    // Poll for new messages every 30 seconds (silent — no loading indicator)
+    this.pollInterval = setInterval(() => {
+      void this.handleRefreshMessages(undefined, true);
+    }, 30000);
   }
 }
