@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="styles/modals.css">
     <link rel="stylesheet" href="styles/loading.css">
     <link rel="stylesheet" href="styles/mobile.css">
+    <link rel="stylesheet" href="styles/highlight-dark.min.css">
   </head>
 <body>
     <a href="#main-content" class="sr-only">Skip to main content</a>
@@ -32,18 +33,40 @@
         <!-- Paste Content -->
         <section class="section" aria-labelledby="content-title">
           <h2 class="section-title" id="content-title">Your Content</h2>
+
+          <!-- Write / Preview tabs -->
+          <div class="editor-tabs" role="tablist" aria-label="Editor mode">
+            <button type="button" class="editor-tab active" id="writeTab"
+                    role="tab" aria-selected="true" aria-controls="paste">Write</button>
+            <button type="button" class="editor-tab" id="previewTab"
+                    role="tab" aria-selected="false" aria-controls="markdownPreview">Preview</button>
+          </div>
+
           <div class="textarea-wrapper">
             <label for="paste" class="sr-only">Paste content</label>
-            <textarea 
+            <textarea
               id="paste"
               name="paste"
-              placeholder="Type or paste your text here... It will be encrypted in your browser before upload."
+              placeholder="Type or paste your text here… Markdown supported. Content is encrypted in your browser before upload."
               maxlength="1048576"
               aria-describedby="charCounter paste-help"
               aria-required="false"
             ></textarea>
             <div class="char-counter" id="charCounter" role="status" aria-live="polite">0 / 1,048,576</div>
             <div id="paste-help" class="sr-only">Maximum 1,048,576 characters allowed</div>
+          </div>
+
+          <!-- Markdown preview pane (hidden until Preview tab active) -->
+          <div id="markdownPreview" class="markdown-preview" hidden aria-label="Markdown preview" role="tabpanel"></div>
+
+          <!-- Image upload zone -->
+          <div id="imageUploadZone" class="image-upload-zone">
+            <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp"
+                   multiple aria-label="Upload images" hidden>
+            <button type="button" id="imageUploadBtn" class="btn btn-secondary btn-sm">
+              Attach Images <span class="text-muted">(max 3 · 5 MB each)</span>
+            </button>
+            <div id="imagePreviews" class="image-previews" role="list" aria-label="Image attachments"></div>
           </div>
         </section>
 
@@ -55,12 +78,12 @@
               Expire after (minutes)
               <span class="tooltip" data-tooltip="How long before the paste is automatically deleted" aria-label="Expiration help">ℹ️</span>
             </label>
-            <input 
-              type="number" 
-              id="mins" 
-              name="mins" 
-              value="60" 
-              min="1" 
+            <input
+              type="number"
+              id="mins"
+              name="mins"
+              value="60"
+              min="1"
               max="10080"
               aria-describedby="expiration-help"
             >
@@ -80,12 +103,12 @@
           <div id="passwordGroup">
             <div class="option-group">
               <label for="password">Password or PIN <span aria-label="required">*</span></label>
-              <input 
-                type="password" 
-                id="password" 
-                name="password" 
-                placeholder="Enter a password or 4-12 digit PIN" 
-                autocomplete="new-password" 
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter a password or 4-12 digit PIN"
+                autocomplete="new-password"
                 required
                 aria-describedby="password-help"
                 aria-required="true"
@@ -99,7 +122,7 @@
         <button id="save" class="btn-primary" type="button" aria-describedby="save-help">
           <span class="btn-text">
             <span class="btn-icon" aria-hidden="true">🔒</span>
-            <span id="btnText">Encrypt & Upload</span>
+            <span id="btnText">Encrypt &amp; Upload</span>
           </span>
         </button>
         <div id="save-help" class="sr-only">Click to encrypt your content and upload it to the server</div>
@@ -109,13 +132,13 @@
           <div class="output-title" id="outputTitle">Success! Your paste is ready</div>
           <div id="outputMessage"></div>
           <div class="output-url">
-            <label for="pasteUrl" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">Share URL:</label>
+            <label for="pasteUrl" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem; display: block;">Share URL:</label>
             <input type="text" id="pasteUrl" name="pasteUrl" readonly aria-label="Share URL">
             <button class="btn-copy" id="copyBtn" aria-label="Copy share URL">Copy Link</button>
             <button class="btn-view" id="viewBtn" style="display: none;" aria-label="View paste">View Paste</button>
           </div>
           <div class="output-url" id="deleteUrlContainer" style="display: none; margin-top: 0.75rem;">
-            <label for="deleteUrl" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem; display: block;">
+            <label for="deleteUrl" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem; display: block;">
               <span aria-hidden="true">🗑️</span> Delete URL (save this to delete later):
             </label>
             <input type="text" id="deleteUrl" name="deleteUrl" readonly style="font-size: 0.85rem;" aria-label="Delete URL">
@@ -135,6 +158,8 @@
     <!-- Version Display -->
     <a href="https://github.com/SnarkyB/delerium-paste" target="_blank" rel="noopener noreferrer" class="version-display">v1.0.1-alpha</a>
 
+    <script src="vendor/marked.min.js"></script>
+    <script src="vendor/highlight.min.js"></script>
     <script type="module" src="js/app.js"></script>
   </body>
 </html>
