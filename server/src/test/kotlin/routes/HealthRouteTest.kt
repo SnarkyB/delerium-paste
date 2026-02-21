@@ -50,7 +50,7 @@ class HealthRouteTest {
     }
 
     @Test
-    fun testHealthEndpointReflectsEnabledFeatures() = testApplication {
+    fun testHealthEndpointReturnsOkWithDatabaseHealthy() = testApplication {
         val cfg = createTestAppConfig(powEnabled = true, rlEnabled = true)
         val rl = TokenBucket(cfg.rlCapacity, cfg.rlRefill)
         val pow = PowService(cfg.powDifficulty, cfg.powTtl)
@@ -65,13 +65,13 @@ class HealthRouteTest {
         val status = mapper.readValue<HealthStatus>(response.bodyAsText())
         assertEquals("ok", status.status)
         assertTrue("Timestamp should be positive", status.timestampMs > 0)
-        assertTrue("PoW should be reported as enabled", status.powEnabled)
-        assertTrue("Rate limiting should be reported as enabled", status.rateLimitingEnabled)
         assertTrue("Database should be reported as healthy", status.databaseHealthy)
+        // Security config (powEnabled, rateLimitingEnabled) is intentionally not
+        // exposed in the health response to avoid disclosing active mitigations.
     }
 
     @Test
-    fun testHealthEndpointReflectsDisabledFeatures() = testApplication {
+    fun testHealthEndpointWithNoOptionalServices() = testApplication {
         val cfg = createTestAppConfig(powEnabled = false, rlEnabled = false)
 
         application {
@@ -80,8 +80,7 @@ class HealthRouteTest {
 
         val response = client.get("/api/health")
         val status = mapper.readValue<HealthStatus>(response.bodyAsText())
-        assertFalse("PoW should be reported as disabled", status.powEnabled)
-        assertFalse("Rate limiting should be reported as disabled", status.rateLimitingEnabled)
+        assertEquals("ok", status.status)
         assertTrue("Database should be reported as healthy", status.databaseHealthy)
     }
 
