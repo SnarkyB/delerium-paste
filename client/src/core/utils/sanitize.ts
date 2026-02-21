@@ -16,12 +16,16 @@ const BLOCKED_TAGS = new Set([
 
 const BLOCKED_ATTR = /^on/i;
 const BLOCKED_HREF = /^javascript:/i;
+const SAFE_IMG_SRC = /^(data:|blob:)/i;
 
 /**
  * Sanitize an HTML string by removing dangerous tags and attributes.
  *
  * Blocked tags: script, iframe, object, embed, form, input, button, link, meta, base, style
  * Blocked attributes: all event handlers (on*), javascript: hrefs/srcs
+ * Tracking pixel protection: <img> elements with external src (http:, https://, relative)
+ *   are removed entirely. Only data: and blob: src values are allowed — these are inline
+ *   data that cannot make network requests. This is defense-in-depth alongside CSP.
  *
  * @param html - Raw HTML string (e.g. markdown-rendered output)
  * @returns Safe HTML string with all dangerous nodes and attributes removed
@@ -38,6 +42,17 @@ export function sanitizeHtml(html: string): string {
 
     if (BLOCKED_TAGS.has(el.tagName.toLowerCase())) {
       toRemove.push(el);
+    } else if (el.tagName === 'IMG') {
+      const src = el.getAttribute('src');
+      if (src && !SAFE_IMG_SRC.test(src.trim())) {
+        toRemove.push(el);
+      } else {
+        for (const attr of Array.from(el.attributes)) {
+          if (BLOCKED_ATTR.test(attr.name)) {
+            el.removeAttribute(attr.name);
+          }
+        }
+      }
     } else {
       for (const attr of Array.from(el.attributes)) {
         const isEventHandler = BLOCKED_ATTR.test(attr.name);

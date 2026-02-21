@@ -96,13 +96,15 @@ describe('sanitizeHtml', () => {
       expect(result).toContain('<p>hello</p>');
     });
 
-    it('should strip onload attribute', () => {
-      const result = sanitizeHtml('<img src="x" onload="evil()">');
+    it('should strip onload attribute from allowed img', () => {
+      const result = sanitizeHtml('<img src="data:image/png;base64,abc" onload="evil()">');
+      expect(result).toContain('<img');
       expect(result).not.toContain('onload');
     });
 
-    it('should strip onerror attribute', () => {
-      const result = sanitizeHtml('<img src="x" onerror="evil()">');
+    it('should strip onerror attribute from allowed img', () => {
+      const result = sanitizeHtml('<img src="data:image/png;base64,abc" onerror="evil()">');
+      expect(result).toContain('<img');
       expect(result).not.toContain('onerror');
     });
 
@@ -189,10 +191,16 @@ describe('sanitizeHtml', () => {
       expect(result).toContain('link');
     });
 
-    it('should pass through img tags with safe src', () => {
-      const result = sanitizeHtml('<img src="https://example.com/img.png" alt="image">');
-      expect(result).toContain('src="https://example.com/img.png"');
+    it('should pass through img tags with data: src', () => {
+      const result = sanitizeHtml('<img src="data:image/png;base64,abc123" alt="image">');
+      expect(result).toContain('src="data:image/png;base64,abc123"');
       expect(result).toContain('alt="image"');
+    });
+
+    it('should pass through img tags with blob: src', () => {
+      const result = sanitizeHtml('<img src="blob:http://localhost/uuid" alt="preview">');
+      expect(result).toContain('src="blob:http://localhost/uuid"');
+      expect(result).toContain('alt="preview"');
     });
 
     it('should pass through unordered and ordered lists', () => {
@@ -211,6 +219,85 @@ describe('sanitizeHtml', () => {
       const result = sanitizeHtml('<table><tr><th>H</th><td>D</td></tr></table>');
       expect(result).toContain('<table>');
       expect(result).toContain('<th>H</th>');
+    });
+  });
+
+  // =========================================================================
+  // Tracking Pixel Protection (img with external src)
+  // =========================================================================
+
+  describe('tracking pixel protection', () => {
+    it('should remove img with https: src', () => {
+      const result = sanitizeHtml('<img src="https://tracker.com/pixel.gif" alt="x"><p>safe</p>');
+      expect(result).not.toContain('<img');
+      expect(result).not.toContain('tracker.com');
+      expect(result).toContain('<p>safe</p>');
+    });
+
+    it('should remove img with http: src', () => {
+      const result = sanitizeHtml('<img src="http://evil.com/beacon.png"><p>ok</p>');
+      expect(result).not.toContain('<img');
+      expect(result).not.toContain('evil.com');
+      expect(result).toContain('<p>ok</p>');
+    });
+
+    it('should remove img with protocol-relative src', () => {
+      const result = sanitizeHtml('<img src="//tracker.com/pixel.gif"><p>ok</p>');
+      expect(result).not.toContain('<img');
+      expect(result).not.toContain('tracker.com');
+    });
+
+    it('should remove img with relative src', () => {
+      const result = sanitizeHtml('<img src="/images/logo.png"><p>ok</p>');
+      expect(result).not.toContain('<img');
+      expect(result).toContain('<p>ok</p>');
+    });
+
+    it('should allow img with data: src', () => {
+      const result = sanitizeHtml('<img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==">');
+      expect(result).toContain('<img');
+      expect(result).toContain('data:image/gif');
+    });
+
+    it('should allow img with blob: src', () => {
+      const result = sanitizeHtml('<img src="blob:http://localhost:8080/550e8400-e29b">');
+      expect(result).toContain('<img');
+      expect(result).toContain('blob:');
+    });
+
+    it('should remove img with data-like but not data: src', () => {
+      const result = sanitizeHtml('<img src="https://data.tracker.com/pixel.gif">');
+      expect(result).not.toContain('<img');
+    });
+
+    it('should handle img with no src attribute', () => {
+      const result = sanitizeHtml('<img alt="decorative">');
+      expect(result).toContain('<img');
+      expect(result).toContain('alt="decorative"');
+    });
+
+    it('should strip event handlers from allowed img tags', () => {
+      const result = sanitizeHtml('<img src="data:image/png;base64,abc" onload="evil()">');
+      expect(result).toContain('<img');
+      expect(result).toContain('data:image/png');
+      expect(result).not.toContain('onload');
+    });
+
+    it('should remove multiple tracking pixels', () => {
+      const result = sanitizeHtml(
+        '<img src="https://a.com/1.gif"><img src="https://b.com/2.gif"><p>text</p>'
+      );
+      expect(result).not.toContain('<img');
+      expect(result).toContain('<p>text</p>');
+    });
+
+    it('should handle mixed safe and unsafe img tags', () => {
+      const result = sanitizeHtml(
+        '<img src="data:image/png;base64,ok"><img src="https://evil.com/spy.gif"><p>text</p>'
+      );
+      expect(result).toContain('data:image/png');
+      expect(result).not.toContain('evil.com');
+      expect(result).toContain('<p>text</p>');
     });
   });
 
