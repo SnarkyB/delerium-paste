@@ -12,14 +12,18 @@ import java.security.SecureRandom
  * Utility object for generating random identifiers
  */
 object Ids {
-    private val alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    private val alphabet = "0123456789abcdefghijklmnopqrstuvwxyz"
     private val rnd = SecureRandom()
     
     /**
      * Generate a cryptographically random alphanumeric ID
      * 
+     * Uses lowercase + digits only to avoid Netty HTTP engine issues
+     * with certain uppercase characters in URL paths.
+     * 36^10 ≈ 3.7 × 10^15 combinations at default length — more than sufficient.
+     * 
      * @param len Length of the ID to generate
-     * @return Random string of the specified length using [0-9a-zA-Z]
+     * @return Random string of the specified length using [0-9a-z]
      */
     fun randomId(len: Int): String =
         (0 until len).map { alphabet[rnd.nextInt(alphabet.length)] }.joinToString("")

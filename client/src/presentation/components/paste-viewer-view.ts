@@ -3,10 +3,7 @@
  *
  * Presentation layer component for paste viewing.
  * Handles DOM manipulation and delegates business logic to use cases.
- *
- * Rendering:
- * - Image MIME types (image/jpeg, image/png, image/webp): shown as <img>
- * - All other types: rendered as sanitized markdown via marked.js + hljs
+ * Renders decrypted content as sanitized markdown via marked.js + hljs.
  */
 
 import { ViewPasteUseCase } from '../../application/use-cases/view-paste-use-case.js';
@@ -17,8 +14,6 @@ import { sanitizeHtml } from '../../core/utils/sanitize.js';
 import { WindowWithUI } from '../../ui/ui-manager.js';
 import type { PasteMetadata } from '../../core/models/paste.js';
 import { isFailure } from '../../core/models/result.js';
-
-const IMAGE_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 /**
  * Render decrypted text content into the #content element as sanitized markdown.
@@ -203,27 +198,11 @@ export class PasteViewerView {
       }
 
       const { content: decryptedText, metadata } = result.value;
-      const mime = metadata?.mime ?? 'text/plain';
 
-      // Render content based on MIME type
       if (content) {
         content.classList.remove('loading');
         content.classList.remove('error');
-
-        if (IMAGE_MIMES.has(mime)) {
-          // Image paste — show <img>, hide text content element
-          content.hidden = true;
-          const imageContainer = document.getElementById('imageViewContainer');
-          const pasteImage = document.getElementById('pasteImage') as HTMLImageElement | null;
-          if (imageContainer && pasteImage) {
-            // decryptedText is the base64 data URL stored as paste content
-            pasteImage.src = decryptedText;
-            imageContainer.hidden = false;
-          }
-        } else {
-          // Text paste — render as markdown
-          renderMarkdown(content, decryptedText);
-        }
+        renderMarkdown(content, decryptedText);
       }
 
       if (updateStatus) updateStatus(true, 'Decrypted successfully');

@@ -150,12 +150,6 @@
       .info-item { display: flex; align-items: center; gap: 0.5rem; }
       .info-item strong { color: var(--text); }
 
-      /* Image view container */
-      #imageViewContainer {
-        margin-top: 1.5rem;
-        text-align: center;
-      }
-
       /* Spinner */
       .spinner {
         display: inline-block;
@@ -236,13 +230,7 @@
         <!-- Rendered content (markdown or plaintext) -->
         <div id="content" class="loading" role="article" aria-label="Paste content">Decrypting your secure paste...</div>
 
-        <!-- Image view container (shown for image/* MIME pastes) -->
-        <div id="imageViewContainer" hidden>
-          <img id="pasteImage" alt="Encrypted image attachment"
-               style="max-width:100%;max-height:80vh;display:block;margin:0 auto;border-radius:var(--radius-sm);">
-        </div>
-
-          <div class="actions" role="toolbar" aria-label="Paste actions">
+        <div class="actions" role="toolbar" aria-label="Paste actions">
             <button class="btn btn-primary" id="copyContentBtn" aria-label="Copy paste content to clipboard">
               <span aria-hidden="true">📋</span>
               <span id="copyText">Copy to Clipboard</span>

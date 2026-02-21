@@ -43,6 +43,20 @@
           </div>
 
           <div class="textarea-wrapper">
+            <div id="markdownToolbar" class="markdown-toolbar" role="toolbar" aria-label="Markdown formatting">
+              <button type="button" class="toolbar-btn" data-wrap="**" data-placeholder="bold text" aria-label="Bold">B</button>
+              <button type="button" class="toolbar-btn" data-wrap="*" data-placeholder="italic text" aria-label="Italic">I</button>
+              <button type="button" class="toolbar-btn" data-wrap="`" data-placeholder="code" aria-label="Inline code">`</button>
+              <span class="toolbar-sep" aria-hidden="true"></span>
+              <button type="button" class="toolbar-btn" data-wrap="## " data-wrap-end="" data-placeholder="Heading" data-block="true" aria-label="Heading">H</button>
+              <button type="button" class="toolbar-btn" data-wrap="* " data-wrap-end="" data-placeholder="list item" data-block="true" aria-label="Bullet list">•</button>
+              <button type="button" class="toolbar-btn" data-wrap="1. " data-wrap-end="" data-placeholder="list item" data-block="true" aria-label="Numbered list">1.</button>
+              <button type="button" class="toolbar-btn" data-wrap="> " data-wrap-end="" data-placeholder="quote" data-block="true" aria-label="Blockquote">"</button>
+              <button type="button" class="toolbar-btn" data-wrap="```&#10;" data-placeholder="code" data-wrap-end="&#10;```" data-block="true" aria-label="Code block">&#123; &#125;</button>
+              <span class="toolbar-sep" aria-hidden="true"></span>
+              <button type="button" class="toolbar-btn" data-wrap="[" data-placeholder="link text" data-wrap-end="](url)" aria-label="Link">🔗</button>
+              <button type="button" class="toolbar-btn" data-insert="\n---\n" data-block="true" aria-label="Horizontal rule">—</button>
+            </div>
             <label for="paste" class="sr-only">Paste content</label>
             <textarea
               id="paste"
@@ -58,16 +72,6 @@
 
           <!-- Markdown preview pane (hidden until Preview tab active) -->
           <div id="markdownPreview" class="markdown-preview" hidden aria-label="Markdown preview" role="tabpanel"></div>
-
-          <!-- Image upload zone -->
-          <div id="imageUploadZone" class="image-upload-zone">
-            <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp"
-                   multiple aria-label="Upload images" hidden>
-            <button type="button" id="imageUploadBtn" class="btn btn-secondary btn-sm">
-              Attach Images <span class="text-muted">(max 3 · 5 MB each)</span>
-            </button>
-            <div id="imagePreviews" class="image-previews" role="list" aria-label="Image attachments"></div>
-          </div>
         </section>
 
         <!-- Expiration Options -->

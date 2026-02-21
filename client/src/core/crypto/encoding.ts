@@ -3,15 +3,23 @@
  * Base64url is URL-safe (uses - and _ instead of + and /)
  */
 
+/** Chunk size for encoding to avoid stack overflow with large payloads */
+const ENCODE_CHUNK_SIZE = 8192;
+
 /**
  * Encode bytes to base64url format
- * 
+ *
  * @param bytes Binary data to encode
  * @returns Base64url-encoded string without padding
  */
 export function encodeBase64Url(bytes: ArrayBuffer | Uint8Array): string {
   const uint8Array = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-  return btoa(String.fromCharCode(...uint8Array))
+  let binary = '';
+  for (let i = 0; i < uint8Array.length; i += ENCODE_CHUNK_SIZE) {
+    const chunk = uint8Array.subarray(i, Math.min(i + ENCODE_CHUNK_SIZE, uint8Array.length));
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+  return btoa(binary)
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
