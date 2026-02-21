@@ -46,11 +46,10 @@ export function secureClear(str: string): void {
  */
 export function secureClearBuffer(buffer: ArrayBuffer): void {
   if (buffer && buffer.byteLength > 0) {
-    const view = new Uint8Array(buffer);
-    // Overwrite with random data
-    for (let i = 0; i < view.length; i++) {
-      view[i] = Math.floor(Math.random() * 256);
-    }
+    // Overwrite with cryptographically random bytes (best effort).
+    // Using crypto.getRandomValues rather than Math.random() is semantically
+    // correct and eliminates any chance a JIT treats the writes as dead code.
+    crypto.getRandomValues(new Uint8Array(buffer));
   }
 }
 

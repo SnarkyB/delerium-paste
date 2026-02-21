@@ -87,11 +87,10 @@ class PowService(private val difficulty: Int, private val ttlSeconds: Int) {
         val input = "$challenge:$nonce".toByteArray()
         val digest = md.digest(input)
         val bits = leadingZeroBits(digest)
-        val ok = bits >= difficulty
-        if (ok) {
-            cache.remove(challenge)
-        }
-        return ok
+        if (bits < difficulty) return false
+        // Atomically remove the challenge only if it still maps to the same expiry we checked.
+        // This prevents two concurrent requests from both accepting the same valid nonce.
+        return cache.remove(challenge, exp)
     }
 
     /**

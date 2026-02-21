@@ -74,15 +74,14 @@ data class ErrorResponse(val error: String)
  *
  * @property status Overall service status string ("ok" or "degraded")
  * @property timestampMs Server timestamp in milliseconds
- * @property powEnabled Whether proof-of-work is enabled
- * @property rateLimitingEnabled Whether rate limiting is enabled
  * @property databaseHealthy Whether database connectivity is healthy
+ *
+ * Note: Security-configuration fields (powEnabled, rateLimitingEnabled) are
+ * intentionally omitted to avoid disclosing which mitigations are active.
  */
 data class HealthStatus(
     val status: String = "ok",
     val timestampMs: Long = System.currentTimeMillis(),
-    val powEnabled: Boolean,
-    val rateLimitingEnabled: Boolean,
     val databaseHealthy: Boolean = true
 )
 

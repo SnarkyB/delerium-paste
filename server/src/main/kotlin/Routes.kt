@@ -47,11 +47,11 @@ private fun clientIp(call: ApplicationCall): String {
     if (trustedProxyIps.isEmpty() || remoteHost !in trustedProxyIps) {
         return remoteHost
     }
-    val header = call.request.headers["X-Forwarded-For"] ?: return remoteHost
-    return header.split(",")
-        .map { it.trim() }
-        .firstOrNull { it.isNotEmpty() }
-        ?: remoteHost
+    // Use X-Real-IP (set by nginx to $remote_addr) rather than X-Forwarded-For.
+    // X-Forwarded-For's leftmost entry is client-controlled and can be spoofed to
+    // bypass rate limiting. X-Real-IP is always the direct upstream peer IP.
+    val header = call.request.headers["X-Real-IP"] ?: return remoteHost
+    return header.trim().ifEmpty { remoteHost }
 }
 
 fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: AppConfig, failedAttemptTracker: FailedAttemptTracker? = null) {
@@ -67,14 +67,7 @@ fun Routing.apiRoutes(repo: PasteRepo, rl: TokenBucket?, pow: PowService?, cfg: 
             get {
                 val dbHealthy = repo.checkHealth()
                 val status = if (dbHealthy) "ok" else "degraded"
-                call.respond(
-                    HealthStatus(
-                        status = status,
-                        powEnabled = cfg.powEnabled && pow != null,
-                        rateLimitingEnabled = rl != null,
-                        databaseHealthy = dbHealthy
-                    )
-                )
+                call.respond(HealthStatus(status = status, databaseHealthy = dbHealthy))
             }
             head { call.respond(HttpStatusCode.OK) }
         }

@@ -28,6 +28,8 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.security.MessageDigest
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 import java.time.Instant
 
 /**
@@ -79,13 +81,21 @@ class PasteRepo(private val db: Database, private val pepper: String, private va
     init { transaction(db) { SchemaUtils.createMissingTablesAndColumns(Pastes, ChatMessages) } }
 
     /**
-     * Hash a deletion token with SHA-256
-     * Combines the pepper with the raw token for additional security
+     * Hash a deletion token with HMAC-SHA256 keyed by the pepper.
+     *
+     * HMAC is used instead of SHA256(pepper || token) because the keyed-MAC
+     * construction is provably secure as a PRF; the concatenation variant is not.
+     *
+     * ⚠️  MIGRATION NOTE: Changing from the old SHA256(pepper||token) scheme to
+     * HMAC-SHA256 invalidates all existing stored hashes. After deploying this
+     * change, existing delete tokens and password-derived delete-auth values will
+     * no longer verify. Pastes will still expire naturally; only creator-delete and
+     * password-delete flows are affected for pre-existing pastes.
      */
     private fun hashToken(raw: String): String {
-        val md = MessageDigest.getInstance("SHA-256")
-        md.update(pepper.toByteArray())
-        val out = md.digest(raw.toByteArray())
+        val mac = Mac.getInstance("HmacSHA256")
+        mac.init(SecretKeySpec(pepper.toByteArray(Charsets.UTF_8), "HmacSHA256"))
+        val out = mac.doFinal(raw.toByteArray(Charsets.UTF_8))
         return out.joinToString("") { "%02x".format(it) }
     }
 

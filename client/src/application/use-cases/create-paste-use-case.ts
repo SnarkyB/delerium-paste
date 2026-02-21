@@ -16,6 +16,7 @@ import { PasteService } from '../../core/services/paste-service.js';
 import type { CreatePasteCommand, PasteCreated } from '../dtos/paste-dtos.js';
 import type { Result } from '../../core/models/result.js';
 import { success, failure, isFailure } from '../../core/models/result.js';
+import { getSafeErrorMessage } from '../../security.js';
 
 /**
  * Use case for creating a paste
@@ -113,8 +114,7 @@ export class CreatePasteUseCase {
         deleteUrl
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      return failure(errorMessage);
+      return failure(getSafeErrorMessage(error, 'paste creation'));
     }
   }
 }
