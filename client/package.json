@@ -21,6 +21,9 @@
     "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "prepare": "husky"
   },
+  "overrides": {
+    "test-exclude": "^7.0.1"
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.58.1",
