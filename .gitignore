@@ -116,3 +116,4 @@ gradle-app.setting
 bazel-*
 .bazel
 .bazelrc.user
+.worktrees
