@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -14,95 +14,22 @@
     <link rel="stylesheet" href="styles/loading.css">
     <link rel="stylesheet" href="styles/chat.css">
     <link rel="stylesheet" href="styles/mobile.css">
+    <link rel="stylesheet" href="styles/highlight-dark.min.css">
     <style>
-      /* CSS Reset & Base */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      :root {
-        --primary: #6366f1;
-        --primary-dark: #4f46e5;
-        --primary-light: #818cf8;
-        --success: #10b981;
-        --danger: #ef4444;
-        --warning: #f59e0b;
-        --bg: #f8fafc;
-        --bg-card: #ffffff;
-        --text: #1e293b;
-        --text-light: #64748b;
-        --border: #e2e8f0;
-        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        --radius: 0.75rem;
-        --radius-sm: 0.5rem;
-      }
-
-      /* Dark Mode */
-      [data-theme="dark"] {
-        --bg: #0f172a;
-        --bg-card: #1e293b;
-        --text: #f1f5f9;
-        --text-light: #94a3b8;
-        --border: #334155;
-        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-      }
-
-      [data-theme="dark"] body {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      }
-
-      [data-theme="dark"] #content {
-        background: #0f172a;
-        color: var(--text);
-      }
-
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 2rem 1rem;
-        color: var(--text);
-        line-height: 1.6;
-        transition: background 0.3s ease, color 0.3s ease;
-      }
-
-      * {
-        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-      }
-
+      /* View page overrides */
       .container {
-        max-width: 900px;
-        margin: 0 auto;
-      }
-
-      /* Header */
-      .header {
-        text-align: center;
-        margin-bottom: 2rem;
-        animation: fadeInDown 0.6s ease-out;
-      }
-
-      .logo {
-        font-size: 2rem;
-        font-weight: 800;
-        color: white;
-        margin-bottom: 0.5rem;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        max-width: 1200px;
       }
 
       .status-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
         padding: 0.5rem 1rem;
         border-radius: 2rem;
-        color: white;
+        color: var(--text-muted);
         font-size: 0.9rem;
         margin-top: 0.5rem;
       }
@@ -111,44 +38,56 @@
         animation: pulse 2s ease-in-out infinite;
       }
 
-      /* Main Card */
-      .card {
-        background: var(--bg-card);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow-lg);
-        padding: 2rem;
-        animation: fadeInUp 0.6s ease-out;
-      }
-
-      /* Content */
+      /* Rendered markdown content area */
       #content {
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        background: var(--bg);
+        background: var(--bg-secondary);
         padding: 1.5rem;
         border-radius: var(--radius-sm);
-        border: 2px solid var(--border);
-        font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+        border: 1px solid var(--border);
+        font-family: var(--font-sans);
         font-size: 0.95rem;
-        line-height: 1.6;
-        min-height: 400px;
-        max-height: 600px;
-        overflow-y: auto;
+        line-height: 1.7;
+        min-height: 200px;
+        overflow-x: auto;
+        /* markdown styles mirror .markdown-preview */
       }
 
       #content.loading {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--text-light);
+        color: var(--text-muted);
         font-style: italic;
+        font-family: var(--font-mono);
       }
 
       #content.error {
         color: var(--danger);
         border-color: var(--danger);
-        background: #fef2f2;
+        font-family: var(--font-mono);
+        white-space: pre-wrap;
       }
+
+      /* Markdown elements inside rendered content */
+      #content h1, #content h2, #content h3,
+      #content h4, #content h5, #content h6 {
+        color: var(--text);
+        margin: 1.25rem 0 0.5rem;
+        font-weight: 600;
+      }
+      #content p { margin: 0.75rem 0; }
+      #content a { color: var(--text-light); text-decoration: underline; text-decoration-color: var(--border); }
+      #content a:hover { color: var(--text); }
+      #content code { background: var(--bg-tertiary); padding: 0.1em 0.3em; border-radius: 3px; font-family: var(--font-mono); font-size: 0.9em; }
+      #content pre { background: var(--bg-tertiary); border: 1px solid var(--border); padding: 1rem; border-radius: var(--radius-sm); overflow-x: auto; margin: 1rem 0; }
+      #content pre code { background: none; padding: 0; }
+      #content blockquote { border-left: 3px solid var(--border); margin: 1rem 0; padding-left: 1rem; color: var(--text-muted); }
+      #content ul, #content ol { margin: 0.75rem 0; padding-left: 1.5rem; }
+      #content li { margin: 0.25rem 0; }
+      #content table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+      #content th, #content td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; }
+      #content th { background: var(--bg-tertiary); font-weight: 600; }
+      #content img { max-width: 100%; border-radius: var(--radius-sm); }
 
       /* Actions */
       .actions {
@@ -160,7 +99,7 @@
 
       .btn {
         padding: 0.75rem 1.5rem;
-        border: none;
+        border: 1px solid var(--border);
         border-radius: var(--radius-sm);
         font-size: 0.95rem;
         font-weight: 600;
@@ -169,56 +108,35 @@
         align-items: center;
         gap: 0.5rem;
         transition: all 0.2s;
+        background: var(--bg-secondary);
+        color: var(--text);
       }
 
-      .btn-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-        color: white;
-        box-shadow: var(--shadow);
-      }
-
-      .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-      }
+      .btn-primary:hover { border-color: var(--primary); color: var(--primary-hover); }
 
       .btn-secondary {
-        background: var(--bg);
-        color: var(--text);
-        border: 2px solid var(--border);
-      }
-
-      .btn-secondary:hover {
         background: var(--bg-card);
-        border-color: var(--primary);
+        color: var(--text-muted);
+        border-color: var(--border);
       }
+      .btn-secondary:hover { border-color: var(--primary); color: var(--text); }
 
       .btn-danger {
-        background: var(--danger);
-        color: white;
-        border: 2px solid var(--danger);
+        background: transparent;
+        color: var(--danger);
+        border: 1px solid var(--danger);
       }
+      .btn-danger:hover { background: var(--danger); color: white; }
+      .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
 
-      .btn-danger:hover {
-        background: #dc2626;
-        border-color: #dc2626;
-      }
-
-      .btn-danger:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-
-      .btn.copied {
-        background: var(--success);
-        color: white;
-      }
+      .btn.copied { border-color: var(--success); color: var(--success); }
 
       /* Info Bar */
       .info-bar {
         margin-top: 1.5rem;
         padding: 1rem;
-        background: var(--bg);
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
         border-radius: var(--radius-sm);
         display: flex;
         justify-content: space-between;
@@ -226,139 +144,78 @@
         flex-wrap: wrap;
         gap: 1rem;
         font-size: 0.875rem;
-        color: var(--text-light);
+        color: var(--text-muted);
       }
 
-      .info-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
+      .info-item { display: flex; align-items: center; gap: 0.5rem; }
+      .info-item strong { color: var(--text); }
 
-      .info-item strong {
-        color: var(--text);
-      }
-
-      /* Footer */
-      .footer {
-        margin-top: 2rem;
+      /* Image view container */
+      #imageViewContainer {
+        margin-top: 1.5rem;
         text-align: center;
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 0.9rem;
       }
 
-      .footer a {
-        color: white;
-        text-decoration: none;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        display: inline-block;
-        margin: 0 0.25rem;
-      }
-
-      .footer a:hover {
-        background: rgba(255, 255, 255, 0.2);
-      }
-
-      /* Loading Spinner */
+      /* Spinner */
       .spinner {
         display: inline-block;
         width: 1.5rem;
         height: 1.5rem;
         border: 3px solid var(--border);
-        border-top-color: var(--primary);
+        border-top-color: var(--text);
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
       }
 
       /* Animations */
       @keyframes fadeInDown {
-        from {
-          opacity: 0;
-          transform: translateY(-20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
       }
-
       @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
       }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.6; }
-      }
-
-      /* Version Display */
+      /* Version display */
       .version-display {
         position: fixed;
         bottom: 1rem;
         right: 1rem;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
+        background: var(--bg-card);
+        border: 1px solid var(--border);
         padding: 0.5rem 0.75rem;
         border-radius: 0.5rem;
-        color: rgba(255, 255, 255, 0.9);
+        color: var(--text-muted);
         font-size: 0.75rem;
         font-weight: 500;
         z-index: 99;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        transition: all 0.2s;
       }
+      .version-display:hover { border-color: var(--primary-dim); color: var(--text); }
 
-      [data-theme="dark"] .version-display {
-        background: rgba(30, 41, 59, 0.8);
-        border: 1px solid rgba(148, 163, 184, 0.3);
+      /* Footer */
+      .footer {
+        margin-top: 2rem;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.9rem;
       }
+      .footer a { color: var(--text-muted); text-decoration: none; padding: 0.5rem 1rem; }
+      .footer a:hover { color: var(--text); }
 
       /* Responsive */
       @media (max-width: 640px) {
-        body {
-          padding: 1rem 0.5rem;
-        }
-
-        .card {
-          padding: 1.5rem;
-        }
-
-        .logo {
-          font-size: 1.5rem;
-        }
-
-        .actions {
-          flex-direction: column;
-        }
-
-        .btn {
-          width: 100%;
-          justify-content: center;
-        }
-
-        .info-bar {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .version-display {
-          bottom: 0.5rem;
-          right: 0.5rem;
-          font-size: 0.7rem;
-          padding: 0.4rem 0.6rem;
-        }
+        body { padding: 1rem 0.5rem; }
+        .card { padding: 1.5rem; }
+        .logo { font-size: 1.5rem; }
+        .actions { flex-direction: column; }
+        .btn { width: 100%; justify-content: center; }
+        .info-bar { flex-direction: column; align-items: flex-start; }
+        .version-display { bottom: 0.5rem; right: 0.5rem; font-size: 0.7rem; padding: 0.4rem 0.6rem; }
       }
     </style>
   </head>
@@ -376,7 +233,14 @@
 
       <!-- Main Card -->
       <main class="card" id="main-content" role="main">
-        <pre id="content" class="loading" role="article" aria-label="Paste content">Decrypting your secure paste...</pre>
+        <!-- Rendered content (markdown or plaintext) -->
+        <div id="content" class="loading" role="article" aria-label="Paste content">Decrypting your secure paste...</div>
+
+        <!-- Image view container (shown for image/* MIME pastes) -->
+        <div id="imageViewContainer" hidden>
+          <img id="pasteImage" alt="Encrypted image attachment"
+               style="max-width:100%;max-height:80vh;display:block;margin:0 auto;border-radius:var(--radius-sm);">
+        </div>
 
           <div class="actions" role="toolbar" aria-label="Paste actions">
             <button class="btn btn-primary" id="copyContentBtn" aria-label="Copy paste content to clipboard">
@@ -405,23 +269,16 @@
         </div>
       </main>
 
-      <!-- Chat Section -->
+      <!-- Chat Section (no manual refresh button — auto-loads after decrypt) -->
       <section class="card chat-section" id="chatSection" style="display: none;" aria-labelledby="chat-title">
         <div class="chat-header">
           <h2 class="chat-title" id="chat-title">Anonymous Chat</h2>
           <span class="chat-limit" aria-label="Message limit">50 message limit</span>
         </div>
 
-        <div style="margin-bottom: var(--space-4);">
-          <button class="btn btn-primary btn-full" id="refreshMessagesBtn" aria-label="Refresh chat messages">
-            <span aria-hidden="true">🔄</span>
-            <span>Refresh Messages</span>
-          </button>
-        </div>
-
         <div id="chatMessages" class="chat-messages" role="log" aria-label="Chat messages" aria-live="polite" aria-atomic="false">
           <div class="chat-empty">
-            Click "Refresh Messages" to load chat (password required)
+            Loading messages…
           </div>
         </div>
 
@@ -456,7 +313,7 @@
         </div>
 
         <div id="chatInfoText" class="chat-info" role="note">
-          <span aria-hidden="true">💡</span> Messages are encrypted with your paste password.
+          <span aria-hidden="true">💡</span> Messages are encrypted with your paste password. Auto-refreshes every 30 seconds.
         </div>
       </section>
 
@@ -471,6 +328,8 @@
     <!-- Version Display -->
     <a href="https://github.com/marcusb333/delerium-paste" target="_blank" rel="noopener noreferrer" class="version-display">v1.0.1-alpha</a>
 
+    <script src="vendor/marked.min.js"></script>
+    <script src="vendor/highlight.min.js"></script>
     <script type="module" src="js/app.js"></script>
   </body>
 </html>
