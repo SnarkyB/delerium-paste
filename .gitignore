@@ -116,4 +116,9 @@ gradle-app.setting
 bazel-*
 .bazel
 .bazelrc.user
-.worktrees
+
+# Git worktrees
+.worktrees/
+
+# Serena MCP plugin
+.serena/
