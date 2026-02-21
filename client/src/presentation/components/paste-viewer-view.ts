@@ -1,17 +1,47 @@
 /**
  * Paste Viewer View Component
- * 
+ *
  * Presentation layer component for paste viewing.
  * Handles DOM manipulation and delegates business logic to use cases.
+ *
+ * Rendering:
+ * - Image MIME types (image/jpeg, image/png, image/webp): shown as <img>
+ * - All other types: rendered as sanitized markdown via marked.js + hljs
  */
 
 import { ViewPasteUseCase } from '../../application/use-cases/view-paste-use-case.js';
 import { DeletePasteUseCase } from '../../application/use-cases/delete-paste-use-case.js';
 import { PasteService } from '../../core/services/paste-service.js';
-import { safeDisplayContent, secureClear, getSafeErrorMessage } from '../../security.js';
+import { secureClear, getSafeErrorMessage } from '../../security.js';
+import { sanitizeHtml } from '../../core/utils/sanitize.js';
 import { WindowWithUI } from '../../ui/ui-manager.js';
 import type { PasteMetadata } from '../../core/models/paste.js';
 import { isFailure } from '../../core/models/result.js';
+
+const IMAGE_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+
+/**
+ * Render decrypted text content into the #content element as sanitized markdown.
+ * Falls back to plain-text display if marked is unavailable.
+ * SECURITY: sanitizeHtml() is called before every innerHTML assignment.
+ */
+function renderMarkdown(container: HTMLElement, text: string): void {
+  if (typeof marked !== 'undefined') {
+    const raw = marked.parse(text, { gfm: true, breaks: true });
+    // SECURITY: sanitizeHtml strips all dangerous tags/attrs before innerHTML assignment
+    const safeHtml = sanitizeHtml(raw);
+    container.innerHTML = safeHtml;
+  } else {
+    // Fallback: plain text (safe — textContent only)
+    container.textContent = text;
+  }
+
+  // Syntax-highlight code blocks
+  if (typeof hljs !== 'undefined') {
+    const blocks = container.querySelectorAll<HTMLElement>('pre code');
+    blocks.forEach(block => hljs.highlightElement(block));
+  }
+}
 
 /**
  * Paste viewer view component
@@ -38,14 +68,11 @@ export class PasteViewerView {
     const destroyBtn = document.getElementById('destroyBtn') as HTMLButtonElement | null;
     if (!destroyBtn) return;
 
-    // Show the button
     destroyBtn.style.display = 'inline-flex';
 
-    // Store deleteAuth in closure - single use, cleared after first use
     let storedDeleteAuth: string | null = deleteAuth;
     let isUsed = false;
 
-    // Clear deleteAuth on page unload for security
     const cleanup = (): void => {
       if (storedDeleteAuth) {
         secureClear(storedDeleteAuth);
@@ -56,13 +83,11 @@ export class PasteViewerView {
     window.addEventListener('pagehide', cleanup);
 
     destroyBtn.addEventListener('click', async () => {
-      // Security: Check if deleteAuth has already been used
       if (isUsed || !storedDeleteAuth) {
         window.alert('Delete authorization has expired. Please refresh the page and try again.');
         return;
       }
 
-      // Confirm deletion
       if (!window.confirm('Are you sure you want to permanently delete this paste? This action cannot be undone.')) {
         return;
       }
@@ -70,7 +95,6 @@ export class PasteViewerView {
       const destroyText = document.getElementById('destroyText');
       const originalText = destroyText?.textContent || 'Destroy Paste';
 
-      // Capture deleteAuth for this request, then clear it immediately (single-use)
       const authForRequest = storedDeleteAuth;
       isUsed = true;
       secureClear(storedDeleteAuth);
@@ -80,18 +104,15 @@ export class PasteViewerView {
         destroyBtn.disabled = true;
         if (destroyText) destroyText.textContent = 'Deleting...';
 
-        // Call delete use case
         const result = await this.deleteUseCase.execute({
           pasteId,
           method: 'password',
           tokenOrPassword: authForRequest
         });
 
-        // Clear auth from request body string (best effort)
         secureClear(authForRequest);
 
         if (result.success) {
-          // Success - update UI
           const content = document.getElementById('content');
           if (content) {
             content.textContent = 'Paste has been permanently deleted.';
@@ -99,14 +120,12 @@ export class PasteViewerView {
           }
           destroyBtn.style.display = 'none';
 
-          // Hide chat section
           const chatSection = document.getElementById('chatSection');
           if (chatSection) chatSection.style.display = 'none';
 
           const updateStatus = (window as WindowWithUI).updateStatus;
           if (updateStatus) updateStatus(true, 'Paste deleted');
 
-          // Remove cleanup listeners since deletion succeeded
           window.removeEventListener('beforeunload', cleanup);
           window.removeEventListener('pagehide', cleanup);
         } else {
@@ -149,18 +168,15 @@ export class PasteViewerView {
     try {
       if (updateStatus) updateStatus(true, 'Fetching paste...');
 
-      // Prompt for password with retry logic using modal
       let lastPassword: string | null = null;
       const passwordPrompt = async (attempt: number, remaining: number): Promise<string | null> => {
-        // Dynamically import modal to avoid unused import warning
         const { getPasswordModal } = await import('./password-modal.js');
         const modal = getPasswordModal();
-        
+
         const message = attempt === 0
           ? 'This paste is protected. Enter the password or PIN to decrypt it.'
           : undefined;
-        
-        // Show/update modal with retry info
+
         const password = await modal.show({
           title: 'Password Required',
           message,
@@ -169,24 +185,16 @@ export class PasteViewerView {
           placeholder: 'Enter password or PIN'
         });
 
-        // Close modal after getting password (success or cancel)
-        // If password is wrong, modal will be shown again on next retry
         if (password) {
           modal.closeOnSuccess();
-          lastPassword = password; // Capture for chat (avoids repeated prompts)
+          lastPassword = password;
         }
 
         return password;
       };
 
-      // Execute use case
       const result = await this.viewUseCase.execute(
-        {
-          pasteId,
-          salt,
-          iv,
-          password: '' // Will be prompted by use case
-        },
+        { pasteId, salt, iv, password: '' },
         passwordPrompt
       );
 
@@ -194,35 +202,49 @@ export class PasteViewerView {
         throw new Error(result.error);
       }
 
-      // Safely display content
+      const { content: decryptedText, metadata } = result.value;
+      const mime = metadata?.mime ?? 'text/plain';
+
+      // Render content based on MIME type
       if (content) {
         content.classList.remove('loading');
         content.classList.remove('error');
-        safeDisplayContent(content, result.value.content);
+
+        if (IMAGE_MIMES.has(mime)) {
+          // Image paste — show <img>, hide text content element
+          content.hidden = true;
+          const imageContainer = document.getElementById('imageViewContainer');
+          const pasteImage = document.getElementById('pasteImage') as HTMLImageElement | null;
+          if (imageContainer && pasteImage) {
+            // decryptedText is the base64 data URL stored as paste content
+            pasteImage.src = decryptedText;
+            imageContainer.hidden = false;
+          }
+        } else {
+          // Text paste — render as markdown
+          renderMarkdown(content, decryptedText);
+        }
       }
 
-      // Update status and info
       if (updateStatus) updateStatus(true, 'Decrypted successfully');
-      if (showInfo && result.value.metadata) {
-        showInfo(result.value.metadata.expireTs);
+      if (showInfo && metadata) {
+        showInfo(metadata.expireTs);
       }
 
-      // Setup destroy button
       if (result.value.deleteAuth) {
         this.setupDestroyButton(pasteId, result.value.deleteAuth);
         secureClear(result.value.deleteAuth);
       }
 
-      // Return metadata for chat initialization (include password to avoid repeated prompts)
       const saltArray = new Uint8Array(
-        await import('../../core/crypto/encoding.js').then(m => 
+        await import('../../core/crypto/encoding.js').then(m =>
           new Uint8Array(m.decodeBase64Url(salt))
         )
       );
 
       const chatPassword = lastPassword ?? undefined;
       if (lastPassword) {
-        lastPassword = null; // Clear reference before return
+        lastPassword = null;
       }
 
       return {
@@ -237,7 +259,7 @@ export class PasteViewerView {
         const errorMessage = getSafeErrorMessage(e, 'paste viewing');
         content.classList.remove('loading');
         content.classList.add('error');
-        safeDisplayContent(content, errorMessage);
+        content.textContent = errorMessage;
       }
       if (updateStatus) {
         const errorMsg = getSafeErrorMessage(e, 'paste viewing');

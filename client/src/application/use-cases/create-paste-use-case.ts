@@ -89,7 +89,7 @@ export class CreatePasteUseCase {
         iv: encrypted.ivB64,
         meta: {
           expireTs,
-          mime: 'text/plain',
+          mime: command.mime ?? 'text/plain',
           allowChat: command.allowChat ?? true
         },
         pow,
