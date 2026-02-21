@@ -155,7 +155,7 @@ fun Application.module() {
         call.response.headers.append("X-XSS-Protection", "1; mode=block")
         call.response.headers.append("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         call.response.headers.append("Content-Security-Policy",
-            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';")
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self';")
         call.response.headers.append("Permissions-Policy", "accelerometer=(), geolocation=(), camera=(), microphone=(), payment=(), usb=()")
         // COEP, COOP, CORP are too restrictive for API endpoints that need CORS
         // These headers are better suited for HTML pages served by the frontend

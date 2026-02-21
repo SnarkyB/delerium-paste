@@ -551,7 +551,7 @@ The server sets the following security headers on all responses:
 - `X-Frame-Options: DENY`
 - `X-XSS-Protection: 1; mode=block`
 - `Strict-Transport-Security: max-age=31536000; includeSubDomains`
-- `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';`
+- `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self';`
 - `Permissions-Policy: accelerometer=(), geolocation=(), camera=(), microphone=(), payment=(), usb=()`
 - `Cross-Origin-Embedder-Policy: require-corp`
 - `Cross-Origin-Opener-Policy: same-origin`
