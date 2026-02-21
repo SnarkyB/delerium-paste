@@ -55,11 +55,29 @@ export class HttpApiClient implements IApiClient {
     return response.json();
   }
 
+  /** Request timeout in ms (prevents indefinite hang on slow/unresponsive server) */
+  private static readonly FETCH_TIMEOUT_MS = 30_000;
+
   /**
    * Retrieve a paste by ID
    */
   async retrievePaste(id: string): Promise<PasteRetrieveResponse> {
-    const response = await fetch(`${this.baseUrl}/pastes/${encodeURIComponent(id)}`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), HttpApiClient.FETCH_TIMEOUT_MS);
+
+    let response: Response;
+    try {
+      response = await fetch(`${this.baseUrl}/pastes/${encodeURIComponent(id)}`, {
+        signal: controller.signal
+      });
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new Error('Request timed out. The server may be slow or unreachable. Please try again.');
+      }
+      throw err;
+    }
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -68,7 +86,19 @@ export class HttpApiClient implements IApiClient {
       if (response.status === 410) {
         throw new Error('Content has expired');
       }
-      throw new Error('Failed to retrieve content');
+      if (response.status === 429) {
+        throw new Error('Too many requests. Please try again later.');
+      }
+      let detail = '';
+      try {
+        const body = await response.json();
+        detail = body.error || '';
+      } catch { /* response may not be JSON */ }
+      throw new Error(
+        detail
+          ? `Server error (${response.status}): ${detail}`
+          : `Server error (${response.status}). Please try again later.`
+      );
     }
 
     return response.json();

@@ -16,8 +16,6 @@ export interface CreatePasteCommand {
   expirationMinutes: number;
   password: string;
   allowChat?: boolean;
-  /** Optional MIME type for image pastes. Defaults to 'text/plain'. */
-  mime?: string;
 }
 
 /**

@@ -106,7 +106,10 @@ describe('HttpApiClient', () => {
       const result = await client.retrievePaste('abc123');
 
       expect(result).toEqual(mockPaste);
-      expect(global.fetch).toHaveBeenCalledWith('/api/pastes/abc123');
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/pastes/abc123',
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
+      );
     });
 
     it('should handle 404 errors', async () => {

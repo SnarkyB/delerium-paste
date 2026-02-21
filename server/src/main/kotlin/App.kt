@@ -26,6 +26,8 @@ import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.compression.Compression
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
 import org.jetbrains.exposed.sql.Database
 import java.security.SecureRandom
@@ -146,6 +148,16 @@ fun Application.module() {
         }
     }
     install(CallLogging) { level = org.slf4j.event.Level.INFO }
+    install(StatusPages) {
+        exception<Throwable> { call, cause ->
+            call.application.environment.log.error(
+                "Unhandled exception on ${call.request.local.uri}", cause
+            )
+            call.respond(
+                io.ktor.http.HttpStatusCode.InternalServerError
+            )
+        }
+    }
     // CORS is handled by Nginx reverse proxy
     // install(CORS) { ... }
     intercept(ApplicationCallPipeline.Setup) {

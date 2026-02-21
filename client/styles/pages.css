@@ -60,9 +60,64 @@ body {
   margin-top: var(--space-4);
 }
 
+/* Markdown Toolbar */
+.markdown-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 var(--space-2);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.toolbar-btn:hover {
+  background: var(--bg);
+  border-color: var(--primary-dim);
+  color: var(--primary);
+}
+
+.toolbar-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 var(--space-1);
+}
+
 /* Textarea Wrapper */
 .textarea-wrapper {
   position: relative;
+}
+
+.textarea-wrapper:has(.markdown-toolbar) textarea {
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 textarea {
@@ -235,61 +290,6 @@ textarea:focus {
 .markdown-preview img {
   max-width: 100%;
   border-radius: var(--radius-sm);
-}
-
-/* Image Upload Zone */
-.image-upload-zone {
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-4);
-  margin-top: var(--space-3);
-  transition: border-color var(--transition-base);
-}
-
-.image-upload-zone:hover {
-  border-color: var(--primary-dim);
-}
-
-.image-previews {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.image-preview-item {
-  position: relative;
-  width: 80px;
-  height: 80px;
-}
-
-.image-preview-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-}
-
-.image-preview-remove {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: var(--danger);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  font-size: 10px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  min-height: unset;
-  width: 18px;
 }
 
 /* Option Groups */
